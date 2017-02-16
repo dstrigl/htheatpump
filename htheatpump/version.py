@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+#  htheatpump - Serial communication module for Heliotherm heat pumps
+#  Copyright (c) 2017 Daniel Strigl. All Rights Reserved.
+
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+""" Version information handling of the :mod:`htheatpump` module.
+
+    You should only have to change the version tuple :const:`version` at the end of this file,
+    e.g.::
+
+        version = Version("htheatpump", 1, 2, 3)  # version format <major>.<minor>.<micro>
+"""
+
+
+class Version(object):
+    """ Object which encapsulates the version information.
+
+    :param package: Name of the package.
+    :type package: str
+    :param major: The major version number.
+    :type major: int
+    :param minor: The minor version number.
+    :type minor: int
+    :param micro: The micro version number.
+    :type micro: int
+    """
+
+    def __init__(self, package, major, minor, micro):
+        self.package = package
+        self.major = major
+        self.minor = minor
+        self.micro = micro
+
+    def short(self):
+        """" Return a string in canonical short version format ``<major>.<minor>.<micro>``.
+
+        :returns: A string in canonical short version format.
+        :rtype: ``str``
+        """
+        return '%d.%d.%d' % (self.major, self.minor, self.micro)
+
+    def __str__(self):
+        """ Returns a string representation of the object.
+
+        :returns: A string representation of this object.
+        :rtype: ``str``
+        """
+        return '[%s, version %s]' % (self.package, self.short())
+
+
+version = Version("htheatpump", 1, 0, 0)
+""" Version definition of the :mod:`htheatpump` module. """
+# version.__name__ = "htheatpump"
+
+
+# --------------------------------------------------------------------------------------------- #
+# Main program
+# --------------------------------------------------------------------------------------------- #
+
+# Only for testing: print the version
+def main():
+    print(version)
+
+
+if __name__ == "__main__":
+    main()
+
+
+# --------------------------------------------------------------------------------------------- #
+# Exported symbols
+# --------------------------------------------------------------------------------------------- #
+
+__all__ = ["version"]
