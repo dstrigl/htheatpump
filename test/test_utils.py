@@ -20,7 +20,7 @@
 """ Unit tests for code in htheatpump.utils. """
 
 import os, sys
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('..'))  # TODO: remove when finished setup
 
 import unittest
 from htheatpump.utils import Singleton
@@ -45,7 +45,7 @@ class HtSingletonTest(unittest.TestCase):
         """ Cleans up the test environment. """
         pass
 
-    def testSingletonClass(self):
+    def test_SingletonClass(self):
         s1 = MySingleton(1)
         self.assertEqual(s1.val, 1)
         s2 = MySingleton(2)
