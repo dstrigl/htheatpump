@@ -11,6 +11,12 @@ Documentation built using Sphinx |today| for HtHeatpump version |version|.
 Contents:
 ---------
 
+.. toctree::
+   :maxdepth: 2
+
+   htparams
+
+
 .. automodule:: htheatpump
    :members:
 
@@ -20,14 +26,14 @@ Contents:
 .. automodule:: htparams
    :members:
 
-.. automodule:: htshell
-   :members:
-
 .. automodule:: utils
    :members:
 
 .. automodule:: version
    :members:
+
+
+:ref:`htparams`
 
 
 Indices and tables
