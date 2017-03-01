@@ -17,46 +17,137 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" Command line program to send commands/requests to the Heliotherm heat pump.
+""" Command line tool to send raw commands to the Heliotherm heat pump.
 
     Example:
 
     .. code-block:: console
 
-        pi@raspberrypi:~/htheatpump $ python3 htshell.py "SP,NR=13"
-        'SP,NR=13,ID=13,NAME=Betriebsart,LEN=1,TP=0,BIT=0,VAL=1,MAX=7,MIN=0,WR=1,US=1'
-        query took 1.97 seconds
-
+       $ python3 htshell.py --device /dev/ttyUSB1 --baudrate 9600 "AR,28,29,30" -r 3
+       > 'AR,28,29,30'
+       < 'AA,28,19,14.09.14-02:08:56,EQ_Spreizung'
+       < 'AA,29,20,14.09.14-11:52:08,EQ_Spreizung'
+       < 'AA,30,65534,15.09.14-09:17:12,Keine Stoerung'
 """
 
 import os, sys
-sys.path.insert(0, os.path.abspath('../htheatpump'))
+sys.path.insert(0, os.path.abspath('../htheatpump'))  # TODO: remove when finished setup
 
 import sys
+import argparse
+import textwrap
 from htheatpump import HtHeatpump
 from timeit import default_timer as timer
+import logging
+_logger = logging.getLogger(__name__)
 
 
 # Main program
 def main():
-    if len(sys.argv) != 2:
-        print("usage: %s <cmd>" % sys.argv[0])
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description = textwrap.dedent('''\
+            Command shell tool to send raw commands to the Heliotherm heat pump.
 
-    hp = HtHeatpump("/dev/ttyUSB0")
+            For commands which deliver more than one response from the heat pump
+            the expected number of responses can be defined by the argument "-r"
+            or "--responses".
+
+            Example:
+
+              $ python3 %(prog)s --device /dev/ttyUSB1 "AR,28,29,30" -r 3
+              > 'AR,28,29,30'
+              < 'AA,28,19,14.09.14-02:08:56,EQ_Spreizung'
+              < 'AA,29,20,14.09.14-11:52:08,EQ_Spreizung'
+              < 'AA,30,65534,15.09.14-09:17:12,Keine Stoerung'
+            '''),
+        formatter_class = argparse.RawDescriptionHelpFormatter,
+        epilog = textwrap.dedent('''\
+            DISCLAIMER
+            ----------
+
+              Please note that any incorrect or careless usage of this program as well as
+              errors in the implementation can damage your heat pump.
+
+              Therefore, the author does not provide any guarantee or warranty concerning
+              to correctness, functionality or performance and does not accept any liability
+              for damage caused by this program or mentioned information.
+
+              Thus, use it on your own risk!
+
+            Copyright (c) 2017 Daniel Strigl. All Rights Reserved.
+            '''))
+
+    parser.add_argument(
+        "-d", "--device",
+        default = "/dev/ttyUSB0",
+        type = str,
+        help = "the serial device on which the heat pump is connected, default: %(default)s")
+
+    parser.add_argument(
+        "-b", "--baudrate",
+        default = 115200,
+        type = int,
+        # the supported baudrates of the Heliotherm heat pump (HP08S10W-WEB):
+        choices = [9600, 19200, 38400, 57600, 115200],
+        help = "baudrate of the serial connection (same as configured on the heat pump), default: %(default)s")
+
+    parser.add_argument(
+        "-r", "--responses",
+        default = 1,
+        type = int,
+        help = "number of expected responses for each given command, default: %(default)s")
+
+    parser.add_argument(
+        "-t", "--time",
+        action = "store_true",
+        help = "measure the execution time")
+
+    parser.add_argument(
+        "-v", "--verbose",
+        action = "store_true",
+        help = "increase output verbosity by activating debug-logging")
+
+    parser.add_argument(
+        "cmd",
+        type = str,
+        nargs = '+',
+        help = "command(s) to send to the heat pump (without the preceding '~' and the trailing ';')")
+
+    args = parser.parse_args()
+
+    # activate debug-logging in verbose mode
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.ERROR)
+
+    hp = HtHeatpump(args.device, baudrate=args.baudrate)
     start = timer()
     try:
         hp.open_connection()
         hp.login()
-        # print(repr(sys.argv[1]))
-        hp.send_request(sys.argv[1])
-        resp = hp.read_response()
-        print(repr(resp))
+        for cmd in args.cmd:
+            # write the given command to the heat pump
+            print("> %s" % repr(cmd))
+            hp.send_request(cmd)
+            # and read all expected responses for this command
+            for _ in range(0, args.responses):
+                resp = hp.read_response()
+                print("< %s"% repr(resp))
+    except Exception as e:
+        print(e)
+        sys.exit(1)
     finally:
         hp.logout()  # try to logout for a ordinary cancellation (if possible)
         hp.close_connection()
     end = timer()
-    print("query took %.2f seconds" % (end - start))
+
+    # print execution time only if desired
+    if args.time:
+        print("execution time: %.2f sec" % (end - start))
+
+    sys.exit(0)
+
 
 if __name__ == "__main__":
     main()
