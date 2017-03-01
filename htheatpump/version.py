@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #  htheatpump - Serial communication module for Heliotherm heat pumps
-#  Copyright (c) 2017 Daniel Strigl. All Rights Reserved.
+#  Copyright (C) 2017  Daniel Strigl
 
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
