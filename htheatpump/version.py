@@ -22,7 +22,13 @@
     You should only have to change the version tuple :const:`version` at the end of this file,
     e.g.::
 
-        version = Version("htheatpump", 1, 2, 3)  # version format <major>.<minor>.<micro>
+        version = Version("htheatpump", 1, 2, 3)  # version format <major>.<minor>.<patch>
+
+    Given a version number ``MAJOR.MINOR.PATCH``, increment the:
+
+        * ``MAJOR`` version when making incompatible API changes,
+        * ``MINOR`` version when adding functionality in a backwards-compatible manner, and
+        * ``PATCH`` version when making backwards-compatible bug fixes.
 """
 
 
@@ -35,23 +41,23 @@ class Version(object):
     :type major: int
     :param minor: The minor version number.
     :type minor: int
-    :param micro: The micro version number.
-    :type micro: int
+    :param patch: The patch version number.
+    :type patch: int
     """
 
-    def __init__(self, package, major, minor, micro):
+    def __init__(self, package, major, minor, patch):
         self.package = package
         self.major = major
         self.minor = minor
-        self.micro = micro
+        self.patch = patch
 
     def short(self):
-        """" Return a string in canonical short version format ``<major>.<minor>.<micro>``.
+        """" Return a string in canonical short version format ``<major>.<minor>.<patch>``.
 
         :returns: A string in canonical short version format.
         :rtype: ``str``
         """
-        return '%d.%d.%d' % (self.major, self.minor, self.micro)
+        return "%d.%d.%d" % (self.major, self.minor, self.patch)
 
     def __str__(self):
         """ Returns a string representation of the object.
@@ -62,7 +68,7 @@ class Version(object):
         return '[%s, version %s]' % (self.package, self.short())
 
 
-version = Version("htheatpump", 1, 0, 0)
+version = Version("htheatpump", 0, 1, 0)
 """ Version definition of the :mod:`htheatpump` module. """
 # version.__name__ = "htheatpump"
 

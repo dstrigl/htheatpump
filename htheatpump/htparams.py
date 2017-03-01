@@ -21,7 +21,7 @@
     and data type.
 """
 
-import enum
+#import enum  # only for Python >= 3.4
 from utils import Singleton
 
 
@@ -29,8 +29,9 @@ from utils import Singleton
 # Helper classes
 # --------------------------------------------------------------------------------------------- #
 
-@enum.unique
-class HtDataTypes(enum.Enum):
+#@enum.unique  # only for Python >= 3.4
+#class HtDataTypes(enum.Enum):
+class HtDataTypes:
     """ Supported data types of the Heliotherm heat pump:
 
     * ``STRING`` The value of the parameter is given in **text form**.

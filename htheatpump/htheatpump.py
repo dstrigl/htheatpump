@@ -33,7 +33,7 @@ Todo
     * read and write the time programs of the heat pump
     * write/change parameters of the heat pump
     * add statement about warranty and risk
-    * add some examples
+    * add some (more) examples
 
 Tested with
 -----------
@@ -187,9 +187,13 @@ class HtHeatpump:
     :param parity: Which kind of parity to use (optional).
     :type parity: str
     :param stopbits: The number of stop bits to use (optional).
-    :type stopbits: int
+    :type stopbits: float
     :param xonxoff: Software flow control enabled (optional).
     :type xonxoff: bool
+    :param rtscts: Hardware flow control (RTS/CTS) enabled (optional).
+    :type rtscts: bool
+    :param dsrdtr: Hardware flow control (DSR/DTR) enabled (optional).
+    :type dsrdtr: bool
 
     Example::
 
@@ -207,7 +211,7 @@ class HtHeatpump:
     """
 
     _ser_settings = None
-    """ The serial device settings (device, baudrate, bytesize, parity, stopbits, xonxoff)
+    """ The serial device settings (device, baudrate, bytesize, parity, stopbits, xonxoff, rtscts, dsrdtr)
         as ``dict``.
     """
 
@@ -223,16 +227,23 @@ class HtHeatpump:
     def open_connection(self):
         """ Opens the serial connection with the defined settings.
 
-        :raises: :class:`IOError`
+        :raises IOError:
+            When the serial connection is already open.
+        :raises ValueError:
+            Will be raised when parameter are out of range, e.g. baudrate, bytesize.
+        :raises SerialException:
+            In case the device can not be found or can not be configured.
         """
         if self._ser:
             raise IOError("serial connection already open")
         device = self._ser_settings.get('device', '/dev/ttyUSB0')
         baudrate = self._ser_settings.get('baudrate', 115200)
-        bytesize = self._ser_settings.get('bytesize', 8)
-        parity = self._ser_settings.get('parity', 'N')
-        stopbits = self._ser_settings.get('stopbits', 1)
+        bytesize = self._ser_settings.get('bytesize', serial.EIGHTBITS)
+        parity = self._ser_settings.get('parity', serial.PARITY_NONE)
+        stopbits = self._ser_settings.get('stopbits', serial.STOPBITS_ONE)
         xonxoff = self._ser_settings.get('xonxoff', True)
+        rtscts = self._ser_settings.get('rtscts', False)
+        dsrdtr = self._ser_settings.get('dsrdtr', False)
         # open the serial connection (must fit with the settings on the heat pump!)
         self._ser = serial.Serial(device,
                                   baudrate=baudrate,
@@ -240,6 +251,8 @@ class HtHeatpump:
                                   parity=parity,
                                   stopbits=stopbits,
                                   xonxoff=xonxoff,
+                                  rtscts=rtscts,
+                                  dsrdtr=dsrdtr,
                                   timeout=_serial_timeout)
         _logger.info(self._ser)  # log serial connection properties
 
@@ -252,12 +265,22 @@ class HtHeatpump:
             # we wait for 1 sec, as it should be avoided to reopen the connection to fast
             time.sleep(1)
 
+    @property
+    def is_open(self):
+        """  Returns the state of the serial port, whether it’s open or not.
+
+        :returns: The state of the serial port as ``bool``.
+        :rtype: ``bool``
+        """
+        return self._ser and self._ser.is_open
+
     def send_request(self, cmd):
         """ Sends a request to the heat pump.
 
         :param cmd: Command to send to the heat pump.
         :type cmd: str
-        :raises: :class:`IOError`
+        :raises IOError:
+            Will be raised when the serial connection is not open.
         """
         if not self._ser:
             raise IOError("serial connection not open")
@@ -270,7 +293,9 @@ class HtHeatpump:
 
         :returns: The returned response of the heat pump as ``str``.
         :rtype: ``str``
-        :raises: :class:`IOError`
+        :raises IOError:
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            (or unknown) response (e.g. broken data stream, invalid checksum).
 
         .. note::
 
@@ -334,7 +359,9 @@ class HtHeatpump:
         :param max_retries: Maximal number of retries for a successful login. One regular try
             plus :const:`max_retries` retries.
         :type max_retries: int
-        :raises: :class:`IOError`
+        :raises IOError:
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum).
         """
         # we try to login the heat pump for several times
         success = False
@@ -363,10 +390,10 @@ class HtHeatpump:
     def logout(self):
         """ Log out from the heat pump session.
         """
-        # send LOGOUT request to the heat pump
-        self.send_request(LOGOUT_CMD)
-        # ... and wait for the response
         try:
+            # send LOGOUT request to the heat pump
+            self.send_request(LOGOUT_CMD)
+            # ... and wait for the response
             resp = self.read_response()
             if resp != LOGOUT_RESP:
                 raise IOError("invalid response for LOGOUT command [%s]" % repr(resp))
@@ -374,14 +401,16 @@ class HtHeatpump:
         except Exception as e:
             # just a warning, because it's possible that we can continue without any further problems
             _logger.warning("logout failed: %s", e)
-            # raise  # logout() should not fail! -> only a warning in the log-file
+            # raise  # logout() should not fail!
 
     def get_serial_number(self):
         """ Query for the manufacturer's serial number of the heat pump.
 
         :returns: The manufacturer's serial number of the heat pump as ``int`` (e.g. :data:`123456`).
         :rtype: ``int``
-        :raises: :class:`IOError`
+        :raises IOError:
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum).
         """
         # send RID request to the heat pump
         self.send_request(RID_CMD)
@@ -411,8 +440,10 @@ class HtHeatpump:
 
                 ( "3.0.20", 2321 )
 
-        :rtype: ``tuple``
-        :raises: :class:`IOError`
+        :rtype: ``tuple`` ( str, int )
+        :raises IOError:
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum).
         """
         param = HtParams["Softwareversion"]
         # send request command to the heat pump
@@ -437,9 +468,18 @@ class HtHeatpump:
     def get_date_time(self):
         """ Read the current date and time of the heat pump.
 
-        :returns: The current date and time of the heat pump as :class:`datetime.datetime`.
-        :rtype: :class:`datetime.datetime`
-        :raises: :class:`IOError`
+        :returns: The current date and time of the heat pump as a tuple with 2 elements, where
+            the first element is of type :class:`datetime.datetime` which represents the current
+            date and time while the second element is the corresponding weekday in form of an
+            ``int`` between 1 and 7, inclusive (Monday through Sunday). For example:
+            ::
+
+                ( datetime.datetime(...), 2 )  # 2 = Tuesday
+
+        :rtype: ``tuple`` ( datetime.datetime, int )
+        :raises IOError:
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum).
         """
         # send CLK request to the heat pump
         self.send_request(CLK_CMD[0])
@@ -466,10 +506,21 @@ class HtHeatpump:
         :param dt: The date and time to set. If :const:`None` current date and time
             of the host will be used.
         :type dt: datetime.datetime
-        :raises: :class:`IOError`
+        :returns: A 2-elements tuple composed of a :class:`datetime.datetime` which represents
+            the sent date and time and an ``int`` between 1 and 7, inclusive, for the corresponding
+            weekday (Monday through Sunday).
+        :rtype: ``tuple`` ( datetime.datetime, int )
+        :raises TypeError:
+            Raised for an invalid type of argument ``dt``. Must be :const:`None` or
+            of type :class:`datetime.datetime`.
+        :raises IOError:
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum).
         """
         if dt is None:
             dt = datetime.datetime.now()
+        elif not isinstance(dt, datetime.datetime):
+            raise TypeError("argument 'dt' must be None or of type datetime.datetime")
         # create CLK set command
         cmd = CLK_CMD[1] % (dt.day, dt.month, dt.year - 2000, dt.hour, dt.minute, dt.second, dt.isoweekday())
         # send command to the heat pump
@@ -505,8 +556,10 @@ class HtHeatpump:
 
                 ( 29, 20, datetime.datetime(...), "EQ_Spreizung" )
 
-        :rtype: ``tuple``
-        :raises: :class:`IOError`
+        :rtype: ``tuple`` ( int, int, datetime.datetime, str )
+        :raises IOError:
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum).
         """
         # send ALC request to the heat pump
         self.send_request(ALC_CMD)
@@ -532,7 +585,9 @@ class HtHeatpump:
 
         :returns: The size of the fault list as ``int``.
         :rtype: ``int``
-        :raises: :class:`IOError`
+        :raises IOError:
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum).
         """
         # send ALS request to the heat pump
         self.send_request(ALS_CMD)
@@ -565,7 +620,9 @@ class HtHeatpump:
                 }
 
         :rtype: ``dict``
-        :raises: :class:`IOError`
+        :raises IOError:
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum).
         """
         if not args:
             args = range(0, self.get_fault_list_size())
@@ -611,7 +668,9 @@ class HtHeatpump:
             The type of the returned value is defined by the dictionary
             of known heat pump parameters in :class:`htparams.HtParams`.
         :rtype: ``str``, ``bool``, ``int`` or ``float``
-        :raises: :class:`IOError`
+        :raises IOError:
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum).
 
         For example, the following call
         ::
@@ -660,12 +719,15 @@ class HtHeatpump:
             _logger.error("query for parameter %s failed: %s", repr(name), e)
             raise
 
+    @property
     def in_error(self):
         """ Query whether the heat pump is malfunctioning.
 
         :returns: :const:`True` if the heat pump is malfunctioning, :const:`False` otherwise.
         :rtype: ``bool``
-        :raises: :class:`IOError`
+        :raises IOError:
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum).
         """
         return self.get_param("Stoerung")
 
@@ -684,7 +746,13 @@ class HtHeatpump:
                 }
 
         :rtype: ``dict``
-        :raises: :class:`IOError`
+        :raises ValueError:
+            Will be raised when parameter are out of range, e.g. baudrate, bytesize.
+        :raises SerialException:
+            In case the device can not be found or can not be configured.
+        :raises IOError:
+            Will be raised when the login failed or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum) for the requests.
         """
         result = {}
         try:
