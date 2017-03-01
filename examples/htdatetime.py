@@ -1,0 +1,156 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+#  htheatpump - Serial communication module for Heliotherm heat pumps
+#  Copyright (c) 2017 Daniel Strigl. All Rights Reserved.
+
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+""" Command line tool to get and set date and time on the Heliotherm heat pump.
+
+    Example:
+
+    .. code-block:: console
+
+       $ python3 htdatetime.py -d /dev/ttyUSB1 -b 9600 "2008-09-03T20:56:35"
+       ... TODO ...
+"""
+
+import os, sys
+sys.path.insert(0, os.path.abspath('../htheatpump'))  # TODO: remove when finished setup
+
+import sys
+import argparse
+import textwrap
+import datetime
+from htheatpump import HtHeatpump
+from timeit import default_timer as timer
+import logging
+_logger = logging.getLogger(__name__)
+
+
+WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+
+
+# Main program
+def main():
+    parser = argparse.ArgumentParser(
+        description = textwrap.dedent('''\
+            Command line tool to get and set date and time on the Heliotherm heat pump.
+
+            To change date and/or time on the heat pump the date and time has to be passed
+            in ISO 8601 format (YYYY-MM-DDTHH:MM:SS) to the program. It is also possible to
+            pass an empty string, therefore the current date and time of the host will be
+            used. If nothing is passed to the program the current date and time on the heat
+            pump will be returned.
+
+            Example:
+
+              $ python3 %(prog)s --device /dev/ttyUSB1 --baudrate 9600
+              ... TODO ...
+              $ python3 %(prog)s -d /dev/ttyUSB1 -b 9600 "2008-09-03T20:56:35"
+              ... TODO ...
+            '''),
+        formatter_class = argparse.RawDescriptionHelpFormatter,
+        epilog = textwrap.dedent('''\
+            DISCLAIMER
+            ----------
+
+              Please note that any incorrect or careless usage of this program as well as
+              errors in the implementation can damage your heat pump.
+
+              Therefore, the author does not provide any guarantee or warranty concerning
+              to correctness, functionality or performance and does not accept any liability
+              for damage caused by this program or mentioned information.
+
+              Thus, use it on your own risk!
+
+            Copyright (c) 2017 Daniel Strigl. All Rights Reserved.
+            '''))
+
+    parser.add_argument(
+        "-d", "--device",
+        default = "/dev/ttyUSB0",
+        type = str,
+        help = "the serial device on which the heat pump is connected, default: %(default)s")
+
+    parser.add_argument(
+        "-b", "--baudrate",
+        default = 115200,
+        type = int,
+        # the supported baudrates of the Heliotherm heat pump (HP08S10W-WEB):
+        choices = [9600, 19200, 38400, 57600, 115200],
+        help = "baudrate of the serial connection (same as configured on the heat pump), default: %(default)s")
+
+    parser.add_argument(
+        "-t", "--time",
+        action = "store_true",
+        help = "measure the execution time")
+
+    parser.add_argument(
+        "-v", "--verbose",
+        action = "store_true",
+        help = "increase output verbosity by activating debug-logging")
+
+    parser.add_argument(
+        "datetime",
+        type = str,
+        nargs = '?',
+        help = "date and time in ISO 8601 format (YYYY-MM-DDTHH:MM:SS), if empty current date and time will be used,"\
+            " if not specified current date and time on the heat pump will be returned")
+
+    args = parser.parse_args()
+
+    # activate debug-logging in verbose mode
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.ERROR)
+
+    hp = HtHeatpump(args.device, baudrate=args.baudrate)
+    start = timer()
+    try:
+        hp.open_connection()
+        hp.login()
+        if args.datetime is None:
+            # get current date and time on the heat pump
+            dt, wd = hp.get_date_time()
+            print("%s, %s" % (WEEKDAYS[wd-1], dt.isoformat()))
+        else:
+            # set current date and time on the heat pump
+            if not args.datetime:
+                # no date and time given, so use the current date and time on the host
+                dt = datetime.datetime.now()
+            else:
+                # otherwise translate the given string to a valid datetime object
+                dt = datetime.datetime.strptime(args.datetime, "%Y-%m-%dT%H:%M:%S")
+            dt, wd = hp.set_date_time(dt)
+            print("%s, %s" % (WEEKDAYS[wd-1], dt.isoformat()))
+    except Exception as e:
+        print(e)
+        sys.exit(1)
+    finally:
+        hp.logout()  # try to logout for a ordinary cancellation (if possible)
+        hp.close_connection()
+    end = timer()
+
+    # print execution time only if desired
+    if args.time:
+        print("execution time: %.2f sec" % (end - start))
+
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()
