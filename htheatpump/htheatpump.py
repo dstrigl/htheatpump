@@ -41,7 +41,7 @@ Tested with
 
 """
 
-from htparams import HtParams, HtDataTypes
+from htheatpump.htparams import HtParams, HtDataTypes
 from timeit import default_timer as timer
 
 import sys

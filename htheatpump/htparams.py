@@ -22,7 +22,7 @@
 """
 
 #import enum  # only for Python >= 3.4
-from utils import Singleton
+from htheatpump.utils import Singleton
 
 
 # --------------------------------------------------------------------------------------------- #
