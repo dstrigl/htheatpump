@@ -27,9 +27,6 @@
        ... TODO ...
 """
 
-import os, sys
-sys.path.insert(0, os.path.abspath('../htheatpump'))  # TODO: remove when finished setup
-
 import sys
 import argparse
 import textwrap
@@ -105,8 +102,8 @@ def main():
         "datetime",
         type = str,
         nargs = '?',
-        help = "date and time in ISO 8601 format (YYYY-MM-DDTHH:MM:SS), if empty current date and time will be used,"\
-            " if not specified current date and time on the heat pump will be returned")
+        help = "date and time in ISO 8601 format (YYYY-MM-DDTHH:MM:SS), if empty current date and time will be used, "
+               "if not specified current date and time on the heat pump will be returned")
 
     args = parser.parse_args()
 
@@ -124,7 +121,7 @@ def main():
         if args.datetime is None:
             # get current date and time on the heat pump
             dt, wd = hp.get_date_time()
-            print("%s, %s" % (WEEKDAYS[wd-1], dt.isoformat()))
+            print("%s, %s" % (WEEKDAYS[wd - 1], dt.isoformat()))
         else:
             # set current date and time on the heat pump
             if not args.datetime:
@@ -134,7 +131,7 @@ def main():
                 # otherwise translate the given string to a valid datetime object
                 dt = datetime.datetime.strptime(args.datetime, "%Y-%m-%dT%H:%M:%S")
             dt, wd = hp.set_date_time(dt)
-            print("%s, %s" % (WEEKDAYS[wd-1], dt.isoformat()))
+            print("%s, %s" % (WEEKDAYS[wd - 1], dt.isoformat()))
     except Exception as e:
         print(e)
         sys.exit(1)

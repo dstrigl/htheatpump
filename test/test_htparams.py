@@ -19,14 +19,11 @@
 
 """ Unit tests for code in htheatpump.htparams. """
 
-import os, sys
-sys.path.insert(0, os.path.abspath('..'))  # TODO: remove when finished setup
-
 import unittest
 import json
 import re
 from htheatpump.htheatpump import HtHeatpump
-from htheatpump.htparams import *
+from htheatpump.htparams import HtParams, HtDataTypes
 
 
 class HtParamsTestWithoutConnection(unittest.TestCase):

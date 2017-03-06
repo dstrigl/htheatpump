@@ -30,9 +30,6 @@
        < 'AA,30,65534,15.09.14-09:17:12,Keine Stoerung'
 """
 
-import os, sys
-sys.path.insert(0, os.path.abspath('../htheatpump'))  # TODO: remove when finished setup
-
 import sys
 import argparse
 import textwrap
@@ -131,7 +128,7 @@ def main():
             # and read all expected responses for this command
             for _ in range(0, args.responses):
                 resp = hp.read_response()
-                print("< %s"% repr(resp))
+                print("< %s" % repr(resp))
     except Exception as e:
         print(e)
         sys.exit(1)

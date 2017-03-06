@@ -54,8 +54,10 @@ class Singleton:
 
 # A simple singleton test class
 class MySingleton(Singleton):
+
     def __init__(self, v):
         self._val = v
+
     def __str__(self):
         return str(self._val)
 
@@ -67,6 +69,7 @@ def main():
     s2 = MySingleton(2)
     print(str(s2))
     print(str(s1))
+
 
 if __name__ == "__main__":
     # main()

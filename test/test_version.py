@@ -19,9 +19,6 @@
 
 """ Unit tests for code in htheatpump.version. """
 
-import os, sys
-sys.path.insert(0, os.path.abspath('..'))  # TODO: remove when finished setup
-
 import unittest
 from htheatpump.version import Version
 
@@ -39,7 +36,7 @@ class HtVersionTest(unittest.TestCase):
         pass
 
     def test_VersionClass(self):
-        version = Version('package-name', 1,2,3)
+        version = Version('package-name', 1, 2, 3)
         self.assertEqual(version.short(), '1.2.3')
         self.assertEqual(str(version), '[package-name, version 1.2.3]')
 

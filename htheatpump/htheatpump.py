@@ -41,7 +41,7 @@ Tested with
 
 """
 
-from htparams import *
+from htparams import HtParams, HtDataTypes
 from timeit import default_timer as timer
 
 import sys
@@ -75,7 +75,7 @@ _login_retries = 2
 # Protocol constants
 # --------------------------------------------------------------------------------------------- #
 
-REQUEST_HEADER  = b"\x02\xfd\xd0\xe0\x00\x00"
+REQUEST_HEADER = b"\x02\xfd\xd0\xe0\x00\x00"
 RESPONSE_HEADER_LEN = 6
 RESPONSE_HEADER = {
     b"\x02\xfd\xe0\xd0\x00\x00" : None,  # checksum has to be computed!
@@ -652,8 +652,8 @@ class HtHeatpump:
                 faults.update({ idx: { "error"   : err,  # error code
                                        "datetime": dt,   # date and time of the entry
                                        "message" : msg,  # error message
-                                     }
-                              })
+                                       }
+                                })
             return faults
         except Exception as e:
             _logger.error("query for fault list failed: %s", e)

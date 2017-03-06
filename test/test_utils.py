@@ -19,16 +19,15 @@
 
 """ Unit tests for code in htheatpump.utils. """
 
-import os, sys
-sys.path.insert(0, os.path.abspath('..'))  # TODO: remove when finished setup
-
 import unittest
 from htheatpump.utils import Singleton
 
 
 # A simple Singleton class with one `int` member
 class MySingleton(Singleton):
+
     val = -1
+
     def __init__(self, v):
         self.val = v
 

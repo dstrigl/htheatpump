@@ -69,10 +69,13 @@ class HtParam:
 
 
 class HtParamsMeta(type):
+
     def __contains__(cls, item):
         return item in cls._params
+
     def __getitem__(cls, key):
         return cls._params[key]
+
     def __len__(cls):
         return len(cls._params)
 
@@ -196,8 +199,8 @@ def main():
     for paramName, param in HtParams.items():
         print("%s: cmd = %s, acl = %s, dtype = %s, min = %s, max = %s" %
               (repr(paramName), repr(param.cmd), repr(param.acl),
-              str(param.dtype) if param.dtype else "unknown",
-              str(param.min), str(param.max)))
+               str(param.dtype) if param.dtype else "unknown",
+               str(param.min), str(param.max)))
 
 
 if __name__ == "__main__":
