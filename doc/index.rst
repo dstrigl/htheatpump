@@ -17,19 +17,19 @@ Contents:
    htparams
 
 
-.. automodule:: htheatpump
+.. automodule:: htheatpump.htheatpump
    :members:
 
-.. automodule:: htjson
+.. automodule:: htheatpump.htjson
    :members:
 
-.. automodule:: htparams
+.. automodule:: htheatpump.htparams
    :members:
 
-.. automodule:: utils
+.. automodule:: htheatpump.utils
    :members:
 
-.. automodule:: version
+.. automodule:: htheatpump.version
    :members:
 
 
