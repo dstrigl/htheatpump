@@ -17,96 +17,74 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" Unit tests for code in htheatpump.htparams. """
+""" Tests for code in htheatpump.htparams. """
 
-import unittest
-import json
+# import json
 import re
-from htheatpump.htheatpump import HtHeatpump
+# from htheatpump.htheatpump import HtHeatpump
 from htheatpump.htparams import HtParams, HtDataTypes
 
 
-class HtParamsTestWithoutConnection(unittest.TestCase):
-    """ This is the unittest for the ``htheatpump.htparams`` code which **requires no**
-        connection to the heat pump.
-    """
-    def setUp(self):
-        """ Initializes the test environment. """
-        pass
+def test_HtParamsCmdFormat():
+    params = HtParams.keys()
+    for p in sorted(params):
+        cmd = HtParams[p].cmd
+        m = re.match("^[S|M]P,NR=(\d+)$", cmd)
+        assert m is not None, "non valid command string ('%s') for parameter '%s'" % (cmd, p)
 
-    def tearDown(self):
-        """ Cleans up the test environment. """
-        pass
-
-    def test_HtParamsCmdFormat(self):
-        params = HtParams.keys()
-        for p in sorted(params):
-            cmd = HtParams[p].cmd
-            m = re.match("^[S|M]P,NR=(\d+)$", cmd)
-            self.assertIsNotNone(m, "non valid command string ('%s') for parameter '%s'" % (cmd, p))
-
-    # TODO: add some more tests here
-
-
-class HtParamsTestWithConnection(unittest.TestCase):
-    """ This is the unittest for the ``htheatpump.htparams`` code which **requires**
-        connection to the heat pump.
-    """
-
-    def setUp(self):
-        """ Initializes the test environment. """
-        with open('test_config.json') as config_file:
-            conn_settings = json.load(config_file)["connection"]
-        self.hp = HtHeatpump(**conn_settings)
-        self.hp.open_connection()
-        self.hp.login()
-
-    def tearDown(self):
-        """ Cleans up the test environment. """
-        self.hp.logout()
-        self.hp.close_connection()
-
-    def test_HtParamsValue(self):
-        params = HtParams.keys()
-        for p in sorted(params):
-            val = self.hp.get_param(p)
-            self.assertIsNotNone(val, "value of parameter '%s' must not be 'None'" % p)
-
-    def test_HtParamsDType(self):
-        params = HtParams.keys()
-        for p in sorted(params):
-            val = self.hp.get_param(p)
-            dtype = HtParams[p].dtype
-            self.assertIsNotNone(dtype, "data type of parameter '%s' must not be 'None'" % p)
-            if dtype == HtDataTypes.STRING:
-                self.assertIsInstance(val, str, "value of parameter '%s' not of type 'str'" % p)
-            elif dtype == HtDataTypes.BOOL:
-                self.assertIsInstance(val, bool, "value of parameter '%s' not of type 'bool'" % p)
-            elif dtype == HtDataTypes.INT:
-                self.assertIsInstance(val, int, "value of parameter '%s' not of type 'int'" % p)
-            elif dtype == HtDataTypes.FLOAT:
-                self.assertIsInstance(val, float, "value of parameter '%s' not of type 'float'" % p)
-            else:
-                self.fail("unknown data type (%d) for parameter '%s'" % (dtype, p))  # should not happen!
-
-    def test_HtParamsLimits(self):
-        params = HtParams.keys()
-        for p in sorted(params):
-            val = self.hp.get_param(p)
-            self.assertIsNotNone(val, "value of parameter '%s' must not be 'None'" % p)
-            min = HtParams[p].min
-            if min is not None:
-                self.assertGreaterEqual(val, min, "value (%s) of parameter '%s' must >= %s" % (str(val), p, str(min)))
-            max = HtParams[p].max
-            if max is not None:
-                self.assertLessEqual(val, max, "value (%s) of parameter '%s' must <= %s" % (str(val), p, str(max)))
-
-    # TODO: add some more tests here
+# TODO
+# class HtParamsTestWithConnection(unittest.TestCase):
+#     """ This is the unittest for the ``htheatpump.htparams`` code which **requires**
+#         connection to the heat pump.
+#     """
+#
+#     def setUp(self):
+#         """ Initializes the test environment. """
+#         with open('test_config.json') as config_file:
+#             conn_settings = json.load(config_file)["connection"]
+#         self.hp = HtHeatpump(**conn_settings)
+#         self.hp.open_connection()
+#         self.hp.login()
+#
+#     def tearDown(self):
+#         """ Cleans up the test environment. """
+#         self.hp.logout()
+#         self.hp.close_connection()
+#
+#     def test_HtParamsValue(self):
+#         params = HtParams.keys()
+#         for p in sorted(params):
+#             val = self.hp.get_param(p)
+#             self.assertIsNotNone(val, "value of parameter '%s' must not be 'None'" % p)
+#
+#     def test_HtParamsDType(self):
+#         params = HtParams.keys()
+#         for p in sorted(params):
+#             val = self.hp.get_param(p)
+#             dtype = HtParams[p].dtype
+#             self.assertIsNotNone(dtype, "data type of parameter '%s' must not be 'None'" % p)
+#             if dtype == HtDataTypes.STRING:
+#                 self.assertIsInstance(val, str, "value of parameter '%s' not of type 'str'" % p)
+#             elif dtype == HtDataTypes.BOOL:
+#                 self.assertIsInstance(val, bool, "value of parameter '%s' not of type 'bool'" % p)
+#             elif dtype == HtDataTypes.INT:
+#                 self.assertIsInstance(val, int, "value of parameter '%s' not of type 'int'" % p)
+#             elif dtype == HtDataTypes.FLOAT:
+#                 self.assertIsInstance(val, float, "value of parameter '%s' not of type 'float'" % p)
+#             else:
+#                 self.fail("unknown data type (%d) for parameter '%s'" % (dtype, p))  # should not happen!
+#
+#     def test_HtParamsLimits(self):
+#         params = HtParams.keys()
+#         for p in sorted(params):
+#             val = self.hp.get_param(p)
+#             self.assertIsNotNone(val, "value of parameter '%s' must not be 'None'" % p)
+#             min = HtParams[p].min
+#             if min is not None:
+#                 self.assertGreaterEqual(val, min, "value (%s) of parameter '%s' must >= %s" % (str(val), p, str(min)))
+#             max = HtParams[p].max
+#             if max is not None:
+#                 self.assertLessEqual(val, max, "value (%s) of parameter '%s' must <= %s" % (str(val), p, str(max)))
 
 
-# --------------------------------------------------------------------------------------------- #
-# Main program
-# --------------------------------------------------------------------------------------------- #
-
-if __name__ == '__main__':
-    unittest.main()
+# TODO: add some more tests here

@@ -6,6 +6,7 @@ from setuptools import setup
 # To use a consistent encoding
 from codecs import open
 from os import path
+from setuptools.command.test import test as TestCommand
 from htheatpump import __version__, __author__
 
 here = path.abspath(path.dirname(__file__))
@@ -17,6 +18,34 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as readme_file:
 # Get the history from the HISTORY file
 with open(path.join(here, 'HISTORY.rst'), encoding='utf-8') as history_file:
     history = history_file.read()
+
+
+class PyTest(TestCommand):
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+        self.test_args = []
+        self.test_suite = True
+
+    def run_tests(self):
+        # import here, cause outside the eggs aren't loaded
+        import pytest
+        import sys
+        errcode = pytest.main(self.test_args)
+        sys.exit(errcode)
+
+
+class Tox(TestCommand):
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+        self.test_args = []
+        self.test_suite = True
+
+    def run_tests(self):
+        # import here, cause outside the eggs aren't loaded
+        import tox
+        import sys
+        errcode = tox.cmdline(self.test_args)
+        sys.exit(errcode)
 
 
 setup(
@@ -135,4 +164,8 @@ setup(
 
     # Test Suite
     test_suite='test',
+    tests_require=['pytest'],
+    cmdclass={'test': PyTest},
+    #tests_require=['tox'],
+    #cmdclass = {'test': Tox},
 )

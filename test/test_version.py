@@ -17,33 +17,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" Unit tests for code in htheatpump.version. """
+""" Tests for code in htheatpump.version. """
 
-import unittest
 from htheatpump.version import Version
 
 
-class HtVersionTest(unittest.TestCase):
-    """ This is the unittest for the ``htheatpump.version`` code.
-    """
-
-    def setUp(self):
-        """ Initializes the test environment. """
-        pass
-
-    def tearDown(self):
-        """ Cleans up the test environment. """
-        pass
-
-    def test_VersionClass(self):
-        version = Version('package-name', 1, 2, 3)
-        self.assertEqual(version.short(), '1.2.3')
-        self.assertEqual(str(version), '[package-name, version 1.2.3]')
-
-
-# --------------------------------------------------------------------------------------------- #
-# Main program
-# --------------------------------------------------------------------------------------------- #
-
-if __name__ == '__main__':
-    unittest.main()
+def test_VersionClass():
+    version = Version('package-name', 1, 2, 3)
+    assert version.short() == '1.2.3'
+    assert str(version) == '[package-name, version 1.2.3]'
