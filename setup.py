@@ -27,7 +27,7 @@ setup(
     # https://packaging.python.org/en/latest/single_source_version.html
     version=__version__,
 
-    description="TODO short description",  # TODO
+    description="Easy-to-use Python communication module for Heliotherm heat pumps",
     long_description=readme + '\n\n' + history,
 
     # The project's main homepage
@@ -35,9 +35,9 @@ setup(
 
     # Author and Maintainer details
     author=__author__,
-    author_email='TODO',
+    #author_email='?',
     maintainer=__author__,
-    maintainer_email='TODO',
+    #maintainer_email='?',
 
     # Choose your license
     license="GNU General Public License v3",
@@ -83,7 +83,7 @@ setup(
     ],
 
     # What does your project relate to?
-    keywords='TODO',  # TODO
+    keywords='htheatpump',  # TODO: add some more keywords
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
@@ -134,6 +134,5 @@ setup(
     #},
 
     # Test Suite
-    test_suite='tests',
-    #tests_require=['pytest'],
+    test_suite='test',
 )
