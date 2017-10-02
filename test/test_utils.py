@@ -35,4 +35,4 @@ def test_SingletonClass():
     assert s1.val == 1
     s2 = MySingleton(2)
     assert s2.val == 2
-    assert s1.val == 2
+    assert s1.val == 2  # now, 's1' should also be 2

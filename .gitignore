@@ -16,3 +16,4 @@ doc/_build/
 # due to using tox and pytest
 .tox
 .cache
+.coverage

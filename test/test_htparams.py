@@ -23,11 +23,12 @@
 import re
 # from htheatpump.htheatpump import HtHeatpump
 from htheatpump.htparams import HtParams, HtDataTypes
-
+from random import shuffle
 
 def test_HtParamsCmdFormat():
-    params = HtParams.keys()
-    for p in sorted(params):
+    params = list(HtParams.keys())
+    shuffle(params)  # shuffle list (in-place) to get a lesser deterministic test case!
+    for p in params:
         cmd = HtParams[p].cmd
         m = re.match("^[S|M]P,NR=(\d+)$", cmd)
         assert m is not None, "non valid command string ('%s') for parameter '%s'" % (cmd, p)

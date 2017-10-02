@@ -224,6 +224,11 @@ class HtHeatpump:
         self._ser_settings = { 'device': device }
         self._ser_settings.update(kwargs)
 
+    def __del__(self):
+        # close the connection if still established
+        if self._ser and self._ser.is_open:
+            self._ser.close()
+
     def open_connection(self):
         """ Opens the serial connection with the defined settings.
 
@@ -259,7 +264,7 @@ class HtHeatpump:
     def close_connection(self):
         """ Closes the serial connection.
         """
-        if self._ser:
+        if self._ser and self._ser.is_open:
             self._ser.close()
             self._ser = None
             # we wait for 1 sec, as it should be avoided to reopen the connection to fast
