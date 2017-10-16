@@ -22,8 +22,10 @@
 # import json
 import re
 # from htheatpump.htheatpump import HtHeatpump
-from htheatpump.htparams import HtParams, HtDataTypes
+from htheatpump.htparams import HtParams
+#, HtDataTypes
 from random import shuffle
+
 
 def test_HtParamsCmdFormat():
     params = list(HtParams.keys())

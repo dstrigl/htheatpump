@@ -68,7 +68,7 @@ class Version(object):
         return '[%s, version %s]' % (self.package, self.short())
 
 
-version = Version("htheatpump", 0, 0, 0)
+version = Version("htheatpump", 0, 1, 0)
 """ Version definition of the :mod:`htheatpump` module. """
 # version.__name__ = "htheatpump"
 

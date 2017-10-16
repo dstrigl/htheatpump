@@ -21,7 +21,7 @@
     and data type.
 """
 
-#import enum  # only for Python >= 3.4
+import enum
 from htheatpump.utils import Singleton
 
 
@@ -29,9 +29,8 @@ from htheatpump.utils import Singleton
 # Helper classes
 # --------------------------------------------------------------------------------------------- #
 
-#@enum.unique  # only for Python >= 3.4
-#class HtDataTypes(enum.Enum):
-class HtDataTypes:
+@enum.unique
+class HtDataTypes(enum.Enum):
     """ Supported data types of the Heliotherm heat pump:
 
     * ``STRING`` The value of the parameter is given in **text form**.
@@ -155,15 +154,15 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
         "Niederdruck (bar)"               :  HtParam(  cmd = "MP,NR=20",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0.0,    max = 18.0    ),
         "Hochdruck (bar)"                 :  HtParam(  cmd = "MP,NR=21",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0.0,    max = 40.0    ),
         "Heizkreispumpe"                  :  HtParam(  cmd = "MP,NR=22",   acl = "r-",  dtype = HtDataTypes.BOOL,   min = 0,      max = 1       ),
-        "Stoerung"                        :  HtParam(  cmd = "MP,NR=31",   acl = "r-",  dtype = HtDataTypes.BOOL,   min = 0,      max = 1       ),
-        "Frischwasserpumpe"               :  HtParam(  cmd = "MP,NR=50",   acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 100     ),  # probably 0 - 100%
-        "Verdichteranforderung"           :  HtParam(  cmd = "MP,NR=56",   acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 5       ),
-        "HKR_Sollwert"                    :  HtParam(  cmd = "MP,NR=57",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0.0,    max = 50.0    ),
         "EQ Pumpe (Ventilator)"           :  HtParam(  cmd = "MP,NR=24",   acl = "r-",  dtype = HtDataTypes.BOOL,   min = 0,      max = 1       ),
         "Warmwasservorrang"               :  HtParam(  cmd = "MP,NR=25",   acl = "r-",  dtype = HtDataTypes.BOOL,   min = 0,      max = 1       ),
         "Zirkulationspumpe WW"            :  HtParam(  cmd = "MP,NR=29",   acl = "r-",  dtype = HtDataTypes.BOOL,   min = 0,      max = 1       ),
         "Verdichter"                      :  HtParam(  cmd = "MP,NR=30",   acl = "r-",  dtype = HtDataTypes.BOOL,   min = 0,      max = 1       ),
+        "Stoerung"                        :  HtParam(  cmd = "MP,NR=31",   acl = "r-",  dtype = HtDataTypes.BOOL,   min = 0,      max = 1       ),
         "FWS Stroemungsschalter"          :  HtParam(  cmd = "MP,NR=38",   acl = "r-",  dtype = HtDataTypes.BOOL,   min = 0,      max = 1       ),
+        "Frischwasserpumpe"               :  HtParam(  cmd = "MP,NR=50",   acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 100     ),  # probably 0 - 100%
+        "Verdichteranforderung"           :  HtParam(  cmd = "MP,NR=56",   acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 5       ),
+        "HKR_Sollwert"                    :  HtParam(  cmd = "MP,NR=57",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0.0,    max = 50.0    ),
 
         #
         # TODO
@@ -176,7 +175,7 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
         # "Stromz_Heizung (kWh)"            :  HtParam(  cmd = "MP,NR=53",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0,      max = 0       ),  # TODO min, max (type?)
         # "WMZ_Brauchwasser (kWh)"          :  HtParam(  cmd = "MP,NR=54",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0,      max = 0       ),  # TODO min, max (type?)
         # "Stromz_Brauchwasser (kWh)"       :  HtParam(  cmd = "MP,NR=55",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0,      max = 0       ),  # TODO min, max (type?)
-        # "Stromz_Gesamt (kWh)"             :  HtParam(  cmd = "MP,NR=75",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0,      max = 0       ),  # TODO min, max (type?)
+        # "Stromz_Gesamt (kWh)"             :  HtParam(  cmd = "MP,NR=75",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0,      max = 0       ),  # TODO min, max (type?)-
         # "Stromz_Leistung (W)"             :  HtParam(  cmd = "MP,NR=83",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0,      max = 0       ),  # TODO min, max (type?)
         # "WMZ_Gesamt (kWh)"                :  HtParam(  cmd = "MP,NR=84",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0,      max = 0       ),  # TODO min, max (type?)
         # "WMZ_Durchfluss"                  :  HtParam(  cmd = "MP,NR=85",   acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 0       ),  # TODO min, max (type?)

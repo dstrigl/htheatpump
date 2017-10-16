@@ -17,8 +17,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" Some useful helper classes and methods.
-"""
+""" Some useful helper classes and methods. """
 
 
 class Singleton:
