@@ -33,7 +33,7 @@
 import sys
 import argparse
 import textwrap
-from htheatpump import HtHeatpump
+from htheatpump.htheatpump import HtHeatpump
 from timeit import default_timer as timer
 import logging
 _logger = logging.getLogger(__name__)
