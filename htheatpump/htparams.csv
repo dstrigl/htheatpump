@@ -21,6 +21,24 @@ FWS Stroemungsschalter, MP, 38, r-, BOOL, 0, 1
 Zirkulationspumpe WW, MP, 29, r-, BOOL, 0, 1
 Verdichteranforderung, MP, 56, r-, INT, 0, 5
 HKR_Sollwert, MP, 57, r-, FLOAT, 0.0, 50.0
+
+# Temp. Pufferspeicher, MP, 5, r-, FLOAT, 0.0, 0.0
+# Temp. Heissgas, MP, 15, r-, FLOAT, 0.0, 0.0
+# Pufferladepumpe, MP, 23, r-, BOOL, 0, 1
+# Vierwegeventil Luft, MP, 32, r-, BOOL, 0, 1
+# EVU_Sperre, MP, 37, r-, BOOL, 0, 1
+# Verdichter Soll-n(%), MP, 47, r-, INT, 0, 0
+# WMZ_Heizung (kWh), MP, 52, r-, FLOAT, 0.0, 0.0
+# Stromz_Heizung (kWh), MP, 53, r-, FLOAT, 0.0, 0.0
+# WMZ_Brauchwasser (kWh), MP, 54, r-, FLOAT, 0.0, 0.0
+# Stromz_Brauchwasser (kWh), MP, 55, r-, FLOAT, 0.0, 0.0
+# Stromz_Gesamt (kWh), MP, 75, r-, FLOAT, 0.0, 0.0
+# Stromz_Leistung (W), MP, 83, r-, FLOAT, 0.0, 0.0
+# WMZ_Gesamt (kWh), MP, 84, r-, FLOAT, 0.0, 0.0
+# WMZ_Durchfluss, MP, 85, r-, INT, 0, 0
+# WMZ_Leistung (kW), MP, 89, r-, FLOAT, 0.0, 0.0
+# COP, MP, 98, r-, FLOAT, 0.0, 0.0
+
 Softwareversion, SP, 9, r-, INT, None, None
 Verdichter_Status, SP, 10, r-, INT, 0, 11
 Verdichter laeuft seit, SP, 11, r-, INT, 0, 100000
@@ -39,3 +57,12 @@ BSZ Verdichter Betriebsst. WW, SP, 171, r-, INT, 0, 100000
 BSZ Verdichter Betriebsst. HKR, SP, 172, r-, INT, 0, 100000
 BSZ Verdichter Betriebsst. ges, SP, 173, r-, INT, 0, 100000
 Energiezaehler, SP, 263, r-, INT, 0, 2
+
+# MKR1 Soll_Raum, SP, 200, r-, FLOAT, 0.0, 0.0
+# MKR1 Heizgrenze, SP, 205, r-, INT, 0, 0
+# MKR1 Betriebsart, SP, 221, r-, INT, 0, 0
+# MKR2 Soll_Raum, SP, 223, r-, FLOAT, 0.0, 0.0
+# MKR2 Heizgrenze, SP, 228, r-, INT, 0, 0
+# MKR2 Betriebsart, SP, 244, r-, INT, 0, 0
+# Kuehlgrenze, SP, 293, r-, INT, 0, 0
+
