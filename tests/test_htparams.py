@@ -19,21 +19,50 @@
 
 """ Tests for code in htheatpump.htparams. """
 
+import pytest
 # import json
 import re
 # from htheatpump.htheatpump import HtHeatpump
-from htheatpump.htparams import HtParams
-#, HtDataTypes
-from random import shuffle
+from htheatpump.htparams import HtParams, HtDataTypes
 
 
-def test_HtParamsCmdFormat():
-    params = list(HtParams.keys())
-    shuffle(params)  # shuffle list (in-place) to get a lesser deterministic test case!
-    for p in params:
-        cmd = HtParams[p].cmd
-        m = re.match("^[S|M]P,NR=(\d+)$", cmd)
-        assert m is not None, "non valid command string ('%s') for parameter '%s'" % (cmd, p)
+class TestHtDataTypes:
+    @pytest.fixture(params=["none", "NONE",
+                            "string", "String",
+                            "bool", "Bool", "boolean", "Boolean", "BOOLEAN",
+                            "int", "Int", "integer", "Integer", "INTEGER",
+                            "float", "Float",
+                            "123456", "ÄbcDef", "äbcdef", "ab&def", "@bcdef", "aBcde$", "WzßrÖt",
+                            ]
+                    )
+    def str_raises_ValueError(self, request):
+        return request.param
+
+    def test_from_str_raises_ValueError(self, str_raises_ValueError):
+        with pytest.raises(ValueError):
+            HtDataTypes.from_str(str_raises_ValueError)
+        #assert 0
+
+    def test_from_str(self):
+        assert HtDataTypes.from_str("None") is None
+        assert HtDataTypes.from_str("STRING") == HtDataTypes.STRING
+        assert HtDataTypes.from_str("BOOL") == HtDataTypes.BOOL
+        assert HtDataTypes.from_str("INT") == HtDataTypes.INT
+        assert HtDataTypes.from_str("FLOAT") == HtDataTypes.FLOAT
+        #assert 0
+
+    def test_conv_value(self):
+        pass  # TODO
+
+
+class TestHtHtParams:
+    def test_cmd_format(self):
+        params = list(HtParams.keys())
+        for p in params:
+            cmd = HtParams[p].cmd()
+            m = re.match("^[S|M]P,NR=(\d+)$", cmd)
+            assert m is not None, "non valid command string ('%s') for parameter '%s'" % (cmd, p)
+        #assert 0
 
 # TODO
 # class HtParamsTestWithConnection(unittest.TestCase):
@@ -64,18 +93,18 @@ def test_HtParamsCmdFormat():
 #         params = HtParams.keys()
 #         for p in sorted(params):
 #             val = self.hp.get_param(p)
-#             dtype = HtParams[p].dtype
-#             self.assertIsNotNone(dtype, "data type of parameter '%s' must not be 'None'" % p)
-#             if dtype == HtDataTypes.STRING:
+#             data_type = HtParams[p].data_type
+#             self.assertIsNotNone(data_type, "data type of parameter '%s' must not be 'None'" % p)
+#             if data_type == HtDataTypes.STRING:
 #                 self.assertIsInstance(val, str, "value of parameter '%s' not of type 'str'" % p)
-#             elif dtype == HtDataTypes.BOOL:
+#             elif data_type == HtDataTypes.BOOL:
 #                 self.assertIsInstance(val, bool, "value of parameter '%s' not of type 'bool'" % p)
-#             elif dtype == HtDataTypes.INT:
+#             elif data_type == HtDataTypes.INT:
 #                 self.assertIsInstance(val, int, "value of parameter '%s' not of type 'int'" % p)
-#             elif dtype == HtDataTypes.FLOAT:
+#             elif data_type == HtDataTypes.FLOAT:
 #                 self.assertIsInstance(val, float, "value of parameter '%s' not of type 'float'" % p)
 #             else:
-#                 self.fail("unknown data type (%d) for parameter '%s'" % (dtype, p))  # should not happen!
+#                 self.fail("unknown data type (%d) for parameter '%s'" % (data_type, p))  # should not happen!
 #
 #     def test_HtParamsLimits(self):
 #         params = HtParams.keys()

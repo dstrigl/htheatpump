@@ -18,30 +18,9 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """ This module is responsible for the communication with the Heliotherm heat pump.
-
-Features
---------
-    * read the manufacturer's serial number of the heat pump
-    * read the software version of the heat pump
-    * read and write the current date and time of the heat pump
-    * read the fault list of the heat pump
-    * query whether the heat pump is malfunctioning
-    * query for several parameters of the heat pump
-
-Todo
-----
-    * read and write the time programs of the heat pump
-    * write/change parameters of the heat pump
-    * add statement about warranty and risk
-    * add some (more) examples
-
-Tested with
------------
-    * Heliotherm HP08S10W-WEB, SW 3.0.20
-
 """
 
-from htheatpump.htparams import HtParams, HtDataTypes
+from htheatpump.htparams import HtParam, HtParams
 from timeit import default_timer as timer
 
 import sys
@@ -84,30 +63,32 @@ RESPONSE_HEADER = {
 
 # special commands of the heat pump; the request and response of this commands differ from the
 #   normal parameter requests defined in htparams.py
-LOGIN_CMD   = "LIN"                                                               # login command
-LOGIN_RESP  = "OK"
-LOGOUT_CMD  = "LOUT"                                                             # logout command
-LOGOUT_RESP = "OK"
-RID_CMD     = "RID"           # returns the manufacturer's serial number, e.g. "~RID,123456;\r\n"
-RID_RESP    = "^RID,(\d+)$"
-CLK_CMD     = ("CLK",                        # get/set the current date and time of the heat pump
-               "CLK,DA=%02d.%02d.%02d,TI=%02d:%02d:%02d,WD=%d")
-CLK_RESP    = ("^CLK"
-               ",DA=(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"    # date, e.g. '26.11.15'
-               ",TI=([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                 # time, e.g. '21:28:57'
-               ",WD=([1-7])$")                              # weekday 1-7 (Monday through Sunday)
-ALC_CMD     = "ALC"                             # returns the last fault message of the heat pump
-ALC_RESP    = ("^AA,(\d+),(\d+)"                            # fault list index and error code (?)
-               ",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"       # date, e.g. '14.09.14'
-               "-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                    # time, e.g. '11:52:08'
-               ",(.*)$")                                     # error message, e.g. 'EQ_Spreizung'
-ALS_CMD     = "ALS"                                # returns the fault list size of the heat pump
-ALS_RESP    = "^SUM=(\d+)$"
-AR_CMD      = "AR,%s"                                # returns a specific entry of the fault list
-AR_RESP     = ("^AA,(\d+),(\d+)"                            # fault list index and error code (?)
-               ",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"       # date, e.g. '14.09.14'
-               "-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                    # time, e.g. '11:52:08'
-               ",(.*)$")                                     # error message, e.g. 'EQ_Spreizung'
+LOGIN_CMD    = "LIN"                                                              # login command
+LOGIN_RESP   = "OK"
+LOGOUT_CMD   = "LOUT"                                                            # logout command
+LOGOUT_RESP  = "OK"
+RID_CMD      = "RID"          # returns the manufacturer's serial number, e.g. "~RID,123456;\r\n"
+RID_RESP     = "^RID,(\d+)$"
+VERSION_CMD  = "SP,NR=9"                          # returns the software version of the heat pump
+VERSION_RESP = "^SP,NR=9,.*NAME=([^,]+).*VAL=([^,]+).*$"
+CLK_CMD      = ("CLK",                       # get/set the current date and time of the heat pump
+                "CLK,DA=%02d.%02d.%02d,TI=%02d:%02d:%02d,WD=%d")
+CLK_RESP     = ("^CLK"
+                ",DA=(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"   # date, e.g. '26.11.15'
+                ",TI=([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                # time, e.g. '21:28:57'
+                ",WD=([1-7])$")                             # weekday 1-7 (Monday through Sunday)
+ALC_CMD      = "ALC"                            # returns the last fault message of the heat pump
+ALC_RESP     = ("^AA,(\d+),(\d+)"                           # fault list index and error code (?)
+                ",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"      # date, e.g. '14.09.14'
+                "-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                   # time, e.g. '11:52:08'
+                ",(.*)$")                                    # error message, e.g. 'EQ_Spreizung'
+ALS_CMD      = "ALS"                               # returns the fault list size of the heat pump
+ALS_RESP     = "^SUM=(\d+)$"
+AR_CMD       = "AR,%s"                               # returns a specific entry of the fault list
+AR_RESP      = ("^AA,(\d+),(\d+)"                           # fault list index and error code (?)
+                ",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"      # date, e.g. '14.09.14'
+                "-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                   # time, e.g. '11:52:08'
+                ",(.*)$")                                    # error message, e.g. 'EQ_Spreizung'
 
 
 # --------------------------------------------------------------------------------------------- #
@@ -450,9 +431,8 @@ class HtHeatpump:
             Will be raised when the serial connection is not open or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
-        param = HtParams["Softwareversion"]
         # send request command to the heat pump
-        self.send_request(param.cmd)
+        self.send_request(VERSION_CMD)
         # ... and wait for the response
         try:
             resp = self.read_response()
@@ -460,7 +440,7 @@ class HtHeatpump:
             #   the textual representation of the version is encoded in the 'NAME',
             #   e.g. "SP,NR=9,ID=9,NAME=3.0.20,LEN=4,TP=0,BIT=0,VAL=2321,MAX=0,MIN=0,WR=0,US=1"
             #   => software version = 3.0.20
-            m = re.match("^%s,.*NAME=([^,]+).*VAL=([^,]+).*$" % param.cmd, resp)
+            m = re.match(VERSION_RESP, resp)
             if not m:
                 raise IOError("invalid response for query of the software version [%s]" % repr(resp))
             ver = ( m.group(1).strip(), int(m.group(2)) )
@@ -671,7 +651,7 @@ class HtHeatpump:
         :type name: str
         :returns: Returned value of the requested parameter.
             The type of the returned value is defined by the dictionary
-            of known heat pump parameters in :class:`htparams.HtParams`.
+            of supported heat pump parameters in :class:`htparams.HtParams`.
         :rtype: ``str``, ``bool``, ``int`` or ``float``
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
@@ -689,35 +669,17 @@ class HtHeatpump:
             raise KeyError("command for requested parameter %s not found" % repr(name))
         param = HtParams[name]
         # send request command to the heat pump
-        self.send_request(param.cmd)
+        self.send_request(param.cmd())
         # ... and wait for the response
         try:
             resp = self.read_response()
             # search for pattern "VAL=..." inside the response string
-            m = re.match("^%s,.*VAL=([^,]+).*$" % param.cmd, resp)
+            m = re.match("^%s,.*VAL=([^,]+).*$" % param.cmd(), resp)
             if not m:
                 raise IOError("invalid response for query of parameter %s [%s]" % (repr(name), repr(resp)))
             val = m.group(1).strip()
             # convert the returned value (string) to the expected data type
-            if param.dtype is None:
-                pass  # data type not defined (= None) -> return a string
-            elif param.dtype == HtDataTypes.STRING:
-                pass  # val is already a string ;-)
-            elif param.dtype == HtDataTypes.BOOL:
-                # convert to bool (0 = True, 1 = False)
-                if val == '0':
-                    val = False
-                elif val == '1':
-                    val = True
-                else:
-                    raise ValueError("invalid response value for data type BOOL (%s) of parameter %s"
-                                     % (repr(val), repr(name)))
-            elif param.dtype == HtDataTypes.INT:
-                val = int(val)    # convert to integer
-            elif param.dtype == HtDataTypes.FLOAT:
-                val = float(val)  # convert to floating point number
-            else:
-                raise ValueError("unsupported data type (%d)" % param.dtype)
+            val = HtParam.conv_value(val, param.data_type)
             _logger.debug("%s = %s", repr(name), str(val))
             return val
         except Exception as e:

@@ -19,13 +19,16 @@ Contents:
    htparams
 
 
+.. include:: ../README.rst
+
+
 .. automodule:: htheatpump.htheatpump
    :members:
 
-.. automodule:: htheatpump.htjson
+.. automodule:: htheatpump.htparams
    :members:
 
-.. automodule:: htheatpump.htparams
+.. automodule:: htheatpump.htjson
    :members:
 
 .. automodule:: htheatpump.utils

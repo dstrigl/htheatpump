@@ -39,7 +39,7 @@ HKR_Sollwert, MP, 57, r-, FLOAT, 0.0, 50.0
 # WMZ_Leistung (kW), MP, 89, r-, FLOAT, 0.0, 0.0
 # COP, MP, 98, r-, FLOAT, 0.0, 0.0
 
-Softwareversion, SP, 9, r-, INT, None, None
+#Softwareversion, SP, 9, r-, INT, None, None
 Verdichter_Status, SP, 10, r-, INT, 0, 11
 Verdichter laeuft seit, SP, 11, r-, INT, 0, 100000
 Betriebsart, SP, 13, r-, INT, 0, 7
@@ -65,4 +65,3 @@ Energiezaehler, SP, 263, r-, INT, 0, 2
 # MKR2 Heizgrenze, SP, 228, r-, INT, 0, 0
 # MKR2 Betriebsart, SP, 244, r-, INT, 0, 0
 # Kuehlgrenze, SP, 293, r-, INT, 0, 0
-

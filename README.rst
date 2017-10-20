@@ -42,8 +42,8 @@ Todo
 
 * read and write the time programs of the heat pump
 * write/change parameters of the heat pump
-* add statement about warranty and risk
 * add some (more) examples
+* add some (more) unit tests
 
 
 Tested with
@@ -52,8 +52,23 @@ Tested with
 * Heliotherm HP08S10W-WEB, SW 3.0.20
 
 
+Disclaimer
+----------
+
+.. warning::
+
+   Please note that any incorrect or careless usage of this Python module as well
+   as errors in the implementation can damage your heat pump.
+
+   Therefore, the author does not provide any guarantee or warranty concerning
+   to correctness, functionality or performance and does not accept any liability
+   for damage caused by this module, examples or mentioned information.
+
+   **Thus, use it on your own risk!**
+
+
 Credits
----------
+-------
 
 This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
 

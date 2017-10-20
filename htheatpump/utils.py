@@ -44,7 +44,7 @@ class Singleton:
         https://mail.python.org/pipermail/python-list/2007-July/431423.html
     """
     def __new__(cls, *args, **kwargs):
-        """Create a new instance.
+        """ Create a new instance.
         """
         if '_inst' not in vars(cls):
             cls._inst = object.__new__(cls)

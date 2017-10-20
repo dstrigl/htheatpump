@@ -17,12 +17,28 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" Parameter of the Heliotherm heat pump together with their access command, access rights
-    and data type.
+""" Definition of the Heliotherm heat pump parameters together with their
+
+      - data point type ("MP", "SP"),
+      - data point number,
+      - access rights,
+      - data type,
+      - minimal value and
+      - maximal value.
 """
 
 import enum
+import csv
+from os import path
+
 from htheatpump.utils import Singleton
+
+
+# --------------------------------------------------------------------------------------------- #
+# Constants
+# --------------------------------------------------------------------------------------------- #
+
+CSV_FILE = "htparams.csv"              # CSV file with the parameter definitions of the heat pump
 
 
 # --------------------------------------------------------------------------------------------- #
@@ -43,28 +59,97 @@ class HtDataTypes(enum.Enum):
     INT    = 3
     FLOAT  = 4
 
+    @classmethod
+    def from_str(cls, s):
+        """ Creates a corresponding enum representation for the passed string.
+
+        :param s: The passed string.
+        :type s: str
+        :returns: The corresponding enum representation of the passed string.
+        :rtype: ``HtDataTypes``
+        :raises ValueError:
+            Will be raised if the passed string does not have a corresponding enum representation.
+        """
+        if s == "STRING":
+            return HtDataTypes.STRING
+        elif s == "BOOL":
+            return HtDataTypes.BOOL
+        elif s == "INT":
+            return HtDataTypes.INT
+        elif s == "FLOAT":
+            return HtDataTypes.FLOAT
+        elif s == "None":
+            return None
+        else:
+            raise ValueError("no corresponding enum representation (%s)" % s)
+
 
 class HtParam:
     """ Representation of a specific heat pump parameter.
 
-    :param cmd: The command string.
-    :type cmd: str
+    :param dp_type: The data point type (:const:`"MP"`, :const:`"SP"`).
+    :type dp_type: str
+    :param dp_number: The data point number.
+    :type dp_number: int
     :param acl: The access rights (:const:`'r'` = read, :const:`'w'` = write).
     :type acl: str
-    :param dtype: The data type, see :class:`htparams.HtDataTypes`.
-    :type dtype: HtDataTypes
+    :param data_type: The data type, see :class:`htparams.HtDataTypes`.
+    :type data_type: HtDataTypes
     :param min: The minimal value (default :const:`None`).
     :type min: int, float or None
     :param max: The maximal value (default :const:`None`).
     :type max: int, float or None
     """
 
-    def __init__(self, cmd, acl, dtype, min=None, max=None):
-        self.cmd = cmd
+    def __init__(self, dp_type, dp_number, acl, data_type, min=None, max=None):
+        self.dp_type = dp_type
+        self.dp_number = dp_number
         self.acl = acl
-        self.dtype = dtype
+        self.data_type = data_type
         self.min = min
         self.max = max
+
+    def cmd(self):
+        """ Returns the command string, based on the data point type and number of the parameter.
+
+        :returns: The command string.
+        :rtype: ``str``
+        """
+        return "{},NR={}".format(self.dp_type, self.dp_number)
+
+    @classmethod
+    def conv_value(cls, val, data_type):
+        """ Convert the passed value to the expected data type.
+
+        :param val: The passed value.
+        :type val: str
+        :param data_type: The expected data type, see :class:`htparams.HtDataTypes`.
+        :type data_type: HtDataTypes
+        :returns: The passed value which data type matches the expected one.
+        :rtype: ``str``, ``bool``, ``int`` or ``float``
+        :raises ValueError:
+            Will be raised if the passed value could not be converted to the expected data type.
+        """
+        if data_type is None:
+            raise ValueError("data type must not be None")
+        elif data_type == HtDataTypes.STRING:
+            assert isinstance(val, str)
+            pass  # passed value should be already a string ;-)
+        elif data_type == HtDataTypes.BOOL:
+            # convert to bool (0 = True, 1 = False)
+            if val == '0':
+                val = False
+            elif val == '1':
+                val = True
+            else:
+                raise ValueError("invalid value for data type BOOL (%s)" % repr(val))
+        elif data_type == HtDataTypes.INT:
+            val = int(val)  # convert to integer
+        elif data_type == HtDataTypes.FLOAT:
+            val = float(val)  # convert to floating point number
+        else:
+            raise ValueError("unsupported data type (%d)" % data_type)
+        return val
 
 
 class HtParamsMeta(type):
@@ -80,12 +165,15 @@ class HtParamsMeta(type):
 
 
 # --------------------------------------------------------------------------------------------- #
-# Dictionary of all known Heliotherm heat pump parameters
+# Parameter dictionary class
 # --------------------------------------------------------------------------------------------- #
 
-
 class HtParams(Singleton, metaclass=HtParamsMeta):
-    """ Dictionary of all known Heliotherm heat pump parameters.
+    """ Dictionary of the supported Heliotherm heat pump parameters. [*]_
+
+    .. [*] Most of the supported heat pump parameters were found by "sniffing" the
+           serial communication of the Heliotherm home control Windows application
+           (http://homecontrol.heliotherm.com) during a refresh! ;-)
     """
 
     @classmethod
@@ -100,106 +188,63 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
     def get(cls, key, default=None):
         return cls._params.get(key, default)
 
-    #
-    # All known Heliotherm heat pump parameters:
-    #
-    _params = {
-        # ----------------------------------------------------------------------------------------------------------------------------------------
-        #  SP-Numbers:
-        #
-        "Softwareversion"                 :  HtParam(  cmd = "SP,NR=9",    acl = "r-",  dtype = HtDataTypes.INT,    min = None,   max = None    ),
-        "Verdichter_Status"               :  HtParam(  cmd = "SP,NR=10",   acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 11      ),
-        "Verdichter laeuft seit"          :  HtParam(  cmd = "SP,NR=11",   acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 100000  ),
-        "Betriebsart"                     :  HtParam(  cmd = "SP,NR=13",   acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 7       ),
-        "HKR Soll_Raum"                   :  HtParam(  cmd = "SP,NR=69",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 10.0,   max = 25.0    ),
-        "HKR Aufheiztemp. (K)"            :  HtParam(  cmd = "SP,NR=71",   acl = "r-",  dtype = HtDataTypes.INT,    min = 1,      max = 10      ),
-        "HKR Absenktemp. (K)"             :  HtParam(  cmd = "SP,NR=72",   acl = "r-",  dtype = HtDataTypes.INT,    min = -10,    max = -1      ),
-        "HKR Heizgrenze"                  :  HtParam(  cmd = "SP,NR=76",   acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 45      ),
-        "HKR RLT Soll_oHG (Heizkurve)"    :  HtParam(  cmd = "SP,NR=80",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 15.0,   max = 40.0    ),
-        "HKR RLT Soll_0 (Heizkurve)"      :  HtParam(  cmd = "SP,NR=81",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 20.0,   max = 50.0    ),
-        "HKR RLT Soll_uHG (Heizkurve)"    :  HtParam(  cmd = "SP,NR=82",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 25.0,   max = 60.0    ),
-        "WW Normaltemp."                  :  HtParam(  cmd = "SP,NR=83",   acl = "r-",  dtype = HtDataTypes.INT,    min = 10,     max = 75      ),
-        "WW Minimaltemp."                 :  HtParam(  cmd = "SP,NR=85",   acl = "r-",  dtype = HtDataTypes.INT,    min = 5,      max = 45      ),
-        "BSZ Verdichter Betriebsst. WW"   :  HtParam(  cmd = "SP,NR=171",  acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 100000  ),
-        "BSZ Verdichter Betriebsst. HKR"  :  HtParam(  cmd = "SP,NR=172",  acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 100000  ),
-        "BSZ Verdichter Betriebsst. ges"  :  HtParam(  cmd = "SP,NR=173",  acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 100000  ),
-        "MKR2 Aktiviert"                  :  HtParam(  cmd = "SP,NR=222",  acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 2       ),  # how to interpret?
-        "Energiezaehler"                  :  HtParam(  cmd = "SP,NR=263",  acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 2       ),  # how to interpret?
+    @classmethod
+    def dump(cls):
+        for name, param in HtParams.items():
+            print("%s: dp_type = %s, dp_number = %d, acl = %s, data_type = %s, min = %s, max = %s" %
+                  (name, repr(param.dp_type), param.dp_number, repr(param.acl),
+                   str(param.data_type) if param.data_type else "unknown",
+                   str(param.min), str(param.max)))
 
-        #
-        # TODO
-        #
-        # "MKR1 Soll_Raum"                  :  HtParam(  cmd = "SP,NR=200",  acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0,      max = 0       ),  # TODO min, max
-        # "MKR1 Heizgrenze"                 :  HtParam(  cmd = "SP,NR=205",  acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 0       ),  # TODO min, max
-        # "MKR2 Soll_Raum"                  :  HtParam(  cmd = "SP,NR=223",  acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0,      max = 0       ),  # TODO min, max
-        # "MKR2 Heizgrenze"                 :  HtParam(  cmd = "SP,NR=228",  acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 0       ),  # TODO min, max
-        # "Kuehlgrenze"                     :  HtParam(  cmd = "SP,NR=293",  acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 0       ),  # TODO min, max
-        # "MKR1 Betriebsart"                :  HtParam(  cmd = "SP,NR=221",  acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 0       ),  # TODO min, max
-        # "MKR2 Betriebsart"                :  HtParam(  cmd = "SP,NR=244",  acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 0       ),  # TODO min, max
+    def _load_from_csv(filename):
+        """ Load all supported heat pump parameter definitions from the passed CSV file.
 
-        #
-        # ----------------------------------------------------------------------------------------------------------------------------------------
-        #  MP-Numbers:
-        #
-        "Temp. Aussen"                    :  HtParam(  cmd = "MP,NR=0",    acl = "r-",  dtype = HtDataTypes.FLOAT,  min = -20.0,  max = 40.0    ),
-        "Temp. Brauchwasser"              :  HtParam(  cmd = "MP,NR=2",    acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0.0,    max = 70.0    ),
-        "Temp. Vorlauf"                   :  HtParam(  cmd = "MP,NR=3",    acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0.0,    max = 70.0    ),
-        "Temp. Ruecklauf"                 :  HtParam(  cmd = "MP,NR=4",    acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0.0,    max = 70.0    ),
-        "Temp. EQ_Eintritt"               :  HtParam(  cmd = "MP,NR=6",    acl = "r-",  dtype = HtDataTypes.FLOAT,  min = -20.0,  max = 30.0    ),
-        "Temp. EQ_Austritt"               :  HtParam(  cmd = "MP,NR=7",    acl = "r-",  dtype = HtDataTypes.FLOAT,  min = -20.0,  max = 30.0    ),
-        "Temp. Sauggas"                   :  HtParam(  cmd = "MP,NR=9",    acl = "r-",  dtype = HtDataTypes.FLOAT,  min = -20.0,  max = 30.0    ),
-        "Temp. Frischwasser_Istwert"      :  HtParam(  cmd = "MP,NR=11",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0.0,    max = 70.0    ),
-        "Temp. Verdampfung"               :  HtParam(  cmd = "MP,NR=12",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = -50.0,  max = 30.0    ),
-        "Temp. Kondensation"              :  HtParam(  cmd = "MP,NR=13",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = -50.0,  max = 60.0    ),
-        "Niederdruck (bar)"               :  HtParam(  cmd = "MP,NR=20",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0.0,    max = 18.0    ),
-        "Hochdruck (bar)"                 :  HtParam(  cmd = "MP,NR=21",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0.0,    max = 40.0    ),
-        "Heizkreispumpe"                  :  HtParam(  cmd = "MP,NR=22",   acl = "r-",  dtype = HtDataTypes.BOOL,   min = 0,      max = 1       ),
-        "EQ Pumpe (Ventilator)"           :  HtParam(  cmd = "MP,NR=24",   acl = "r-",  dtype = HtDataTypes.BOOL,   min = 0,      max = 1       ),
-        "Warmwasservorrang"               :  HtParam(  cmd = "MP,NR=25",   acl = "r-",  dtype = HtDataTypes.BOOL,   min = 0,      max = 1       ),
-        "Zirkulationspumpe WW"            :  HtParam(  cmd = "MP,NR=29",   acl = "r-",  dtype = HtDataTypes.BOOL,   min = 0,      max = 1       ),
-        "Verdichter"                      :  HtParam(  cmd = "MP,NR=30",   acl = "r-",  dtype = HtDataTypes.BOOL,   min = 0,      max = 1       ),
-        "Stoerung"                        :  HtParam(  cmd = "MP,NR=31",   acl = "r-",  dtype = HtDataTypes.BOOL,   min = 0,      max = 1       ),
-        "FWS Stroemungsschalter"          :  HtParam(  cmd = "MP,NR=38",   acl = "r-",  dtype = HtDataTypes.BOOL,   min = 0,      max = 1       ),
-        "Frischwasserpumpe"               :  HtParam(  cmd = "MP,NR=50",   acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 100     ),  # probably 0 - 100%
-        "Verdichteranforderung"           :  HtParam(  cmd = "MP,NR=56",   acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 5       ),
-        "HKR_Sollwert"                    :  HtParam(  cmd = "MP,NR=57",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0.0,    max = 50.0    ),
+        :param filename: Name of the CSV file with the parameter definitions.
+        :type filename: str
+        :returns: Dictionary of the supported heat pump parameters:
+            ::
 
-        #
-        # TODO
-        #
-        # "Temp. Pufferspeicher"            :  HtParam(  cmd = "MP,NR=5",    acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0,      max = 0       ),  # TODO min, max
-        # "Temp. Heissgas"                  :  HtParam(  cmd = "MP,NR=15",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0,      max = 0       ),  # TODO min, max
-        # "Pufferladepumpe"                 :  HtParam(  cmd = "MP,NR=23",   acl = "r-",  dtype = HtDataTypes.BOOL,   min = 0,      max = 1       ),
-        # "Vierwegeventil Luft"             :  HtParam(  cmd = "MP,NR=32",   acl = "r-",  dtype = HtDataTypes.BOOL,   min = 0,      max = 1       ),
-        # "WMZ_Heizung (kWh)"               :  HtParam(  cmd = "MP,NR=52",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0,      max = 0       ),  # TODO min, max (type?)
-        # "Stromz_Heizung (kWh)"            :  HtParam(  cmd = "MP,NR=53",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0,      max = 0       ),  # TODO min, max (type?)
-        # "WMZ_Brauchwasser (kWh)"          :  HtParam(  cmd = "MP,NR=54",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0,      max = 0       ),  # TODO min, max (type?)
-        # "Stromz_Brauchwasser (kWh)"       :  HtParam(  cmd = "MP,NR=55",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0,      max = 0       ),  # TODO min, max (type?)
-        # "Stromz_Gesamt (kWh)"             :  HtParam(  cmd = "MP,NR=75",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0,      max = 0       ),  # TODO min, max (type?)-
-        # "Stromz_Leistung (W)"             :  HtParam(  cmd = "MP,NR=83",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0,      max = 0       ),  # TODO min, max (type?)
-        # "WMZ_Gesamt (kWh)"                :  HtParam(  cmd = "MP,NR=84",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0,      max = 0       ),  # TODO min, max (type?)
-        # "WMZ_Durchfluss"                  :  HtParam(  cmd = "MP,NR=85",   acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 0       ),  # TODO min, max (type?)
-        # "WMZ_Leistung (kW)"               :  HtParam(  cmd = "MP,NR=89",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0,      max = 0       ),  # TODO min, max (type?)
-        # "Verdichter Soll-n(%)"            :  HtParam(  cmd = "MP,NR=47",   acl = "r-",  dtype = HtDataTypes.INT,    min = 0,      max = 0       ),  # TODO min, max
-        # "COP"                             :  HtParam(  cmd = "MP,NR=98",   acl = "r-",  dtype = HtDataTypes.FLOAT,  min = 0,      max = 0       ),  # TODO min, max (type?)
-        # "EVU_Sperre"                      :  HtParam(  cmd = "MP,NR=37",   acl = "r-",  dtype = HtDataTypes.BOOL,   min = 0,      max = 1       ),
-    }
-    #
-    #  Most of the upper access commands of the Heliotherm heat pump parameters were sniffed from the Heliotherm home control Windows application
-    #    (http://homecontrol.heliotherm.com) during a refresh!
+                { "Parameter name": HtParam(dp_type=..., dp_number=...,
+                                            acl=..., data_type=...,
+                                            min=..., max=...),
+                  # ...
+                }
+
+        :rtype: ``dict``
+        """
+        params = {}
+        with open(filename) as f:
+            reader = csv.reader(f, delimiter=',', skipinitialspace=True)
+            for row in reader:
+                # continue for empty rows or comments
+                if not row or row[0].startswith('#'):
+                    continue
+                name, dp_type, dp_number, acl, data_type, min_val, max_val = row
+                # convert the data point number into an int
+                dp_number = int(dp_number)
+                # convert the given data type into the corresponding enum value
+                data_type = HtDataTypes.from_str(data_type)
+                # convert the minimal value to the expected data type
+                min_val = None if min_val == "None" else HtParam.conv_value(min_val, data_type)
+                # convert the maximal value to the expected data type
+                max_val = None if max_val == "None" else HtParam.conv_value(max_val, data_type)
+                # add the parameter definition to the dictionary
+                params.update({name: HtParam(dp_type=dp_type, dp_number=dp_number,
+                                             acl=acl, data_type=data_type,
+                                             min=min_val, max=max_val)})
+        return params
+
+    # Dictionary of the supported Heliotherm heat pump parameters
+    _params = _load_from_csv(path.join(path.dirname(path.abspath(__file__)), CSV_FILE))
 
 
 # --------------------------------------------------------------------------------------------- #
 # Main program
 # --------------------------------------------------------------------------------------------- #
 
-# Only for testing: print all known parameters
+# Only for testing: print all supported heat pump parameters
 def main():
-    for paramName, param in HtParams.items():
-        print("%s: cmd = %s, acl = %s, dtype = %s, min = %s, max = %s" %
-              (repr(paramName), repr(param.cmd), repr(param.acl),
-               str(param.dtype) if param.dtype else "unknown",
-               str(param.min), str(param.max)))
+    HtParams.dump()
 
 
 if __name__ == "__main__":
