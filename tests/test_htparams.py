@@ -36,7 +36,7 @@ class TestHtDataTypes:
         "float", "Float",
         "123456", "ÄbcDef", "äbcdef", "ab&def", "@bcdef", "aBcde$", "WzßrÖt",
         # ...
-        ])
+    ])
     def test_from_str_raises_ValueError(self, str):
         with pytest.raises(ValueError):
             HtDataTypes.from_str(str)
