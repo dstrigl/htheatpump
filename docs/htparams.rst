@@ -3,6 +3,7 @@
 Heliotherm heat pump parameters
 ===============================
 
+Heliotherm HP08S10W-WEB, SW 3.0.20
 
 SP Data Points
 --------------

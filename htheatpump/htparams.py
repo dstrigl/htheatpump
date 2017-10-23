@@ -118,11 +118,11 @@ class HtParam:
         return "{},NR={}".format(self.dp_type, self.dp_number)
 
     @classmethod
-    def conv_value(cls, val, data_type):
+    def conv_value(cls, value, data_type):
         """ Convert the passed value to the expected data type.
 
-        :param val: The passed value.
-        :type val: str
+        :param value: The passed value.
+        :type value: str
         :param data_type: The expected data type, see :class:`htparams.HtDataTypes`.
         :type data_type: HtDataTypes
         :returns: The passed value which data type matches the expected one.
@@ -133,23 +133,23 @@ class HtParam:
         if data_type is None:
             raise ValueError("data type must not be None")
         elif data_type == HtDataTypes.STRING:
-            assert isinstance(val, str)
+            assert isinstance(value, str)
             pass  # passed value should be already a string ;-)
         elif data_type == HtDataTypes.BOOL:
             # convert to bool (0 = True, 1 = False)
-            if val == '0':
-                val = False
-            elif val == '1':
-                val = True
+            if value == "0":
+                value = False
+            elif value == "1":
+                value = True
             else:
-                raise ValueError("invalid value for data type BOOL (%s)" % repr(val))
+                raise ValueError("invalid value for data type BOOL (%s)" % repr(value))
         elif data_type == HtDataTypes.INT:
-            val = int(val)  # convert to integer
+            value = int(value)  # convert to integer
         elif data_type == HtDataTypes.FLOAT:
-            val = float(val)  # convert to floating point number
+            value = float(value)  # convert to floating point number
         else:
             raise ValueError("unsupported data type (%d)" % data_type)
-        return val
+        return value
 
 
 class HtParamsMeta(type):

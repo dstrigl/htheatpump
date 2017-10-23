@@ -23,24 +23,23 @@ import pytest
 # import json
 import re
 # from htheatpump.htheatpump import HtHeatpump
-from htheatpump.htparams import HtParams, HtDataTypes
+from htheatpump.htparams import HtDataTypes, HtParam, HtParams
 
 
 class TestHtDataTypes:
-    @pytest.fixture(params=["none", "NONE",
-                            "string", "String",
-                            "bool", "Bool", "boolean", "Boolean", "BOOLEAN",
-                            "int", "Int", "integer", "Integer", "INTEGER",
-                            "float", "Float",
-                            "123456", "ÄbcDef", "äbcdef", "ab&def", "@bcdef", "aBcde$", "WzßrÖt",
-                            ]
-                    )
-    def str_raises_ValueError(self, request):
-        return request.param
-
-    def test_from_str_raises_ValueError(self, str_raises_ValueError):
+    @pytest.mark.parametrize("str", [
+        # -- should raise a 'ValueError':
+        "none", "NONE",
+        "string", "String",
+        "bool", "Bool", "boolean", "Boolean", "BOOLEAN",
+        "int", "Int", "integer", "Integer", "INTEGER",
+        "float", "Float",
+        "123456", "ÄbcDef", "äbcdef", "ab&def", "@bcdef", "aBcde$", "WzßrÖt",
+        # ...
+        ])
+    def test_from_str_raises_ValueError(self, str):
         with pytest.raises(ValueError):
-            HtDataTypes.from_str(str_raises_ValueError)
+            HtDataTypes.from_str(str)
         #assert 0
 
     def test_from_str(self):
@@ -51,18 +50,53 @@ class TestHtDataTypes:
         assert HtDataTypes.from_str("FLOAT") == HtDataTypes.FLOAT
         #assert 0
 
-    def test_conv_value(self):
-        pass  # TODO
+
+class TestHtHtParam:
+    @pytest.mark.parametrize("str, data_type, exp_value", [
+        ("TestString", HtDataTypes.STRING, "TestString"),
+        ("0", HtDataTypes.BOOL, False),
+        ("1", HtDataTypes.BOOL, True),
+        ("123", HtDataTypes.INT, 123),
+        ("-321", HtDataTypes.INT, -321),
+        ("123.456", HtDataTypes.FLOAT, 123.456),
+        ("-321.456", HtDataTypes.FLOAT, -321.456),
+        ("789", HtDataTypes.FLOAT, 789),
+        # -- should raise a 'ValueError':
+        ("Test", None, None),
+        ("True", HtDataTypes.BOOL, None),
+        ("False", HtDataTypes.BOOL, None),
+        ("true", HtDataTypes.BOOL, None),
+        ("false", HtDataTypes.BOOL, None),
+        ("abc", HtDataTypes.BOOL, None),
+        ("def", HtDataTypes.INT, None),
+        ("--99", HtDataTypes.INT, None),
+        ("12+55", HtDataTypes.INT, None),
+        ("ghi", HtDataTypes.FLOAT, None),
+        ("--99.0", HtDataTypes.FLOAT, None),
+        ("12.3+55.9", HtDataTypes.FLOAT, None),
+        # ...
+    ])
+    def test_conv_value(self, str, data_type, exp_value):
+        if exp_value is None:
+            with pytest.raises(ValueError):
+                HtParam.conv_value(str, data_type)
+        else:
+            assert HtParam.conv_value(str, data_type) == exp_value
+        #assert 0
+
+    @pytest.mark.parametrize("name, cmd", [(name, param.cmd()) for name, param in HtParams.items()])
+    def test_cmd_format(self, name, cmd):
+        m = re.match("^[S|M]P,NR=(\d+)$", cmd)
+        assert m is not None, "non valid command string ('%s') for parameter '%s'" % (cmd, name)
+        #assert 0
 
 
 class TestHtHtParams:
-    def test_cmd_format(self):
-        params = list(HtParams.keys())
-        for p in params:
-            cmd = HtParams[p].cmd()
-            m = re.match("^[S|M]P,NR=(\d+)$", cmd)
-            assert m is not None, "non valid command string ('%s') for parameter '%s'" % (cmd, p)
+    @pytest.mark.parametrize("name, param", [(name, param) for name, param in HtParams.items()])
+    def test_validate_param(self, name, param):
+        pass  # TODO
         #assert 0
+
 
 # TODO
 # class HtParamsTestWithConnection(unittest.TestCase):
