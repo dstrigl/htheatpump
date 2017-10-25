@@ -243,12 +243,12 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
 # --------------------------------------------------------------------------------------------- #
 
 # Only for testing: print all supported heat pump parameters
-def main():
-    HtParams.dump()
+#def main():
+#    HtParams.dump()
 
 
-if __name__ == "__main__":
-    main()
+#if __name__ == "__main__":
+#    main()
 
 
 # --------------------------------------------------------------------------------------------- #

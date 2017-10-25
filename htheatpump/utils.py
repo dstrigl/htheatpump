@@ -51,29 +51,9 @@ class Singleton:
         return cls._inst
 
 
-# A simple singleton test class
-class MySingleton(Singleton):
-
-    def __init__(self, v):
-        self._val = v
-
-    def __str__(self):
-        return str(self._val)
-
-
-# Only for testing
-def main():
-    s1 = MySingleton(1)
-    print(str(s1))
-    s2 = MySingleton(2)
-    print(str(s2))
-    print(str(s1))
-
-
-if __name__ == "__main__":
-    # main()
-    import doctest
-    doctest.testmod()
+#if __name__ == "__main__":
+#    import doctest
+#    doctest.testmod()
 
 
 # --------------------------------------------------------------------------------------------- #

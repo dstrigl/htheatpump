@@ -21,9 +21,9 @@
 """
 
 from htheatpump.htparams import HtParam, HtParams
-from timeit import default_timer as timer
+#from timeit import default_timer as timer
 
-import sys
+#import sys
 import serial
 import time
 import re
@@ -741,25 +741,25 @@ class HtHeatpump:
 # --------------------------------------------------------------------------------------------- #
 
 # Only for testing: request for parameter values and print it
-def main():
-    if len(sys.argv) == 2:
-        logging.basicConfig(level=logging.DEBUG)
-    params = sys.argv[1:] if len(sys.argv) > 1 else HtParams.keys()
-    hp = HtHeatpump("/dev/ttyUSB0")
-    start = timer()
-    val = hp.query(params)
-    end = timer()
-    if len(sys.argv) == 2:
-        print(val)
-    else:
-        for p in sorted(params):
-            print("{:32}: {}".format(p, val[p]))
-        # pprint.pprint(params)
-    print("query took %.2f seconds" % (end - start))
+#def main():
+#    if len(sys.argv) == 2:
+#        logging.basicConfig(level=logging.DEBUG)
+#    params = sys.argv[1:] if len(sys.argv) > 1 else HtParams.keys()
+#    hp = HtHeatpump("/dev/ttyUSB0")
+#    start = timer()
+#    val = hp.query(params)
+#    end = timer()
+#    if len(sys.argv) == 2:
+#        print(val)
+#    else:
+#        for p in sorted(params):
+#            print("{:32}: {}".format(p, val[p]))
+#        # pprint.pprint(params)
+#    print("query took %.2f seconds" % (end - start))
 
 
-if __name__ == "__main__":
-    main()
+#if __name__ == "__main__":
+#    main()
 
 
 # --------------------------------------------------------------------------------------------- #

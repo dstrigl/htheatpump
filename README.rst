@@ -41,9 +41,10 @@ Todo
 ----
 
 * read and write the time programs of the heat pump
-* write/change parameters of the heat pump
+* write parameters of the heat pump
 * add some (more) examples
 * add some (more) unit tests
+* cleanup doc
 
 
 Tested with

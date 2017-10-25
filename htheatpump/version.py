@@ -78,12 +78,12 @@ version = Version("htheatpump", 0, 1, 0)
 # --------------------------------------------------------------------------------------------- #
 
 # Only for testing: print the version
-def main():
-    print(version)
+#def main():
+#    print(version)
 
 
-if __name__ == "__main__":
-    main()
+#if __name__ == "__main__":
+#    main()
 
 
 # --------------------------------------------------------------------------------------------- #
