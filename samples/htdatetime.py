@@ -121,7 +121,7 @@ def main():
         if args.datetime is None:
             # get current date and time on the heat pump
             dt, wd = hp.get_date_time()
-            print("%s, %s" % (WEEKDAYS[wd - 1], dt.isoformat()))
+            print("{}, {}".format(WEEKDAYS[wd - 1], dt.isoformat()))
         else:
             # set current date and time on the heat pump
             if not args.datetime:
@@ -131,7 +131,7 @@ def main():
                 # otherwise translate the given string to a valid datetime object
                 dt = datetime.datetime.strptime(args.datetime, "%Y-%m-%dT%H:%M:%S")
             dt, wd = hp.set_date_time(dt)
-            print("%s, %s" % (WEEKDAYS[wd - 1], dt.isoformat()))
+            print("{}, {}".format(WEEKDAYS[wd - 1], dt.isoformat()))
     except Exception as e:
         print(e)
         sys.exit(1)
@@ -142,7 +142,7 @@ def main():
 
     # print execution time only if desired
     if args.time:
-        print("execution time: %.2f sec" % (end - start))
+        print("execution time: {:.2f} sec".format(end - start))
 
     sys.exit(0)
 

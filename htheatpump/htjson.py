@@ -61,8 +61,8 @@ class HtJson:
                   # ...
                 }
         """
-        _logger.debug("write parameter values to JSON file %s:\n%s", repr(self._filename),
-                      json.dumps(params, indent=4, sort_keys=True))
+        _logger.debug("write parameter values to JSON file {!r}:\n{}".format(
+            self._filename, json.dumps(params, indent=4, sort_keys=True)))
         with io.open(self._filename, 'w', encoding='utf-8') as f:
             f.write(json.dumps(params, indent=4, sort_keys=True))
 

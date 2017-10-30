@@ -123,12 +123,12 @@ def main():
         hp.login()
         for cmd in args.cmd:
             # write the given command to the heat pump
-            print("> %s" % repr(cmd))
+            print("> {!r}".format(cmd))
             hp.send_request(cmd)
             # and read all expected responses for this command
             for _ in range(0, args.responses):
                 resp = hp.read_response()
-                print("< %s" % repr(resp))
+                print("< {!r}".format(resp))
     except Exception as e:
         print(e)
         sys.exit(1)
@@ -139,7 +139,7 @@ def main():
 
     # print execution time only if desired
     if args.time:
-        print("execution time: %.2f sec" % (end - start))
+        print("execution time: {:.2f} sec".format(end - start))
 
     sys.exit(0)
 

@@ -72,7 +72,7 @@ RID_RESP     = "^RID,(\d+)$"
 VERSION_CMD  = "SP,NR=9"                          # returns the software version of the heat pump
 VERSION_RESP = "^SP,NR=9,.*NAME=([^,]+).*VAL=([^,]+).*$"
 CLK_CMD      = ("CLK",                       # get/set the current date and time of the heat pump
-                "CLK,DA=%02d.%02d.%02d,TI=%02d:%02d:%02d,WD=%d")
+                "CLK,DA={:02d}.{:02d}.{:02d},TI={:02d}:{:02d}:{:02d},WD={:d}")
 CLK_RESP     = ("^CLK"
                 ",DA=(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"   # date, e.g. '26.11.15'
                 ",TI=([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                # time, e.g. '21:28:57'
@@ -84,7 +84,7 @@ ALC_RESP     = ("^AA,(\d+),(\d+)"                           # fault list index a
                 ",(.*)$")                                    # error message, e.g. 'EQ_Spreizung'
 ALS_CMD      = "ALS"                               # returns the fault list size of the heat pump
 ALS_RESP     = "^SUM=(\d+)$"
-AR_CMD       = "AR,%s"                               # returns a specific entry of the fault list
+AR_CMD       = "AR,{}"                               # returns a specific entry of the fault list
 AR_RESP      = ("^AA,(\d+),(\d+)"                           # fault list index and error code (?)
                 ",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"      # date, e.g. '14.09.14'
                 "-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                   # time, e.g. '11:52:08'
@@ -271,7 +271,7 @@ class HtHeatpump:
         if not self._ser:
             raise IOError("serial connection not open")
         req = create_request(cmd)
-        _logger.debug("send request: [%s]", req)
+        _logger.debug("send request: [{}]".format(req))
         self._ser.write(req)
 
     def read_response(self):
@@ -306,7 +306,7 @@ class HtHeatpump:
         if not header:
             raise IOError("data stream broken during reading response header")
         elif header not in RESPONSE_HEADER:
-            raise IOError("wrong response header for a request [%s]" % header)
+            raise IOError("wrong response header for a request [{}]".format(header))
         # read the length of the following payload
         payload_len = self._ser.read(1)
         if not payload_len:
@@ -324,19 +324,19 @@ class HtHeatpump:
             # compute the checksum over header and payload
             comp_checksum = calc_checksum(header + payload_len + payload)
         else:  # log about response with unlikely (but handled) header!
-            _logger.info("FYI: received response with \"unlikely\" header, but handled normally (checksum=%s)"
-                         % hex(checksum[0]))
+            _logger.info("FYI: received response with \"unlikely\" header, but handled normally (checksum={})"
+                         .format(hex(checksum[0])))
         if checksum[0] != comp_checksum:
-            raise IOError("received response has an invalid checksum [%s]" % hex(checksum[0]))
+            raise IOError("received response has an invalid checksum [{}]".format(hex(checksum[0])))
         # debug log of the received response
-        _logger.debug("received response: [%s]", header + payload_len + payload + checksum)
-        _logger.debug("  header = %s", header)
-        _logger.debug("  payload = %s", payload)
-        _logger.debug("  checksum = %s", hex(checksum[0]))
+        _logger.debug("received response: [{}]".format(header + payload_len + payload + checksum))
+        _logger.debug("  header = {}".format(header))
+        _logger.debug("  payload = {}".format(payload))
+        _logger.debug("  checksum = {}".format(hex(checksum[0])))
         # extract the relevant data from the payload (without header '~' and trailer ';\r\n')
         m = re.match("^~([^;]*);\r\n$", payload.decode("ascii"))
         if not m:
-            raise IOError("failed to extract response data from payload [%s]" % payload)
+            raise IOError("failed to extract response data from payload [{}]".format(payload))
         return m.group(1)
 
     def login(self, max_retries=_login_retries):
@@ -361,16 +361,16 @@ class HtHeatpump:
                 if resp == LOGIN_RESP:
                     success = True
                 else:
-                    raise IOError("invalid response for LOGIN command [%s]" % repr(resp))
+                    raise IOError("invalid response for LOGIN command [{}]".format(resp))
             except Exception as e:
-                _logger.warning("login try %d failed: %s", retry, e)
+                _logger.warning("login try {:d} failed: {!s}".format(retry, e))
                 retry += 1
                 # try a reconnect, maybe this will help ;-)
                 self.close_connection()
                 self.open_connection()
         if not success:
-            _logger.error("login failed after %d retries", retry)
-            raise IOError("login failed after %d retries" % retry)
+            _logger.error("login failed after {:d} retries".format(retry))
+            raise IOError("login failed after {:d} retries".format(retry))
         _logger.info("login successfully")
 
     def logout(self):
@@ -382,11 +382,11 @@ class HtHeatpump:
             # ... and wait for the response
             resp = self.read_response()
             if resp != LOGOUT_RESP:
-                raise IOError("invalid response for LOGOUT command [%s]" % repr(resp))
+                raise IOError("invalid response for LOGOUT command [{}]".format(resp))
             _logger.info("logout successfully")
         except Exception as e:
             # just a warning, because it's possible that we can continue without any further problems
-            _logger.warning("logout failed: %s", e)
+            _logger.warning("logout failed: {!s}".format(e))
             # raise  # logout() should not fail!
 
     def get_serial_number(self):
@@ -405,12 +405,12 @@ class HtHeatpump:
             resp = self.read_response()  # e.g. "RID,123456"
             m = re.match(RID_RESP, resp)
             if not m:
-                raise IOError("invalid response for RID command [%s]" % repr(resp))
+                raise IOError("invalid response for RID command [{}]".format(resp))
             rid = int(m.group(1))
-            _logger.debug("manufacturer's serial number = %d", rid)
+            _logger.debug("manufacturer's serial number = {:d}".format(rid))
             return rid  # return the received manufacturer's serial number as an int
         except Exception as e:
-            _logger.error("query for manufacturer's serial number failed: %s", e)
+            _logger.error("query for manufacturer's serial number failed: {!s}".format(e))
             raise
 
     def get_version(self):
@@ -442,12 +442,12 @@ class HtHeatpump:
             #   => software version = 3.0.20
             m = re.match(VERSION_RESP, resp)
             if not m:
-                raise IOError("invalid response for query of the software version [%s]" % repr(resp))
+                raise IOError("invalid response for query of the software version [{}]".format(resp))
             ver = ( m.group(1).strip(), int(m.group(2)) )
-            _logger.debug("software version = %s (%d)", ver[0], ver[1])
+            _logger.debug("software version = {} ({:d})".format(ver[0], ver[1]))
             return ver
         except Exception as e:
-            _logger.error("query for software version failed: %s", e)
+            _logger.error("query for software version failed: {!s}".format(e))
             raise
 
     def get_date_time(self):
@@ -473,16 +473,16 @@ class HtHeatpump:
             resp = self.read_response()  # e.g. "CLK,DA=26.11.15,TI=21:28:57,WD=4"
             m = re.match(CLK_RESP, resp)
             if not m:
-                raise IOError("invalid response for CLK command [%s]" % repr(resp))
+                raise IOError("invalid response for CLK command [{}]".format(resp))
             year = 2000 + int(m.group(3))
             tmp = [ int(g) for g in m.group(2, 1, 4, 5, 6) ]  # month, day, hour, min, sec
             weekday = int(m.group(7))  # weekday 1-7 (Monday through Sunday)
             # create datetime object
             dt = datetime.datetime(year, *tmp)
-            _logger.debug("datetime = %s, weekday = %d", dt.isoformat(), weekday)
+            _logger.debug("datetime = {}, weekday = {:d}".format(dt.isoformat(), weekday))
             return (dt, weekday)  # return the heat pump's date and time as a datetime object
         except Exception as e:
-            _logger.error("query for date and time failed: %s", e)
+            _logger.error("query for date and time failed: {!s}".format(e))
             raise
 
     def set_date_time(self, dt=None):
@@ -507,7 +507,7 @@ class HtHeatpump:
         elif not isinstance(dt, datetime.datetime):
             raise TypeError("argument 'dt' must be None or of type datetime.datetime")
         # create CLK set command
-        cmd = CLK_CMD[1] % (dt.day, dt.month, dt.year - 2000, dt.hour, dt.minute, dt.second, dt.isoweekday())
+        cmd = CLK_CMD[1].format(dt.day, dt.month, dt.year - 2000, dt.hour, dt.minute, dt.second, dt.isoweekday())
         # send command to the heat pump
         self.send_request(cmd)
         # ... and wait for the response
@@ -515,16 +515,16 @@ class HtHeatpump:
             resp = self.read_response()  # e.g. "CLK,DA=26.11.15,TI=21:28:57,WD=4"
             m = re.match(CLK_RESP, resp)
             if not m:
-                raise IOError("invalid response for CLK command [%s]" % repr(resp))
+                raise IOError("invalid response for CLK command [{}]".format(resp))
             year = 2000 + int(m.group(3))
             tmp = [ int(g) for g in m.group(2, 1, 4, 5, 6) ]  # month, day, hour, min, sec
             weekday = int(m.group(7))  # weekday 1-7 (Monday through Sunday)
             # create datetime object
             dt = datetime.datetime(year, *tmp)
-            _logger.debug("datetime = %s, weekday = %d", dt.isoformat(), weekday)
+            _logger.debug("datetime = {}, weekday = {:d}".format(dt.isoformat(), weekday))
             return (dt, weekday)  # return the heat pump's date and time as a datetime object
         except Exception as e:
-            _logger.error("set of date and time failed: %s", e)
+            _logger.error("set of date and time failed: {!s}".format(e))
             raise
 
     def get_last_fault(self):
@@ -553,16 +553,16 @@ class HtHeatpump:
             resp = self.read_response()  # e.g. "AA,29,20,14.09.14-11:52:08,EQ_Spreizung"
             m = re.match(ALC_RESP, resp)
             if not m:
-                raise IOError("invalid response for ALC command [%s]" % repr(resp))
+                raise IOError("invalid response for ALC command [{}]".format(resp))
             (idx, err) = [ int(g) for g in m.group(1, 2) ]  # fault list index, error code (?)
             year = 2000 + int(m.group(5))
             tmp = [ int(g) for g in m.group(4, 3, 6, 7, 8) ]  # month, day, hour, min, sec
             dt = datetime.datetime(year, *tmp)  # create datetime object
             msg = m.group(9).strip()
-            _logger.debug("(idx: %d, err: %d)[%s]: %s", idx, err, dt.isoformat(), msg)
+            _logger.debug("(idx: {:d}, err: {:d})[{}]: {}".format(idx, err, dt.isoformat(), msg))
             return ( idx, err, dt, msg )
         except Exception as e:
-            _logger.error("query for last fault message failed: %s", e)
+            _logger.error("query for last fault message failed: {!s}".format(e))
             raise
 
     def get_fault_list_size(self):
@@ -581,12 +581,12 @@ class HtHeatpump:
             resp = self.read_response()  # e.g. "SUM=2757"
             m = re.match(ALS_RESP, resp)
             if not m:
-                raise IOError("invalid response for ALS command [%s]" % repr(resp))
+                raise IOError("invalid response for ALS command [{}]".format(resp))
             size = int(m.group(1))
-            _logger.debug("fault list size = %d", size)
+            _logger.debug("fault list size = {:d}".format(size))
             return size
         except Exception as e:
-            _logger.error("query for fault list size failed: %s", e)
+            _logger.error("query for fault list size failed: {!s}".format(e))
             raise
 
     def get_fault_list(self, *args):
@@ -612,7 +612,8 @@ class HtHeatpump:
         if not args:
             args = range(0, self.get_fault_list_size())
         # send AR request to the heat pump
-        self.send_request(AR_CMD % ','.join(map(lambda i: str(i), args)))
+        cmd = AR_CMD.format(','.join(map(lambda i: str(i), args)))
+        self.send_request(cmd)
         # ... and wait for the response
         try:
             resp = []
@@ -624,15 +625,15 @@ class HtHeatpump:
             for i, r in enumerate(resp):
                 m = re.match(AR_RESP, r)
                 if not m:
-                    raise IOError("invalid response for AR command [%s]" % repr(resp))
+                    raise IOError("invalid response for AR command [{}]".format(resp))
                 (idx, err) = [ int(g) for g in m.group(1, 2) ]  # fault list index, error code
                 year = 2000 + int(m.group(5))
                 tmp = [ int(g) for g in m.group(4, 3, 6, 7, 8) ]  # month, day, hour, min, sec
                 dt = datetime.datetime(year, *tmp)  # create datetime object from extracted data
                 msg = m.group(9).strip()
-                _logger.debug("(idx: %03d, err: %05d)[%s]: %s", idx, err, dt.isoformat(), msg)
+                _logger.debug("(idx: {:03d}, err: {:05d})[{}]: {}".format(idx, err, dt.isoformat(), msg))
                 if idx != args[i]:
-                    raise IOError("fault list index doesn't match [%d, but should be %d]" % (idx, args[i]))
+                    raise IOError("fault list index doesn't match [{:d}, but should be {:d}]".format(idx, args[i]))
                 # add the received fault list entry to the result dict
                 faults.update({ idx: { "error"   : err,  # error code
                                        "datetime": dt,   # date and time of the entry
@@ -641,7 +642,7 @@ class HtHeatpump:
                                 })
             return faults
         except Exception as e:
-            _logger.error("query for fault list failed: %s", e)
+            _logger.error("query for fault list failed: {!s}".format(e))
             raise
 
     def get_param(self, name):
@@ -666,7 +667,7 @@ class HtHeatpump:
         """
         # find the correct command for the requested parameter
         if name not in HtParams:
-            raise KeyError("command for requested parameter %s not found" % repr(name))
+            raise KeyError("command for requested parameter {!r} not found".format(name))
         param = HtParams[name]
         # send request command to the heat pump
         self.send_request(param.cmd())
@@ -674,16 +675,16 @@ class HtHeatpump:
         try:
             resp = self.read_response()
             # search for pattern "VAL=..." inside the response string
-            m = re.match("^%s,.*VAL=([^,]+).*$" % param.cmd(), resp)
+            m = re.match("^{},.*VAL=([^,]+).*$".format(param.cmd()), resp)
             if not m:
-                raise IOError("invalid response for query of parameter %s [%s]" % (repr(name), repr(resp)))
+                raise IOError("invalid response for query of parameter {!r} [{}]".format(name, resp))
             val = m.group(1).strip()
             # convert the returned value (string) to the expected data type
             val = HtParam.conv_value(val, param.data_type)
-            _logger.debug("%s = %s", repr(name), str(val))
+            _logger.debug("{!r} = {!s}".format(name, val))
             return val
         except Exception as e:
-            _logger.error("query for parameter %s failed: %s", repr(name), e)
+            _logger.error("query for parameter {!r} failed: {!s}".format(name, e))
             raise
 
     @property
@@ -726,7 +727,7 @@ class HtHeatpump:
             self.open_connection()
             self.login()
             rid = self.get_serial_number()
-            _logger.info("connected successfully to heat pump with serial number %d", rid)
+            _logger.info("connected successfully to heat pump with serial number {:d}".format(rid))
             # query for each parameter in the given list
             for p in params:
                 result.update({p: self.get_param(p)})
@@ -755,7 +756,7 @@ class HtHeatpump:
 #        for p in sorted(params):
 #            print("{:32}: {}".format(p, val[p]))
 #        # pprint.pprint(params)
-#    print("query took %.2f seconds" % (end - start))
+#    print("query took {:.2f} sec".format(end - start))
 
 
 #if __name__ == "__main__":

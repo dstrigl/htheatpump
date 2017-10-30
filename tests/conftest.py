@@ -22,26 +22,30 @@ import logging
 
 
 def pytest_addoption(parser):
-    parser.addoption("--connected", action="store_true", default=False)
+    parser.addoption("--connected", action="store_true", dest="run_if_connected", default=False)
     parser.addoption("--device", action="store", default="/dev/ttyUSB0")
     parser.addoption("--baudrate", action="store", default=115200)
     parser.addoption("--loglevel", action="store", default=logging.WARNING)
 
 
 def pytest_configure(config):
-    logging.basicConfig(level=int(config.getoption("--loglevel")))
+    if not config.option.run_if_connected:
+        setattr(config.option, "markexpr", "not run_if_connected")
+
+    loglevel = int(config.getoption("--loglevel"))
+    logging.basicConfig(level=loglevel)
+
+    print("connected: {}".format("no" if not config.option.run_if_connected else "yes"))
+    print("device: {}".format(config.getoption("--device")))
+    print("baudrate: {:d}".format(int(config.getoption("--baudrate"))))
+    print("loglevel: {:d}".format(loglevel))
 
 
-@pytest.fixture
-def cmdopt_connected(request):
-    return request.config.getoption("--connected")
-
-
-@pytest.fixture
+@pytest.fixture(scope="session")
 def cmdopt_device(request):
     return request.config.getoption("--device")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def cmdopt_baudrate(request):
     return request.config.getoption("--baudrate")

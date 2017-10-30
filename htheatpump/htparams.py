@@ -81,7 +81,7 @@ class HtDataTypes(enum.Enum):
         elif s == "None":
             return None
         else:
-            raise ValueError("no corresponding enum representation (%s)" % s)
+            raise ValueError("no corresponding enum representation ({!r})".format(s))
 
 
 class HtParam:
@@ -130,10 +130,9 @@ class HtParam:
         :raises ValueError:
             Will be raised if the passed value could not be converted to the expected data type.
         """
-        if data_type is None:
-            raise ValueError("data type must not be None")
-        elif data_type == HtDataTypes.STRING:
-            assert isinstance(value, str)
+        assert isinstance(value, str)
+        assert isinstance(data_type, HtDataTypes)
+        if data_type == HtDataTypes.STRING:
             pass  # passed value should be already a string ;-)
         elif data_type == HtDataTypes.BOOL:
             # convert to bool (0 = True, 1 = False)
@@ -142,13 +141,13 @@ class HtParam:
             elif value == "1":
                 value = True
             else:
-                raise ValueError("invalid value for data type BOOL (%s)" % repr(value))
+                raise ValueError("invalid representation for data type BOOL ({!r})".format(value))
         elif data_type == HtDataTypes.INT:
             value = int(value)  # convert to integer
         elif data_type == HtDataTypes.FLOAT:
             value = float(value)  # convert to floating point number
         else:
-            raise ValueError("unsupported data type (%d)" % data_type)
+            assert 0, "unsupported data type ({})".format(data_type)
         return value
 
 
@@ -191,10 +190,10 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
     @classmethod
     def dump(cls):
         for name, param in HtParams.items():
-            print("%s: dp_type = %s, dp_number = %d, acl = %s, data_type = %s, min = %s, max = %s" %
-                  (name, repr(param.dp_type), param.dp_number, repr(param.acl),
-                   str(param.data_type) if param.data_type else "unknown",
-                   str(param.min), str(param.max)))
+            print("{!r}: dp_type = {!r}, dp_number = {:d}, acl = {!r}, data_type = {!s}, min = {!s}, max = {!s}"
+                  .format(name, param.dp_type, param.dp_number, param.acl,
+                          param.data_type if param.data_type else "<unknown>",
+                          param.min, param.max))
 
     def _load_from_csv(filename):
         """ Load all supported heat pump parameter definitions from the passed CSV file.

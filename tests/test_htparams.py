@@ -20,13 +20,9 @@
 """ Tests for code in htheatpump.htparams. """
 
 import pytest
-# import json
 import re
 from htheatpump.htparams import HtDataTypes, HtParam, HtParams
 from htheatpump.htheatpump import HtHeatpump
-
-#import logging
-#_logger = logging.getLogger(__name__)
 
 
 class TestHtDataTypes:
@@ -65,7 +61,6 @@ class TestHtParam:
         ("-321.456", HtDataTypes.FLOAT, -321.456),
         ("789", HtDataTypes.FLOAT, 789),
         # -- should raise a 'ValueError':
-        ("Test", None, None),
         ("True", HtDataTypes.BOOL, None),
         ("False", HtDataTypes.BOOL, None),
         ("true", HtDataTypes.BOOL, None),
@@ -90,13 +85,14 @@ class TestHtParam:
     @pytest.mark.parametrize("name, cmd", [(name, param.cmd()) for name, param in HtParams.items()])
     def test_cmd_format(self, name, cmd):
         m = re.match("^[S|M]P,NR=(\d+)$", cmd)
-        assert m is not None, "non valid command string ('%s') for parameter '%s'" % (cmd, name)
+        assert m is not None, "non valid command string for parameter {!r} [{!r}]".format(name, cmd)
         #assert 0
 
 
 @pytest.fixture(scope="class")
-def hthp():  # TODO
-    hthp = HtHeatpump(device="/dev/ttyUSB0", baudrate=115200)
+def hthp(cmdopt_device, cmdopt_baudrate):
+    #hthp = HtHeatpump(device="/dev/ttyUSB0", baudrate=115200)
+    hthp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
     try:
         hthp.open_connection()
         hthp.login()
@@ -106,38 +102,46 @@ def hthp():  # TODO
         hthp.close_connection()
 
 
+@pytest.mark.run_if_connected
+def test_hthp_is_not_None(hthp):
+    assert hthp is not None
+    #assert 0
+
+
 class TestHtParams:
     @pytest.mark.parametrize("name, acl", [(name, param.acl) for name, param in HtParams.items()])
     def test_acl(self, name, acl):
         assert acl is not None, "acl must not be None"
         m = re.match("^(r-|-w|rw)$", acl)
-        assert m is not None, "invalid acl definition [%s]" % acl
+        assert m is not None, "invalid acl definition for parameter {!r} [{!r}]".format(name, acl)
         #assert 0
 
     @pytest.mark.parametrize("name, min, max", [(name, param.min, param.max) for name, param in HtParams.items()])
     def test_limits(self, name, min, max):
-        assert min is not None, "minimal value must not be None"
-        assert max is not None, "maximal value must not be None"
-        assert (min <= max) and (max >= min)
+        assert min is not None, "minimal value for parameter {!r} must not be None".format(name)
+        assert max is not None, "maximal value for parameter {!r} must not be None".format(name)
+        assert min <= max, "TODO"
+        assert max >= min, "TODO"
         #assert 0
 
-    @pytest.mark.skip
+    @pytest.mark.run_if_connected
     @pytest.mark.parametrize("name, param", [(name, param) for name, param in HtParams.items()])
     def test_validate_param(self, hthp, name, param):
         hthp.send_request(param.cmd())
         resp = hthp.read_response()
-        m = re.match("^%s,.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$" % param.cmd(), resp)
-        assert m is not None, "invalid response for query of parameter '%s' [%s]" % (name, resp)
+        m = re.match("^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(param.cmd()), resp)
+        assert m is not None, "invalid response for query of parameter {!r} [{!r}]".format(name, resp)
         dp_name = m.group(1).strip()
-        assert dp_name == name, "data point name doesn't match with the parameter name '%s' [%s]" % (name, dp_name)
+        assert dp_name == name,\
+            "data point name doesn't match with the parameter name {!r} [{!r}]".format(name, dp_name)
         dp_value = HtParam.conv_value(m.group(2), param.data_type)
-        assert dp_value is not None, "data point value must not be None [%s]" % dp_value
+        assert dp_value is not None, "data point value must not be None [{}]".format(dp_value)
         dp_max = HtParam.conv_value(m.group(3), param.data_type)
-        assert dp_max == param.max, "data point max value doesn't match with the parameter's one '%s' [%s]"\
-                                    % (str(param.max), str(dp_max))
+        assert dp_max == param.max,\
+            "data point max value doesn't match with the parameter's one {!s} [{!s}]".format(param.max, dp_max)
         dp_min = HtParam.conv_value(m.group(4), param.data_type)
-        assert dp_min == param.min, "data point min value doesn't match with the parameter's one '%s' [%s]"\
-                                    % (str(param.min), str(dp_min))
+        assert dp_min == param.min,\
+            "data point min value doesn't match with the parameter's one {!s} [{!s}]".format(param.min, dp_min)
         #assert 0
 
 

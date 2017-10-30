@@ -57,7 +57,7 @@ class Version(object):
         :returns: A string in canonical short version format.
         :rtype: ``str``
         """
-        return "%d.%d.%d" % (self.major, self.minor, self.patch)
+        return "{:d}.{:d}.{:d}".format(self.major, self.minor, self.patch)
 
     def __str__(self):
         """ Returns a string representation of the object.
@@ -65,7 +65,7 @@ class Version(object):
         :returns: A string representation of this object.
         :rtype: ``str``
         """
-        return '[%s, version %s]' % (self.package, self.short())
+        return "[{}, version {}]".format(self.package, self.short())
 
 
 version = Version("htheatpump", 0, 1, 0)
