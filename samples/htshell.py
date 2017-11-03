@@ -121,6 +121,12 @@ def main():
     try:
         hp.open_connection()
         hp.login()
+        rid = hp.get_serial_number()
+        if args.verbose:
+            print("connected successfully to heat pump with serial number {:d}".format(rid))
+        ver = hp.get_version()
+        if args.verbose:
+            print("software version = {} ({:d})".format(ver[0], ver[1]))
         for cmd in args.cmd:
             # write the given command to the heat pump
             print("> {!r}".format(cmd))
