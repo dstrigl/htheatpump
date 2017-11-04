@@ -4,6 +4,12 @@ include HISTORY.rst
 include LICENSE
 include README.rst
 
+include htheatpump/htparams.csv
+
+include samples/htdatetime.py
+include samples/htshell.py
+include samples/htvalidate.py
+
 recursive-include tests *
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
