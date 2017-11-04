@@ -115,6 +115,8 @@ def main():
                 hp.send_request(param.cmd())
                 resp = hp.read_response()
 
+                # TODO: validate data point type (SP, MP) and number!
+
                 m = re.match("^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(param.cmd()), resp)
                 if not m:
                     print("{!r}: \u001b[31mInvalid response [{!r}]\u001b[0m".format(name, resp))
@@ -144,8 +146,12 @@ def main():
                 except ValueError:
                     s['min'] = "\u001b[31mmin={!s}\u001b[0m".format(dp_min)
 
-                print("{name}: dp_type={!r}, dp_number={!s}, data_type={!s}, {min}, {max}".format(**s))
-
+                print("{}: dp_type={!r}, dp_number={!s}, data_type={!s}, {}, {}".format(s['name'],
+                                                                                        param.dp_type,
+                                                                                        param.dp_number,
+                                                                                        param.data_type,
+                                                                                        s['min'],
+                                                                                        s['max']))
             except Exception as e:
                 print("{!r}: \u001b[31mQuery failed: {!s}\u001b[0m".format(name, e))
                 continue
