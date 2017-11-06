@@ -90,7 +90,7 @@ def main():
     parser.add_argument(
         "name",
         type = str,
-        nargs = '+',
+        nargs = '*',
         help = "parameter name(s) to query for (defined in htparams.csv)")
 
     args = parser.parse_args()
