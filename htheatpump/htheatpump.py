@@ -59,6 +59,7 @@ RESPONSE_HEADER_LEN = 6
 RESPONSE_HEADER = {
     b"\x02\xfd\xe0\xd0\x00\x00" : None,  # checksum has to be computed!
     b"\x02\xfd\xe0\xd0\x04\x00" : 0x00,  # checksum seems to be fixed 0x0, but why?
+    b"\x02\xfd\xe0\xd0\x08\x00" : None,  # @Kilian; another response header?!
 }
 
 # special commands of the heat pump; the request and response of this commands differ from the
@@ -750,11 +751,11 @@ class HtHeatpump:
 #    start = timer()
 #    val = hp.query(params)
 #    end = timer()
-#    if len(sys.argv) == 2:
-#        print(val)
-#    else:
+#    if len(params) > 1:
 #        for p in sorted(params):
 #            print("{:32}: {}".format(p, val[p]))
+#    elif len(params) == 1:
+#        print(val[params[0]])
 #        # pprint.pprint(params)
 #    print("query took {:.2f} sec".format(end - start))
 
