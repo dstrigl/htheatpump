@@ -17,23 +17,21 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" Command line tool to send raw commands to the Heliotherm heat pump.
+""" Command line tool to query for parameters of the Heliotherm heat pump.
 
     Example:
 
     .. code-block:: console
 
-       $ python3 htshell.py --device /dev/ttyUSB1 --baudrate 9600 "AR,28,29,30" -r 3
-       > 'AR,28,29,30'
-       < 'AA,28,19,14.09.14-02:08:56,EQ_Spreizung'
-       < 'AA,29,20,14.09.14-11:52:08,EQ_Spreizung'
-       < 'AA,30,65534,15.09.14-09:17:12,Keine Stoerung'
+       $ python3 htquery.py --device /dev/ttyUSB1 --baudrate 9600 "Temp. Aussen"
+       ... TODO ...
 """
 
 import sys
 import argparse
 import textwrap
 from htheatpump.htheatpump import HtHeatpump
+from htheatpump.htparams import HtParams
 from timeit import default_timer as timer
 import logging
 _logger = logging.getLogger(__name__)
@@ -43,19 +41,12 @@ _logger = logging.getLogger(__name__)
 def main():
     parser = argparse.ArgumentParser(
         description = textwrap.dedent('''\
-            Command shell tool to send raw commands to the Heliotherm heat pump.
-
-            For commands which deliver more than one response from the heat pump
-            the expected number of responses can be defined by the argument "-r"
-            or "--responses".
+            Command line tool to query for parameters of the Heliotherm heat pump.
 
             Example:
 
-              $ python3 %(prog)s --device /dev/ttyUSB1 "AR,28,29,30" -r 3
-              > 'AR,28,29,30'
-              < 'AA,28,19,14.09.14-02:08:56,EQ_Spreizung'
-              < 'AA,29,20,14.09.14-11:52:08,EQ_Spreizung'
-              < 'AA,30,65534,15.09.14-09:17:12,Keine Stoerung'
+              $ python3 %(prog)s --device /dev/ttyUSB1 "Temp. Aussen"
+              ... TODO ...
             '''),
         formatter_class = argparse.RawDescriptionHelpFormatter,
         epilog = textwrap.dedent('''\
@@ -87,12 +78,6 @@ def main():
         help = "baudrate of the serial connection (same as configured on the heat pump), default: %(default)s")
 
     parser.add_argument(
-        "-r", "--responses",
-        default = 1,
-        type = int,
-        help = "number of expected responses for each given command, default: %(default)s")
-
-    parser.add_argument(
         "-t", "--time",
         action = "store_true",
         help = "measure the execution time")
@@ -103,10 +88,10 @@ def main():
         help = "increase output verbosity by activating debug-logging")
 
     parser.add_argument(
-        "cmd",
+        "name",
         type = str,
         nargs = '+',
-        help = "command(s) to send to the heat pump (without the preceding '~' and the trailing ';')")
+        help = "parameter name(s) to query for (defined in htparams.csv)")
 
     args = parser.parse_args()
 
@@ -115,26 +100,34 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.ERROR)
+    # if not given, query for all "known" parameters
+    params = args.name if args.name else HtParams.keys()
 
     hp = HtHeatpump(args.device, baudrate=args.baudrate)
     start = timer()
     try:
         hp.open_connection()
         hp.login()
+
         rid = hp.get_serial_number()
         if args.verbose:
             print("connected successfully to heat pump with serial number {:d}".format(rid))
         ver = hp.get_version()
         if args.verbose:
             print("software version = {} ({:d})".format(ver[0], ver[1]))
-        for cmd in args.cmd:
-            # write the given command to the heat pump
-            print("> {!r}".format(cmd))
-            hp.send_request(cmd)
-            # and read all expected responses for this command
-            for _ in range(0, args.responses):
-                resp = hp.read_response()
-                print("< {!r}".format(resp))
+
+        # query for the given parameter(s)
+        val = {}
+        for p in params:
+            val.update({p: hp.get_param(p)})
+
+        # print the current value(s) of determined parameter(s)
+        if len(params) > 1:
+            for p in sorted(params):
+                print("{:32}: {}".format(p, val[p]))
+        elif len(params) == 1:
+            print(val[params[0]])
+
     except Exception as e:
         print(e)
         sys.exit(1)
