@@ -753,7 +753,7 @@ class HtHeatpump:
 #    end = timer()
 #    if len(params) > 1:
 #        for p in sorted(params):
-#            print("{:32}: {}".format(p, val[p]))
+#            print("{:{width}}: {}".format(p, val[p], width=len(max(params, key=len))))
 #    elif len(params) == 1:
 #        print(val[params[0]])
 #        # pprint.pprint(params)
