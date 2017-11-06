@@ -9,6 +9,7 @@ include htheatpump/htparams.csv
 include samples/htdatetime.py
 include samples/htshell.py
 include samples/htvalidate.py
+include samples/htquery.py
 
 recursive-include tests *
 recursive-exclude * __pycache__
