@@ -59,7 +59,7 @@ RESPONSE_HEADER_LEN = 6
 RESPONSE_HEADER = {
     b"\x02\xfd\xe0\xd0\x00\x00" : None,  # checksum has to be computed!
     b"\x02\xfd\xe0\xd0\x04\x00" : 0x00,  # checksum seems to be fixed 0x0, but why?
-    b"\x02\xfd\xe0\xd0\x08\x00" : None,  # @Kilian; another response header?!
+    b"\x02\xfd\xe0\xd0\x08\x00" : 0x00,  # @Kilian; another response header with fixed checksum?!
 }
 
 # special commands of the heat pump; the request and response of this commands differ from the
