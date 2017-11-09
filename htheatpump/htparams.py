@@ -118,10 +118,10 @@ class HtParam:
         return "{},NR={}".format(self.dp_type, self.dp_number)
 
     @classmethod
-    def conv_value(cls, value, data_type):
-        """ Convert the passed value to the expected data type.
+    def from_str(cls, value, data_type):
+        """ Convert the passed value (in form of a string) to the expected data type.
 
-        :param value: The passed value.
+        :param value: The passed value (in form of a string).
         :type value: str
         :param data_type: The expected data type, see :class:`htparams.HtDataTypes`.
         :type data_type: HtDataTypes
@@ -135,7 +135,7 @@ class HtParam:
         if data_type == HtDataTypes.STRING:
             pass  # passed value should be already a string ;-)
         elif data_type == HtDataTypes.BOOL:
-            # convert to bool (0 = True, 1 = False)
+            # convert to bool (0 = False, 1 = True)
             if value == "0":
                 value = False
             elif value == "1":
@@ -146,6 +146,36 @@ class HtParam:
             value = int(value)  # convert to integer
         elif data_type == HtDataTypes.FLOAT:
             value = float(value)  # convert to floating point number
+        else:
+            assert 0, "unsupported data type ({})".format(data_type)
+        return value
+
+    @classmethod
+    def to_str(cls, value, data_type):
+        """ Convert the passed value to a string.
+
+        :param value: The passed value.
+        :type value: ``str``, ``bool``, ``int`` or ``float``
+        :param data_type: The data type of the passed value, see :class:`htparams.HtDataTypes`.
+        :type data_type: HtDataTypes
+        :returns: The string representation of the passed value.
+        :rtype: ``str``
+        """
+        assert isinstance(value, (str, bool, int, float))
+        assert isinstance(data_type, HtDataTypes)
+        if data_type == HtDataTypes.STRING:
+            assert isinstance(value, str)
+            pass  # passed value should be already a string ;-)
+        elif data_type == HtDataTypes.BOOL:
+            assert isinstance(value, bool)
+            # convert to "0" for False and "1" for True
+            value = "1" if value is True else "0"
+        elif data_type == HtDataTypes.INT:
+            assert isinstance(value, int)
+            value = str(value)
+        elif data_type == HtDataTypes.FLOAT:
+            assert isinstance(value, (int, float))
+            value = str(float(value))
         else:
             assert 0, "unsupported data type ({})".format(data_type)
         return value
@@ -224,9 +254,9 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
                 # convert the given data type into the corresponding enum value
                 data_type = HtDataTypes.from_str(data_type)
                 # convert the minimal value to the expected data type
-                min_val = None if min_val == "None" else HtParam.conv_value(min_val, data_type)
+                min_val = None if min_val == "None" else HtParam.from_str(min_val, data_type)
                 # convert the maximal value to the expected data type
-                max_val = None if max_val == "None" else HtParam.conv_value(max_val, data_type)
+                max_val = None if max_val == "None" else HtParam.from_str(max_val, data_type)
                 # add the parameter definition to the dictionary
                 params.update({name: HtParam(dp_type=dp_type, dp_number=dp_number,
                                              acl=acl, data_type=data_type,

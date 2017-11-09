@@ -40,17 +40,18 @@ Features
 Todo
 ----
 
+* check access right for writing parameters of the heat pump
 * read and write the time programs of the heat pump
-* write parameters of the heat pump
 * add some (more) examples
 * add some (more) unit tests
-* cleanup doc
+* cleanup/extend doc
 
 
 Tested with
 -----------
 
 * Heliotherm HP08S10W-WEB, SW 3.0.20
+* Heliotherm HP10S12W-WEB, SW 3.0.8
 
 
 Disclaimer

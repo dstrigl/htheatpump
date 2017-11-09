@@ -58,7 +58,9 @@ REQUEST_HEADER = b"\x02\xfd\xd0\xe0\x00\x00"
 RESPONSE_HEADER_LEN = 6
 RESPONSE_HEADER = {
     b"\x02\xfd\xe0\xd0\x00\x00" : None,  # checksum has to be computed!
+    # on HP08S10W-WEB, SW 3.0.20
     b"\x02\xfd\xe0\xd0\x04\x00" : 0x00,  # checksum seems to be fixed 0x0, but why?
+    # on HP10S12W-WEB, SW 3.0.8
     b"\x02\xfd\xe0\xd0\x08\x00" : 0x00,  # @Kilian; another response header with fixed checksum?!
 }
 
@@ -666,11 +668,11 @@ class HtHeatpump:
 
         will return the current measured outdoor temperature in °C.
         """
-        # find the correct command for the requested parameter
+        # find the corresponding definition for the requested parameter
         if name not in HtParams:
-            raise KeyError("command for requested parameter {!r} not found".format(name))
+            raise KeyError("parameter definition for parameter {!r} not found".format(name))
         param = HtParams[name]
-        # send request command to the heat pump
+        # send command to the heat pump
         self.send_request(param.cmd())
         # ... and wait for the response
         try:
@@ -681,11 +683,61 @@ class HtHeatpump:
                 raise IOError("invalid response for query of parameter {!r} [{}]".format(name, resp))
             val = m.group(1).strip()
             # convert the returned value (string) to the expected data type
-            val = HtParam.conv_value(val, param.data_type)
+            val = HtParam.from_str(val, param.data_type)
             _logger.debug("{!r} = {!s}".format(name, val))
             return val
         except Exception as e:
-            _logger.error("query for parameter {!r} failed: {!s}".format(name, e))
+            _logger.error("query of parameter {!r} failed: {!s}".format(name, e))
+            raise
+
+    def set_param(self, name, val):
+        """ Set the value of a specific parameter of the heat pump.
+
+        :param name: The parameter name, e.g. :data:`"Betriebsart"`.
+        :type name: str
+        :param val: The value to set.
+        :type val: ``str``, ``bool``, ``int`` or ``float``
+        :returns: Returned value of the parameter set request.
+            In case of success this value should be the same as the one
+            passed to the function.
+            The type of the returned value is defined by the dictionary
+            of supported heat pump parameters in :class:`htparams.HtParams`.
+        :rtype: ``str``, ``bool``, ``int`` or ``float``
+        :raises IOError:
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum).
+
+        For example, the following call
+        ::
+
+            hp.set_param("HKR Soll_Raum", 21.5)
+
+        will set the desired room temperature of the heating circuit to 21.5 °C.
+        """
+        #
+        # TODO: check write access right of the parameter; see 'HtParam.acl'
+        #
+        # find the corresponding definition for the requested parameter
+        if name not in HtParams:
+            raise KeyError("parameter definition for parameter {!r} not found".format(name))
+        param = HtParams[name]
+        # send command to the heat pump
+        val = HtParam.to_str(val, param.data_type)
+        self.send_request("{},VAL={}".format(param.cmd(), val))
+        # ... and wait for the response
+        try:
+            resp = self.read_response()
+            # search for pattern "VAL=..." inside the response string
+            m = re.match("^{},.*VAL=([^,]+).*$".format(param.cmd()), resp)
+            if not m:
+                raise IOError("invalid response for set parameter {!r} to {!r} [{}]".format(name, val, resp))
+            val = m.group(1).strip()
+            # convert the returned value (string) to the expected data type
+            val = HtParam.from_str(val, param.data_type)
+            _logger.debug("{!r} = {!s}".format(name, val))
+            return val
+        except Exception as e:
+            _logger.error("set parameter {!r} failed: {!s}".format(name, e))
             raise
 
     @property

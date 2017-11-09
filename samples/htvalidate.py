@@ -129,7 +129,7 @@ def main():
                     s['name'] = "{!r}".format(dp_name)
 
                 try:
-                    dp_max = HtParam.conv_value(m.group(3), param.data_type)
+                    dp_max = HtParam.from_str(m.group(3), param.data_type)
                     if dp_max != param.max:
                         s['max'] = "max=\u001b[31m{!s}\u001b[0m".format(dp_max)
                     else:
@@ -138,7 +138,7 @@ def main():
                     s['max'] = "\u001b[31mmax={!s}\u001b[0m".format(dp_max)
 
                 try:
-                    dp_min = HtParam.conv_value(m.group(4), param.data_type)
+                    dp_min = HtParam.from_str(m.group(4), param.data_type)
                     if dp_min != param.min:
                         s['min'] = "min=\u001b[31m{!s}\u001b[0m".format(dp_min)
                     else:

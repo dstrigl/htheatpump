@@ -74,12 +74,30 @@ class TestHtParam:
         ("12.3+55.9", HtDataTypes.FLOAT, None),
         # ...
     ])
-    def test_conv_value(self, str, data_type, exp_value):
+    def test_from_str(self, str, data_type, exp_value):
         if exp_value is None:
             with pytest.raises(ValueError):
-                HtParam.conv_value(str, data_type)
+                HtParam.from_str(str, data_type)
         else:
-            assert HtParam.conv_value(str, data_type) == exp_value
+            assert HtParam.from_str(str, data_type) == exp_value
+        #assert 0
+
+    @pytest.mark.parametrize("val, data_type, exp_str", [
+        ("TestString", HtDataTypes.STRING, "TestString"),
+        (False, HtDataTypes.BOOL, "0"),
+        (True, HtDataTypes.BOOL, "1"),
+        (123, HtDataTypes.INT, "123"),
+        (-321, HtDataTypes.INT, "-321"),
+        (123.456, HtDataTypes.FLOAT, "123.456"),
+        (-321.456, HtDataTypes.FLOAT, "-321.456"),
+        (789, HtDataTypes.FLOAT, "789.0"),
+        (-789, HtDataTypes.FLOAT, "-789.0"),
+        (789.0, HtDataTypes.FLOAT, "789.0"),
+        (-789.0, HtDataTypes.FLOAT, "-789.0"),
+        # ... add some more samples here!
+    ])
+    def test_to_str(self, val, data_type, exp_str):
+        assert HtParam.to_str(val, data_type) == exp_str
         #assert 0
 
     @pytest.mark.parametrize("name, cmd", [(name, param.cmd()) for name, param in HtParams.items()])
@@ -134,12 +152,12 @@ class TestHtParams:
         dp_name = m.group(1).strip()
         assert dp_name == name,\
             "data point name doesn't match with the parameter name {!r} [{!r}]".format(name, dp_name)
-        dp_value = HtParam.conv_value(m.group(2), param.data_type)
+        dp_value = HtParam.from_str(m.group(2), param.data_type)
         assert dp_value is not None, "data point value must not be None [{}]".format(dp_value)
-        dp_max = HtParam.conv_value(m.group(3), param.data_type)
+        dp_max = HtParam.from_str(m.group(3), param.data_type)
         assert dp_max == param.max,\
             "data point max value doesn't match with the parameter's one {!s} [{!s}]".format(param.max, dp_max)
-        dp_min = HtParam.conv_value(m.group(4), param.data_type)
+        dp_min = HtParam.from_str(m.group(4), param.data_type)
         assert dp_min == param.min,\
             "data point min value doesn't match with the parameter's one {!s} [{!s}]".format(param.min, dp_min)
         #assert 0
