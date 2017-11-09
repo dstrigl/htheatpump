@@ -294,8 +294,8 @@ class HtHeatpump:
             A response from the heat pump normally consists of the following header
             :data:`b"\\x02\\xfd\\xe0\\xd0\\x00\\x00"` together with the payload and a
             computed checksum. But sometimes the heat pump replies with a different header
-            :data:`b"\\x02\\xfd\\xe0\\xd0\\x04\\x00"` together with the payload and a *fixed*
-            value of :data:`0x0` for the checksum.
+            (:data:`b"\\x02\\xfd\\xe0\\xd0\\x04\\x00"` or :data:`b"\\x02\\xfd\\xe0\\xd0\\x08\\x00"`)
+            together with the payload and a *fixed* value of :data:`0x0` for the checksum.
 
             We have no idea about the reason for this behavior. But after analysing the
             communication between the `Heliotherm home control <http://homecontrol.heliotherm.com/>`_
