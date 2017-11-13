@@ -35,6 +35,7 @@ Features
 * read the fault list of the heat pump
 * query whether the heat pump is malfunctioning
 * query for several parameters of the heat pump
+* change parameter values of the heat pump
 
 
 Todo
@@ -52,6 +53,7 @@ Tested with
 
 * Heliotherm HP08S10W-WEB, SW 3.0.20
 * Heliotherm HP10S12W-WEB, SW 3.0.8
+* Heliotherm HP08E-K-BC, SW 3.0.7B
 
 
 Disclaimer

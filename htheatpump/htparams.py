@@ -245,7 +245,7 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
         with open(filename) as f:
             reader = csv.reader(f, delimiter=',', skipinitialspace=True)
             for row in reader:
-                # continue for empty rows or comments
+                # continue for empty rows or comments (starts with character '#')
                 if not row or row[0].startswith('#'):
                     continue
                 name, dp_type, dp_number, acl, data_type, min_val, max_val = row

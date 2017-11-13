@@ -716,6 +716,7 @@ class HtHeatpump:
         """
         #
         # TODO: check write access right of the parameter; see 'HtParam.acl'
+        # TODO: check passed value against defined limits (min, max) in 'htparams.csv'
         #
         # find the corresponding definition for the requested parameter
         if name not in HtParams:
