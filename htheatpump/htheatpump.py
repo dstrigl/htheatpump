@@ -657,6 +657,8 @@ class HtHeatpump:
             The type of the returned value is defined by the dictionary
             of supported heat pump parameters in :class:`htparams.HtParams`.
         :rtype: ``str``, ``bool``, ``int`` or ``float``
+        :raises: KeyError:
+            Will be raised when the parameter definition for the passed parameter is not found.
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
@@ -668,6 +670,10 @@ class HtHeatpump:
 
         will return the current measured outdoor temperature in °C.
         """
+        #
+        # TODO: check received value against limits (min, max) in 'htparams.csv'
+        #          and write a warning to the log if it doesn't match
+        #
         # find the corresponding definition for the requested parameter
         if name not in HtParams:
             raise KeyError("parameter definition for parameter {!r} not found".format(name))
@@ -703,6 +709,8 @@ class HtHeatpump:
             The type of the returned value is defined by the dictionary
             of supported heat pump parameters in :class:`htparams.HtParams`.
         :rtype: ``str``, ``bool``, ``int`` or ``float``
+        :raises: KeyError:
+            Will be raised when the parameter definition for the passed parameter is not found.
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).

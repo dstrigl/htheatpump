@@ -91,7 +91,7 @@ def main():
         "name",
         type = str,
         nargs = '*',
-        help = "parameter name(s) to query for (defined in htparams.csv)")
+        help = "parameter name(s) to query for (defined in htparams.csv) or omit to query for all known parameters")
 
     args = parser.parse_args()
 
@@ -121,7 +121,7 @@ def main():
         for p in params:
             val.update({p: hp.get_param(p)})
 
-        # print the current value(s) of determined parameter(s)
+        # print the current value(s) of the retrieved parameter(s)
         if len(params) > 1:
             for p in sorted(params):
                 print("{:{width}}: {}".format(p, val[p], width=len(max(params, key=len))))
