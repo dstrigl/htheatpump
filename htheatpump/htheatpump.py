@@ -657,7 +657,7 @@ class HtHeatpump:
             The type of the returned value is defined by the dictionary
             of supported heat pump parameters in :class:`htparams.HtParams`.
         :rtype: ``str``, ``bool``, ``int`` or ``float``
-        :raises: KeyError:
+        :raises KeyError:
             Will be raised when the parameter definition for the passed parameter is not found.
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
@@ -709,7 +709,7 @@ class HtHeatpump:
             The type of the returned value is defined by the dictionary
             of supported heat pump parameters in :class:`htparams.HtParams`.
         :rtype: ``str``, ``bool``, ``int`` or ``float``
-        :raises: KeyError:
+        :raises KeyError:
             Will be raised when the parameter definition for the passed parameter is not found.
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
