@@ -1,4 +1,4 @@
-* HtHeatpump version:
+* htheatpump version:
 * Python version:
 * Operating System:
 

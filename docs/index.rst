@@ -9,10 +9,11 @@ Contents:
    :maxdepth: 2
 
    readme
-   htpackage
-   htparams
    installation
    usage
+   htpackage
+   htscripts
+   htparams
    contributing
    authors
    history

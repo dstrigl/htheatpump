@@ -54,15 +54,14 @@ Todo
 * cleanup/extend documentation
 
 
-Tested with
-~~~~~~~~~~~
+Tested with [*]_
+~~~~~~~~~~~~~~~~
 
 * Heliotherm HP08S10W-WEB, SW 3.0.20
-* Heliotherm HP10S12W-WEB, SW 3.0.8 [#]_
-* Heliotherm HP08E-K-BC, SW 3.0.7B [#]_
+* Heliotherm HP10S12W-WEB, SW 3.0.8
+* Heliotherm HP08E-K-BC, SW 3.0.7B
 
-  .. [#] thanks to Kilian for contribution
-  .. [#] thanks to Hans for contribution
+  .. [*] thanks to Kilian and Hans for contribution
 
 
 Installing

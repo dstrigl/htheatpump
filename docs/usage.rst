@@ -3,7 +3,8 @@
 Usage
 =====
 
-The following example shows how to query for a specific parameter (e.g. "Temp. Aussen") of the heat pump:
+The following example shows how to query for a specific parameter (e.g. "Temp. Aussen") of the heat pump.
+An overview about the available parameters can be found here: :ref:`htparams`
 
 .. code:: python
 
@@ -22,7 +23,6 @@ The following example shows how to query for a specific parameter (e.g. "Temp. A
         hp.close_connection()
 
 
-An overview about the available parameters can be found here: :ref:`htparams`
+Some more examples showing how to use the ``htheatpump`` module can be found in the :ref:`htscripts`.
 
-Some more examples showing how to use ``htheatpump`` module can be found in the sample scripts
-under: https://github.com/dstrigl/htheatpump/blob/master/samples
+
