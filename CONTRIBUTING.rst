@@ -1,6 +1,5 @@
 .. highlight:: shell
 
-============
 Contributing
 ============
 
@@ -38,8 +37,8 @@ and "help wanted" is open to whoever wants to implement it.
 Write Documentation
 ~~~~~~~~~~~~~~~~~~~
 
-HtHeatpump could always use more documentation, whether as part of the
-official HtHeatpump docs, in docstrings, or even on the web in blog posts,
+``htheatpump`` could always use more documentation, whether as part of the
+official ``htheatpump`` docs, in docstrings, or even on the web in blog posts,
 articles, and such.
 
 Submit Feedback
@@ -57,9 +56,9 @@ If you are proposing a feature:
 Get Started!
 ------------
 
-Ready to contribute? Here's how to set up `htheatpump` for local development.
+Ready to contribute? Here's how to set up ``htheatpump`` for local development.
 
-1. Fork the `htheatpump` repo on GitHub.
+1. Fork the ``htheatpump`` repo on GitHub.
 2. Clone your fork locally::
 
     $ git clone git@github.com:your_name_here/htheatpump.git
@@ -110,4 +109,4 @@ Tips
 
 To run a subset of tests::
 
-$ pytest tests/test_htheatpump.py
+$ pytest tests/test_htparams.py

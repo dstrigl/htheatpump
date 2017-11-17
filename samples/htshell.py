@@ -21,7 +21,7 @@
 
     Example:
 
-    .. code-block:: console
+    .. code-block:: shell
 
        $ python3 htshell.py --device /dev/ttyUSB1 --baudrate 9600 "AR,28,29,30" -r 3
        > 'AR,28,29,30'

@@ -1,4 +1,3 @@
-==========
 HtHeatpump
 ==========
 
@@ -18,16 +17,22 @@ HtHeatpump
      :alt: Updates
 
 
-Easy-to-use Python communication module for Heliotherm heat pumps.
+Easy-to-use Python communication module for `Heliotherm <http://www.heliotherm.com/>`_ heat pumps.
 
 
 * GitHub repo: https://github.com/dstrigl/htheatpump
 * Documentation: https://htheatpump.readthedocs.io
-* Free software: GNU General Public License v3
+* Free software: `GNU General Public License v3 <https://www.gnu.org/licenses/gpl-3.0.en.html>`_
 
+
+Introduction
+------------
+
+This library provides a pure Python interface to access `Heliotherm <http://www.heliotherm.com/>`_ heat pumps
+over a serial connection. It's compatible with Python version 3.4 and 3.5.
 
 Features
---------
+~~~~~~~~
 
 * read the manufacturer's serial number of the heat pump
 * read the software version of the heat pump
@@ -39,21 +44,89 @@ Features
 
 
 Todo
-----
+~~~~
 
 * check access right for writing parameters of the heat pump
+* check passed values for writing parameters against the defined limits
 * read and write the time programs of the heat pump
 * add some (more) examples
 * add some (more) unit tests
-* cleanup/extend doc
+* cleanup/extend documentation
 
 
 Tested with
------------
+~~~~~~~~~~~
 
 * Heliotherm HP08S10W-WEB, SW 3.0.20
-* Heliotherm HP10S12W-WEB, SW 3.0.8
-* Heliotherm HP08E-K-BC, SW 3.0.7B
+* Heliotherm HP10S12W-WEB, SW 3.0.8 [#]_
+* Heliotherm HP08E-K-BC, SW 3.0.7B [#]_
+
+  .. [#] thanks to Kilian for contribution
+  .. [#] thanks to Hans for contribution
+
+
+Installing
+----------
+
+You can install or upgrade ``htheatpump`` with:
+
+.. code-block:: console
+
+    $ pip install htheatpump --upgrade
+
+Or you can install from source with:
+
+.. code-block:: console
+
+    $ git clone https://github.com/dstrigl/htheatpump.git
+    $ cd htheatpump
+    $ python setup.py install
+
+
+Getting started
+---------------
+
+To use ``htheatpump`` in a project take a look on the following example. After establishing a connection
+with the Heliotherm heat pump one can interact with it by different functions like reading or writing
+parameters.
+
+.. code:: python
+
+    from htheatpump.htheatpump import HtHeatpump
+
+    hp = HtHeatpump("/dev/ttyUSB0", baudrate=9600)
+    try:
+        hp.open_connection()
+        hp.login()
+        # query for the outdoor temperature
+        temp = hp.get_param("Temp. Aussen")
+        print(temp)
+        # ...
+    finally:
+        hp.logout()  # try to logout for an ordinary cancellation (if possible)
+        hp.close_connection()
+
+A full list of supported functions can be found in the ``htheatpump`` documentation at
+`readthedocs.io <https://htheatpump.readthedocs.io/en/latest/?badge=latest>`_.
+
+
+Logging
+~~~~~~~
+
+This library uses the ``logging`` module. To set up logging to standard output, put
+
+.. code:: python
+
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+
+at the beginning of your script.
+
+
+Documentation
+-------------
+
+``htheatpump``'s documentation lives at `readthedocs.io <https://htheatpump.readthedocs.io/en/latest/?badge=latest>`_.
 
 
 Disclaimer
@@ -62,13 +135,22 @@ Disclaimer
 .. warning::
 
    Please note that any incorrect or careless usage of this module as well as
-   errors in the implementation can damage your heat pump.
+   errors in the implementation can damage your heat pump!
 
    Therefore, the author does not provide any guarantee or warranty concerning
    to correctness, functionality or performance and does not accept any liability
    for damage caused by this module, examples or mentioned information.
 
    **Thus, use it on your own risk!**
+
+
+Contributing
+------------
+
+Contributions are always welcome. Please review the
+`contribution guidelines <https://github.com/dstrigl/htheatpump/blob/master/CONTRIBUTING.rst>`_
+to get started.
+You can also help by `reporting bugs <https://github.com/dstrigl/htheatpump/issues/new>`_.
 
 
 Credits

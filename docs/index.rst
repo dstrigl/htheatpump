@@ -9,36 +9,13 @@ Contents:
    :maxdepth: 2
 
    readme
+   htpackage
+   htparams
    installation
    usage
    contributing
    authors
    history
-
-
-   htparams
-
-
-.. include:: ../README.rst
-
-
-.. automodule:: htheatpump.htheatpump
-   :members:
-
-.. automodule:: htheatpump.htparams
-   :members:
-
-.. automodule:: htheatpump.htjson
-   :members:
-
-.. automodule:: htheatpump.utils
-   :members:
-
-.. automodule:: htheatpump.version
-   :members:
-
-
-:ref:`htparams`
 
 
 Indices and tables

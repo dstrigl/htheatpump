@@ -21,7 +21,7 @@
 
     Example:
 
-    .. code-block:: console
+    .. code-block:: shell
 
        $ python3 htdatetime.py -d /dev/ttyUSB1 -b 9600 "2008-09-03T20:56:35"
        ... TODO ...

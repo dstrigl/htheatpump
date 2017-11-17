@@ -21,7 +21,7 @@
 
     Example:
 
-    .. code-block:: console
+    .. code-block:: shell
 
        $ python3 htvalidate.py --device /dev/ttyUSB1 --baudrate 9600
        ... TODO ...

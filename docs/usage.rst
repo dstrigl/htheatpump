@@ -1,8 +1,11 @@
-=====
+.. highlight:: shell
+
 Usage
 =====
 
-To use HtHeatpump in a project::
+The following example shows how to query for a specific parameter (e.g. "Temp. Aussen") of the heat pump:
+
+.. code:: python
 
     from htheatpump.htheatpump import HtHeatpump
 
@@ -17,3 +20,9 @@ To use HtHeatpump in a project::
     finally:
         hp.logout()  # try to logout for an ordinary cancellation (if possible)
         hp.close_connection()
+
+
+An overview about the available parameters can be found here: :ref:`htparams`
+
+Some more examples showing how to use ``htheatpump`` module can be found in the sample scripts
+under: https://github.com/dstrigl/htheatpump/blob/master/samples

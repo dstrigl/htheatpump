@@ -654,8 +654,8 @@ class HtHeatpump:
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
         :type name: str
         :returns: Returned value of the requested parameter.
-            The type of the returned value is defined by the dictionary
-            of supported heat pump parameters in :class:`htparams.HtParams`.
+            The type of the returned value is defined by the csv-table
+            of supported heat pump parameters in ``htparams.csv``.
         :rtype: ``str``, ``bool``, ``int`` or ``float``
         :raises KeyError:
             Will be raised when the parameter definition for the passed parameter is not found.
@@ -706,8 +706,8 @@ class HtHeatpump:
         :returns: Returned value of the parameter set request.
             In case of success this value should be the same as the one
             passed to the function.
-            The type of the returned value is defined by the dictionary
-            of supported heat pump parameters in :class:`htparams.HtParams`.
+            The type of the returned value is defined by the csv-table
+            of supported heat pump parameters in ``htparams.csv``.
         :rtype: ``str``, ``bool``, ``int`` or ``float``
         :raises KeyError:
             Will be raised when the parameter definition for the passed parameter is not found.

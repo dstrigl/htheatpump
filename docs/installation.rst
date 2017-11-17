@@ -1,6 +1,5 @@
 .. highlight:: shell
 
-============
 Installation
 ============
 
@@ -8,13 +7,13 @@ Installation
 Stable release
 --------------
 
-To install HtHeatpump, run this command in your terminal:
+To install or upgrade ``htheatpump``, run this command in your terminal:
 
-.. code-block:: console
+.. code-block:: shell
 
-    $ pip install htheatpump
+    $ pip install htheatpump --upgrade
 
-This is the preferred method to install HtHeatpump, as it will always install the most recent stable release.
+This is the preferred method to install ``htheatpump``, as it will always install the most recent stable release.
 
 If you don't have `pip`_ installed, this `Python installation guide`_ can guide
 you through the process.
@@ -26,23 +25,23 @@ you through the process.
 From sources
 ------------
 
-The sources for HtHeatpump can be downloaded from the `Github repo`_.
+The sources for ``htheatpump`` can be downloaded from the `Github repo`_.
 
 You can either clone the public repository:
 
-.. code-block:: console
+.. code-block:: shell
 
-    $ git clone git://github.com/dstrigl/htheatpump
+    $ git clone https://github.com/dstrigl/htheatpump.git
 
 Or download the `tarball`_:
 
-.. code-block:: console
+.. code-block:: shell
 
     $ curl -OL https://github.com/dstrigl/htheatpump/tarball/master
 
 Once you have a copy of the source, you can install it with:
 
-.. code-block:: console
+.. code-block:: shell
 
     $ python setup.py install
 
