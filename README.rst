@@ -122,12 +122,6 @@ This library uses the ``logging`` module. To set up logging to standard output, 
 at the beginning of your script.
 
 
-Documentation
--------------
-
-``htheatpump``'s documentation lives at `readthedocs.io <https://htheatpump.readthedocs.io/en/latest/?badge=latest>`_.
-
-
 Disclaimer
 ----------
 
