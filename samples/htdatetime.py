@@ -23,8 +23,10 @@
 
     .. code-block:: shell
 
+       $ python3 htdatetime.py --device /dev/ttyUSB1 --baudrate 9600
+       Tuesday, 2017-11-21T21:48:04
        $ python3 htdatetime.py -d /dev/ttyUSB1 -b 9600 "2008-09-03T20:56:35"
-       ... TODO ...
+       Wednesday, 2008-09-03T20:56:35
 """
 
 import sys
@@ -55,9 +57,9 @@ def main():
             Example:
 
               $ python3 %(prog)s --device /dev/ttyUSB1 --baudrate 9600
-              ... TODO ...
+              Tuesday, 2017-11-21T21:48:04
               $ python3 %(prog)s -d /dev/ttyUSB1 -b 9600 "2008-09-03T20:56:35"
-              ... TODO ...
+              Wednesday, 2008-09-03T20:56:35
             '''),
         formatter_class = argparse.RawDescriptionHelpFormatter,
         epilog = textwrap.dedent('''\

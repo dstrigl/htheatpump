@@ -23,8 +23,9 @@
 
     .. code-block:: shell
 
-       $ python3 htquery.py --device /dev/ttyUSB1 --baudrate 9600 "Temp. Aussen"
-       ... TODO ...
+       $ python3 htquery.py --device /dev/ttyUSB1 "Temp. Aussen" "Stoerung"
+       Stoerung    : False
+       Temp. Aussen: 5.0
 """
 
 import sys
@@ -45,8 +46,9 @@ def main():
 
             Example:
 
-              $ python3 %(prog)s --device /dev/ttyUSB1 "Temp. Aussen"
-              ... TODO ...
+              $ python3 %(prog)s --device /dev/ttyUSB1 "Temp. Aussen" "Stoerung"
+              Stoerung    : False
+              Temp. Aussen: 5.0
             '''),
         formatter_class = argparse.RawDescriptionHelpFormatter,
         epilog = textwrap.dedent('''\

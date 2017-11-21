@@ -24,7 +24,18 @@
     .. code-block:: shell
 
        $ python3 htfaultlist.py --device /dev/ttyUSB1 --baudrate 9600
-       ... TODO ...
+       #000 [2000-01-01T00:00:00]: 65534, Keine Stoerung
+       #001 [2000-01-01T00:00:00]: 65286, Info: Programmupdate 1
+       #002 [2000-01-01T00:00:00]: 65285, Info: Initialisiert
+       #003 [2000-01-01T00:00:16]: 00009, HD Schalter
+       #004 [2000-01-01T00:00:20]: 00021, EQ Motorschutz
+       #005 [2014-08-06T13:25:54]: 65289, Info: Manueller Init
+       #006 [2014-08-06T13:26:10]: 65534, Keine Stoerung
+       #007 [2014-08-06T13:26:10]: 65287, Info: Programmupdate 2
+       #008 [2014-08-06T13:26:10]: 65285, Info: Initialisiert
+       #009 [2014-08-06T13:26:37]: 65298, Info: L.I.D. geaendert
+       #010 [2014-08-06T13:28:23]: 65534, Keine Stoerung
+       #011 [2014-08-06T13:28:27]: 65534, Keine Stoerung
 """
 
 import sys
@@ -45,7 +56,11 @@ def main():
             Example:
 
               $ python3 %(prog)s --device /dev/ttyUSB1
-              ... TODO ...
+              #000 [2000-01-01T00:00:00]: 65534, Keine Stoerung
+              #001 [2000-01-01T00:00:00]: 65286, Info: Programmupdate 1
+              #002 [2000-01-01T00:00:00]: 65285, Info: Initialisiert
+              #003 [2000-01-01T00:00:16]: 00009, HD Schalter
+              #004 [2000-01-01T00:00:20]: 00021, EQ Motorschutz
             '''),
         formatter_class = argparse.RawDescriptionHelpFormatter,
         epilog = textwrap.dedent('''\
