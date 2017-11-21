@@ -128,8 +128,8 @@ def main():
         elif len(params) == 1:
             print(val[params[0]])
 
-    except Exception as e:
-        print(e)
+    except Exception as ex:
+        print(ex)
         sys.exit(1)
     finally:
         hp.logout()  # try to logout for a ordinary cancellation (if possible)

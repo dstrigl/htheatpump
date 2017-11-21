@@ -152,12 +152,12 @@ def main():
                                                                                         param.data_type,
                                                                                         s['min'],
                                                                                         s['max']))
-            except Exception as e:
-                print("{!r}: \u001b[31mQuery failed: {!s}\u001b[0m".format(name, e))
+            except Exception as ex:
+                print("{!r}: \u001b[31mQuery failed: {!s}\u001b[0m".format(name, ex))
                 continue
 
-    except Exception as e:
-        print("\u001b[31m{!s}\u001b[0m".format(e))
+    except Exception as ex:
+        print("\u001b[31m{!s}\u001b[0m".format(ex))
         sys.exit(1)
     finally:
         hp.logout()  # try to logout for a ordinary cancellation (if possible)
