@@ -10,6 +10,7 @@ include samples/htdatetime.py
 include samples/htshell.py
 include samples/htvalidate.py
 include samples/htquery.py
+include samples/htfaultlist.py
 
 recursive-include tests *
 recursive-exclude * __pycache__
