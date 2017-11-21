@@ -71,3 +71,18 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htshell.py
     < 'AA,28,19,14.09.14-02:08:56,EQ_Spreizung'
     < 'AA,29,20,14.09.14-11:52:08,EQ_Spreizung'
     < 'AA,30,65534,15.09.14-09:17:12,Keine Stoerung'
+
+
+htfaultlist
+-----------
+
+Command line tool to query for the fault list of the heat pump.
+
+Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htfaultlist.py
+
+**Example:**
+
+.. code-block:: shell
+
+    $ python3 htfaultlist.py --device /dev/ttyUSB1 --baudrate 9600
+    ... TODO ...
