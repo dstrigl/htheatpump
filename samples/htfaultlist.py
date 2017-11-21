@@ -115,12 +115,12 @@ def main():
         if args.last:
             # query for the last fault message of the heat pump
             idx, err, dt, msg = hp.get_last_fault()
-            print("#{:d}@[{}]: {:d}, {}".format(idx, dt.isoformat(), err, msg))
+            print("#{:d} [{}]: {:d}, {}".format(idx, dt.isoformat(), err, msg))
         else:
             # query for the whole fault list of the heat pump
             lst = hp.get_fault_list()
             for idx, e in lst.items():
-                print("#{:03d}@[{}]: {:05d}, {}".format(idx, e["datetime"].isoformat(), e["error"], e["message"]))
+                print("#{:03d} [{}]: {:05d}, {}".format(idx, e["datetime"].isoformat(), e["error"], e["message"]))
 
     except Exception as ex:
         print(ex)
