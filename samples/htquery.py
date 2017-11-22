@@ -93,7 +93,7 @@ def main():
         "name",
         type = str,
         nargs = '*',
-        help = "parameter name(s) to query for (defined in htparams.csv) or omit to query for all known parameters")
+        help = "parameter name(s) to query for (as defined in htparams.csv) or omit to query for all known parameters")
 
     args = parser.parse_args()
 
@@ -131,7 +131,7 @@ def main():
             print(val[params[0]])
 
     except Exception as ex:
-        print(ex)
+        print("ERROR: {}".format(ex))
         sys.exit(1)
     finally:
         hp.logout()  # try to logout for a ordinary cancellation (if possible)

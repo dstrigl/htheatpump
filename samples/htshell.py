@@ -136,7 +136,7 @@ def main():
                 resp = hp.read_response()
                 print("< {!r}".format(resp))
     except Exception as ex:
-        print(ex)
+        print("ERROR: {}".format(ex))
         sys.exit(1)
     finally:
         hp.logout()  # try to logout for a ordinary cancellation (if possible)

@@ -141,7 +141,7 @@ def main():
             dt, wd = hp.set_date_time(dt)
             print("{}, {}".format(WEEKDAYS[wd - 1], dt.isoformat()))
     except Exception as ex:
-        print(ex)
+        print("ERROR: {}".format(ex))
         sys.exit(1)
     finally:
         hp.logout()  # try to logout for a ordinary cancellation (if possible)

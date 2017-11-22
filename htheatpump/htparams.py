@@ -59,8 +59,8 @@ class HtDataTypes(enum.Enum):
     INT    = 3
     FLOAT  = 4
 
-    @classmethod
-    def from_str(cls, s):
+    @staticmethod
+    def from_str(s):
         """ Creates a corresponding enum representation for the passed string.
 
         :param s: The passed string.
@@ -117,8 +117,8 @@ class HtParam:
         """
         return "{},NR={}".format(self.dp_type, self.dp_number)
 
-    @classmethod
-    def from_str(cls, value, data_type):
+    @staticmethod
+    def _from_str(value, data_type):
         """ Convert the passed value (in form of a string) to the expected data type.
 
         :param value: The passed value (in form of a string).
@@ -135,23 +135,35 @@ class HtParam:
         if data_type == HtDataTypes.STRING:
             pass  # passed value should be already a string ;-)
         elif data_type == HtDataTypes.BOOL:
+            value = value.strip().lower()
             # convert to bool (0 = False, 1 = True)
-            if value == "0":
+            if value in [ "0", "false", "no", "n"]:
                 value = False
-            elif value == "1":
+            elif value in [ "1", "true", "yes", "y"]:
                 value = True
             else:
                 raise ValueError("invalid representation for data type BOOL ({!r})".format(value))
         elif data_type == HtDataTypes.INT:
-            value = int(value)  # convert to integer
+            value = int(value.strip())  # convert to integer
         elif data_type == HtDataTypes.FLOAT:
-            value = float(value)  # convert to floating point number
+            value = float(value.strip())  # convert to floating point number
         else:
             assert 0, "unsupported data type ({})".format(data_type)
         return value
 
-    @classmethod
-    def to_str(cls, value, data_type):
+    def from_str(self, arg):
+        """ TODO doc
+        """
+        if isinstance(self, HtParam):
+            assert isinstance(arg, str)
+            return HtParam._from_str(arg, self.data_type)
+        else:
+            assert isinstance(self, str)
+            assert isinstance(arg, HtDataTypes)
+            return HtParam._from_str(self, arg)
+
+    @staticmethod
+    def _to_str(value, data_type):
         """ Convert the passed value to a string.
 
         :param value: The passed value.
@@ -179,6 +191,17 @@ class HtParam:
         else:
             assert 0, "unsupported data type ({})".format(data_type)
         return value
+
+    def to_str(self, arg):
+        """ TODO doc
+        """
+        if isinstance(self, HtParam):
+            assert isinstance(arg, (str, bool, int, float))
+            return HtParam._to_str(arg, self.data_type)
+        else:
+            assert isinstance(self, (str, bool, int, float))
+            assert isinstance(arg, HtDataTypes)
+            return HtParam._to_str(self, arg)
 
 
 class HtParamsMeta(type):

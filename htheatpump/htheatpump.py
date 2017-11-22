@@ -20,7 +20,7 @@
 """ This module is responsible for the communication with the Heliotherm heat pump.
 """
 
-from htheatpump.htparams import HtParam, HtParams
+from htheatpump.htparams import HtParams
 #from timeit import default_timer as timer
 
 #import sys
@@ -689,7 +689,7 @@ class HtHeatpump:
                 raise IOError("invalid response for query of parameter {!r} [{}]".format(name, resp))
             val = m.group(1).strip()
             # convert the returned value (string) to the expected data type
-            val = HtParam.from_str(val, param.data_type)
+            val = param.from_str(val)
             _logger.debug("{!r} = {!s}".format(name, val))
             return val
         except Exception as e:
@@ -731,7 +731,7 @@ class HtHeatpump:
             raise KeyError("parameter definition for parameter {!r} not found".format(name))
         param = HtParams[name]
         # send command to the heat pump
-        val = HtParam.to_str(val, param.data_type)
+        val = param.to_str(val)
         self.send_request("{},VAL={}".format(param.cmd(), val))
         # ... and wait for the response
         try:
@@ -742,7 +742,7 @@ class HtHeatpump:
                 raise IOError("invalid response for set parameter {!r} to {!r} [{}]".format(name, val, resp))
             val = m.group(1).strip()
             # convert the returned value (string) to the expected data type
-            val = HtParam.from_str(val, param.data_type)
+            val = param.from_str(val)
             _logger.debug("{!r} = {!s}".format(name, val))
             return val
         except Exception as e:

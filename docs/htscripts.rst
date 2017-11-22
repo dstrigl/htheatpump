@@ -101,3 +101,18 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htfaultlist.py
     #009 [2014-08-06T13:26:37]: 65298, Info: L.I.D. geaendert
     #010 [2014-08-06T13:28:23]: 65534, Keine Stoerung
     #011 [2014-08-06T13:28:27]: 65534, Keine Stoerung
+
+
+htset
+-----
+
+Command line tool to set the value of a specific parameter of the heat pump.
+
+Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htset.py
+
+**Example:**
+
+.. code-block:: shell
+
+    $ python3 htset.py --device /dev/ttyUSB1 "HKR Soll_Raum" "21.5"
+    21.5

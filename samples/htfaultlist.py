@@ -138,7 +138,7 @@ def main():
                 print("#{:03d} [{}]: {:05d}, {}".format(idx, e["datetime"].isoformat(), e["error"], e["message"]))
 
     except Exception as ex:
-        print(ex)
+        print("ERROR: {}".format(ex))
         sys.exit(1)
     finally:
         hp.logout()  # try to logout for a ordinary cancellation (if possible)

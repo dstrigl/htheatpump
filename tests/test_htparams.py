@@ -55,16 +55,26 @@ class TestHtParam:
         ("TestString", HtDataTypes.STRING, "TestString"),
         ("0", HtDataTypes.BOOL, False),
         ("1", HtDataTypes.BOOL, True),
+        ("True", HtDataTypes.BOOL, True),
+        ("False", HtDataTypes.BOOL, False),
+        ("true", HtDataTypes.BOOL, True),
+        ("false", HtDataTypes.BOOL, False),
+        ("yes", HtDataTypes.BOOL, True),
+        ("no", HtDataTypes.BOOL, False),
+        ("y", HtDataTypes.BOOL, True),
+        ("n", HtDataTypes.BOOL, False),
+        ("TRUE", HtDataTypes.BOOL, True),
+        ("FALSE", HtDataTypes.BOOL, False),
+        ("YES", HtDataTypes.BOOL, True),
+        ("NO", HtDataTypes.BOOL, False),
+        ("Y", HtDataTypes.BOOL, True),
+        ("N", HtDataTypes.BOOL, False),
         ("123", HtDataTypes.INT, 123),
         ("-321", HtDataTypes.INT, -321),
         ("123.456", HtDataTypes.FLOAT, 123.456),
         ("-321.456", HtDataTypes.FLOAT, -321.456),
         ("789", HtDataTypes.FLOAT, 789),
         # -- should raise a 'ValueError':
-        ("True", HtDataTypes.BOOL, None),
-        ("False", HtDataTypes.BOOL, None),
-        ("true", HtDataTypes.BOOL, None),
-        ("false", HtDataTypes.BOOL, None),
         ("abc", HtDataTypes.BOOL, None),
         ("def", HtDataTypes.INT, None),
         ("--99", HtDataTypes.INT, None),
@@ -152,12 +162,12 @@ class TestHtParams:
         dp_name = m.group(1).strip()
         assert dp_name == name,\
             "data point name doesn't match with the parameter name {!r} [{!r}]".format(name, dp_name)
-        dp_value = HtParam.from_str(m.group(2), param.data_type)
+        dp_value = param.from_str(m.group(2))
         assert dp_value is not None, "data point value must not be None [{}]".format(dp_value)
-        dp_max = HtParam.from_str(m.group(3), param.data_type)
+        dp_max = param.from_str(m.group(3))
         assert dp_max == param.max,\
             "data point max value doesn't match with the parameter's one {!s} [{!s}]".format(param.max, dp_max)
-        dp_min = HtParam.from_str(m.group(4), param.data_type)
+        dp_min = param.from_str(m.group(4))
         assert dp_min == param.min,\
             "data point min value doesn't match with the parameter's one {!s} [{!s}]".format(param.min, dp_min)
         #assert 0

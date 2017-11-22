@@ -17,37 +17,44 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" Command line tool to validate all supported parameters of a Heliotherm heat pump.
+""" Command line tool to set the value of a specific parameter of the heat pump.
 
     Example:
 
     .. code-block:: shell
 
-       $ python3 htvalidate.py --device /dev/ttyUSB1 --baudrate 9600
-       ... TODO ...
+       $ python3 htset.py --device /dev/ttyUSB1 "HKR Soll_Raum" "21.5"
+       21.5
 """
 
 import sys
 import argparse
 import textwrap
-import re
 from htheatpump.htheatpump import HtHeatpump
-from htheatpump.htparams import HtParam, HtParams
+from htheatpump.htparams import HtParams
 from timeit import default_timer as timer
 import logging
 _logger = logging.getLogger(__name__)
+
+
+class ParamNameAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        for name in values:
+            if name not in HtParams:
+                raise ValueError("Unknown parameter {!r}".format(name))
+        setattr(namespace, self.dest, values)
 
 
 # Main program
 def main():
     parser = argparse.ArgumentParser(
         description = textwrap.dedent('''\
-            Command shell tool to validate all supported parameters of a Heliotherm heat pump.
+            Command line tool to set the value of a specific parameter of the heat pump.
 
             Example:
 
-              $ python3 %(prog)s --device /dev/ttyUSB1 --baudrate 9600
-              ... TODO ...
+              $ python3 %(prog)s --device /dev/ttyUSB1 "HKR Soll_Raum" "21.5"
+              21.5
             '''),
         formatter_class = argparse.RawDescriptionHelpFormatter,
         epilog = textwrap.dedent('''\
@@ -88,6 +95,19 @@ def main():
         action = "store_true",
         help = "increase output verbosity by activating debug-logging")
 
+    parser.add_argument(
+        "name",
+        type = str,
+        nargs = 1,
+        action = ParamNameAction,
+        help = "parameter name (as defined in htparams.csv)")
+
+    parser.add_argument(
+        "value",
+        type = str,
+        nargs = 1,
+        help = "parameter value (as string)")
+
     args = parser.parse_args()
 
     # activate debug-logging in verbose mode
@@ -101,6 +121,7 @@ def main():
     try:
         hp.open_connection()
         hp.login()
+
         rid = hp.get_serial_number()
         if args.verbose:
             print("connected successfully to heat pump with serial number {:d}".format(rid))
@@ -108,57 +129,14 @@ def main():
         if args.verbose:
             print("software version = {} ({:d})".format(ver[0], ver[1]))
 
-        print("============================= parameter validation starts ==============================")
-        for name, param in HtParams.items():
-            s = {}
-            try:
-                hp.send_request(param.cmd())
-                resp = hp.read_response()
-
-                # TODO: validate data point type (SP, MP) and number!
-
-                m = re.match("^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(param.cmd()), resp)
-                if not m:
-                    print("{!r}: \u001b[31mInvalid response [{!r}]\u001b[0m".format(name, resp))
-                    continue
-
-                dp_name = m.group(1).strip()
-                if dp_name != name:
-                    s['name'] = "\u001b[31m{!r}\u001b[0m".format(dp_name)
-                else:
-                    s['name'] = "{!r}".format(dp_name)
-
-                try:
-                    dp_max = HtParam.from_str(m.group(3), param.data_type)
-                    if dp_max != param.max:
-                        s['max'] = "max=\u001b[31m{!s}\u001b[0m".format(dp_max)
-                    else:
-                        s['max'] = "max={!s}".format(dp_max)
-                except ValueError:
-                    s['max'] = "\u001b[31mmax={!s}\u001b[0m".format(dp_max)
-
-                try:
-                    dp_min = HtParam.from_str(m.group(4), param.data_type)
-                    if dp_min != param.min:
-                        s['min'] = "min=\u001b[31m{!s}\u001b[0m".format(dp_min)
-                    else:
-                        s['min'] = "min={!s}".format(dp_min)
-                except ValueError:
-                    s['min'] = "\u001b[31mmin={!s}\u001b[0m".format(dp_min)
-
-                print("{}: dp_type={!r}, dp_number={!s}, data_type={!s}, {}, {}".format(s['name'],
-                                                                                        param.dp_type,
-                                                                                        param.dp_number,
-                                                                                        param.data_type,
-                                                                                        s['min'],
-                                                                                        s['max']))
-            except Exception as ex:
-                print("{!r}: \u001b[31mQuery failed: {!s}\u001b[0m".format(name, ex))
-                continue
+        # convert the passed value (as string) to the specific data type
+        value = HtParams[args.name[0]].from_str(args.value[0])
+        # set the parameter of the heat pump to the passed value
+        value = hp.set_param(args.name[0], value)
+        print(value)
 
     except Exception as ex:
-        #print("ERROR: {}".format(ex))
-        print("\u001b[31m{!s}\u001b[0m".format(ex))
+        print("ERROR: {}".format(ex))
         sys.exit(1)
     finally:
         hp.logout()  # try to logout for a ordinary cancellation (if possible)
