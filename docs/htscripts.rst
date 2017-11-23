@@ -40,22 +40,6 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htdatetime.py
     Wednesday, 2008-09-03T20:56:35
 
 
-htquery
--------
-
-Command line tool to query for parameters of the Heliotherm heat pump.
-
-Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htquery.py
-
-**Example:**
-
-.. code-block:: shell
-
-    $ python3 htquery.py --device /dev/ttyUSB1 "Temp. Aussen" "Stoerung"
-    Stoerung    : False
-    Temp. Aussen: 5.0
-
-
 htshell
 -------
 
@@ -75,6 +59,37 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htshell.py
     < 'AA,28,19,14.09.14-02:08:56,EQ_Spreizung'
     < 'AA,29,20,14.09.14-11:52:08,EQ_Spreizung'
     < 'AA,30,65534,15.09.14-09:17:12,Keine Stoerung'
+
+
+htquery
+-------
+
+Command line tool to query for parameters of the Heliotherm heat pump.
+
+Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htquery.py
+
+**Example:**
+
+.. code-block:: shell
+
+    $ python3 htquery.py --device /dev/ttyUSB1 "Temp. Aussen" "Stoerung"
+    Stoerung    : False
+    Temp. Aussen: 5.0
+
+
+htset
+-----
+
+Command line tool to set the value of a specific parameter of the heat pump.
+
+Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htset.py
+
+**Example:**
+
+.. code-block:: shell
+
+    $ python3 htset.py --device /dev/ttyUSB1 "HKR Soll_Raum" "21.5"
+    21.5
 
 
 htfaultlist
@@ -101,18 +116,3 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htfaultlist.py
     #009 [2014-08-06T13:26:37]: 65298, Info: L.I.D. geaendert
     #010 [2014-08-06T13:28:23]: 65534, Keine Stoerung
     #011 [2014-08-06T13:28:27]: 65534, Keine Stoerung
-
-
-htset
------
-
-Command line tool to set the value of a specific parameter of the heat pump.
-
-Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htset.py
-
-**Example:**
-
-.. code-block:: shell
-
-    $ python3 htset.py --device /dev/ttyUSB1 "HKR Soll_Raum" "21.5"
-    21.5
