@@ -93,7 +93,7 @@ def main():
     parser.add_argument(
         "-v", "--verbose",
         action = "store_true",
-        help = "increase output verbosity by activating debug-logging")
+        help = "increase output verbosity by activating logging")
 
     parser.add_argument(
         "name",
@@ -110,9 +110,9 @@ def main():
 
     args = parser.parse_args()
 
-    # activate debug-logging in verbose mode
+    # activate logging with level INFO in verbose mode
     if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.INFO)
     else:
         logging.basicConfig(level=logging.ERROR)
 
@@ -124,10 +124,10 @@ def main():
 
         rid = hp.get_serial_number()
         if args.verbose:
-            print("connected successfully to heat pump with serial number {:d}".format(rid))
+            _logger.info("connected successfully to heat pump with serial number {:d}".format(rid))
         ver = hp.get_version()
         if args.verbose:
-            print("software version = {} ({:d})".format(ver[0], ver[1]))
+            _logger.info("software version = {} ({:d})".format(ver[0], ver[1]))
 
         # convert the passed value (as string) to the specific data type
         value = HtParams[args.name[0]].from_str(args.value[0])
@@ -136,7 +136,7 @@ def main():
         print(value)
 
     except Exception as ex:
-        print("ERROR: {}".format(ex))
+        _logger.error(ex)
         sys.exit(1)
     finally:
         hp.logout()  # try to logout for a ordinary cancellation (if possible)

@@ -137,9 +137,9 @@ class HtParam:
         elif data_type == HtDataTypes.BOOL:
             value = value.strip().lower()
             # convert to bool (0 = False, 1 = True)
-            if value in [ "0", "false", "no", "n"]:
+            if value in ["0", "false", "no", "n"]:
                 value = False
-            elif value in [ "1", "true", "yes", "y"]:
+            elif value in ["1", "true", "yes", "y"]:
                 value = True
             else:
                 raise ValueError("invalid representation for data type BOOL ({!r})".format(value))

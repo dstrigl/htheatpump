@@ -98,7 +98,7 @@ def main():
     parser.add_argument(
         "-v", "--verbose",
         action = "store_true",
-        help = "increase output verbosity by activating debug-logging")
+        help = "increase output verbosity by activating logging")
 
     parser.add_argument(
         "datetime",
@@ -109,9 +109,9 @@ def main():
 
     args = parser.parse_args()
 
-    # activate debug-logging in verbose mode
+    # activate logging with level INFO in verbose mode
     if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.INFO)
     else:
         logging.basicConfig(level=logging.ERROR)
 
@@ -122,10 +122,10 @@ def main():
         hp.login()
         rid = hp.get_serial_number()
         if args.verbose:
-            print("connected successfully to heat pump with serial number {:d}".format(rid))
+            _logger.info("connected successfully to heat pump with serial number {:d}".format(rid))
         ver = hp.get_version()
         if args.verbose:
-            print("software version = {} ({:d})".format(ver[0], ver[1]))
+            _logger.info("software version = {} ({:d})".format(ver[0], ver[1]))
         if args.datetime is None:
             # get current date and time on the heat pump
             dt, wd = hp.get_date_time()
@@ -141,7 +141,7 @@ def main():
             dt, wd = hp.set_date_time(dt)
             print("{}, {}".format(WEEKDAYS[wd - 1], dt.isoformat()))
     except Exception as ex:
-        print("ERROR: {}".format(ex))
+        _logger.error(ex)
         sys.exit(1)
     finally:
         hp.logout()  # try to logout for a ordinary cancellation (if possible)
