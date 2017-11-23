@@ -26,6 +26,12 @@
        $ python3 htquery.py --device /dev/ttyUSB1 "Temp. Aussen" "Stoerung"
        Stoerung    : False
        Temp. Aussen: 5.0
+
+       $ python3 htquery.py --json "Temp. Aussen" "Stoerung"
+       {
+           "Stoerung": false,
+           "Temp. Aussen": 3.2
+       }
 """
 
 import sys

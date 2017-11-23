@@ -80,7 +80,10 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htquery.py
 .. code-block:: shell
 
     $ python3 htquery.py --json "Temp. Aussen" "Stoerung"
-    ... TODO ...
+    {
+        "Stoerung": false,
+        "Temp. Aussen": 3.2
+    }
 
 
 htset
