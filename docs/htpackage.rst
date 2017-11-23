@@ -16,12 +16,6 @@ htheatpump.htparams
    :members:
 
 
-htheatpump.htjson
----------------------
-.. automodule:: htheatpump.htjson
-   :members:
-
-
 htheatpump.utils
 ---------------------
 .. automodule:: htheatpump.utils
