@@ -65,6 +65,7 @@ htquery
 -------
 
 Command line tool to query for parameters of the Heliotherm heat pump.
+
 If the -j, --json option is used, the output will be in JSON format.
 
 Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htquery.py
