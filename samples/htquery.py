@@ -31,6 +31,7 @@
 import sys
 import argparse
 import textwrap
+import json
 from htheatpump.htheatpump import HtHeatpump
 from htheatpump.htparams import HtParams
 from timeit import default_timer as timer
@@ -80,6 +81,11 @@ def main():
         help = "baudrate of the serial connection (same as configured on the heat pump), default: %(default)s")
 
     parser.add_argument(
+        "-j", "--json",
+        action="store_true",
+        help="output will be in JSON format")
+
+    parser.add_argument(
         "-t", "--time",
         action = "store_true",
         help = "measure the execution time")
@@ -124,11 +130,14 @@ def main():
             val.update({p: hp.get_param(p)})
 
         # print the current value(s) of the retrieved parameter(s)
-        if len(params) > 1:
-            for p in sorted(params):
-                print("{:{width}}: {}".format(p, val[p], width=len(max(params, key=len))))
-        elif len(params) == 1:
-            print(val[params[0]])
+        if args.json:
+            print(json.dumps(val, indent=4, sort_keys=True))
+        else:
+            if len(params) > 1:
+                for p in sorted(params):
+                    print("{:{width}}: {}".format(p, val[p], width=len(max(params, key=len))))
+            elif len(params) == 1:
+                print(val[params[0]])
 
     except Exception as ex:
         _logger.error(ex)
