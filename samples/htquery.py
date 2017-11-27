@@ -39,7 +39,7 @@ import argparse
 import textwrap
 import json
 from htheatpump.htheatpump import HtHeatpump
-from htheatpump.htparams import HtParams
+from htheatpump.htparams import HtDataTypes, HtParams
 from timeit import default_timer as timer
 import logging
 _logger = logging.getLogger(__name__)
@@ -92,6 +92,11 @@ def main():
         help="output will be in JSON format")
 
     parser.add_argument(
+        "--boolasint",
+        action="store_true",
+        help="boolean values will be interpreted as '0' and '1'")
+
+    parser.add_argument(
         "-t", "--time",
         action = "store_true",
         help = "measure the execution time")
@@ -131,19 +136,22 @@ def main():
             _logger.info("software version = {} ({:d})".format(ver[0], ver[1]))
 
         # query for the given parameter(s)
-        val = {}
+        values = {}
         for p in params:
-            val.update({p: hp.get_param(p)})
+            val = hp.get_param(p)
+            if args.boolasint and HtParams[p].data_type == HtDataTypes.BOOL:
+                val = 1 if val else 0
+            values.update({p: val})
 
         # print the current value(s) of the retrieved parameter(s)
         if args.json:
-            print(json.dumps(val, indent=4, sort_keys=True))
+            print(json.dumps(values, indent=4, sort_keys=True))
         else:
             if len(params) > 1:
                 for p in sorted(params):
-                    print("{:{width}}: {}".format(p, val[p], width=len(max(params, key=len))))
+                    print("{:{width}}: {}".format(p, values[p], width=len(max(params, key=len))))
             elif len(params) == 1:
-                print(val[params[0]])
+                print(values[params[0]])
 
     except Exception as ex:
         _logger.error(ex)
