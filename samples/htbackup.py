@@ -121,9 +121,10 @@ def main():
                     raise IOError("invalid response for query of data point {!r} [{}]".format(data_point, resp))
                 name = m.group(1).strip()
                 val = m.group(2).strip()
-                print("{} ({}): {}".format(data_point, name, val))
+                print("{} [{}]: {}".format(data_point, name, val))
             except Exception as e:
                 _logger.warning("query of data point {!r} failed: {!s}".format(data_point, e))
+                hp.reconnect()  # perform a reconnect
                 continue
     except Exception as ex:
         _logger.error(ex)
