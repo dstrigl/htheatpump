@@ -246,14 +246,24 @@ class HtHeatpump:
                                   timeout=_serial_timeout)
         _logger.info(self._ser)  # log serial connection properties
 
+    def reconnect(self):
+        """ Performs a reconnect of the serial connection. Flushes the output and
+            input buffer, closes the serial connection and opens it again.
+        """
+        if self._ser and self._ser.is_open:
+            self._ser.reset_output_buffer()
+            self._ser.reset_input_buffer()
+            self.close_connection()
+            self.open_connection()
+
     def close_connection(self):
         """ Closes the serial connection.
         """
         if self._ser and self._ser.is_open:
             self._ser.close()
             self._ser = None
-            # we wait for 1 sec, as it should be avoided to reopen the connection to fast
-            time.sleep(1)
+            # we wait for 100ms, as it should be avoided to reopen the connection to fast
+            time.sleep(0.1)
 
     @property
     def is_open(self):
