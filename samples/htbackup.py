@@ -116,7 +116,7 @@ def main():
             try:
                 resp = hp.read_response()
                 # search for pattern "NAME=..." and "VAL=..." inside the response string
-                m = re.match("^{},.*NAME=([^,]+).*VAL=([^,]+).*$".format(data_point, resp))
+                m = re.match("^{},.*NAME=([^,]+).*VAL=([^,]+).*$".format(data_point), resp)
                 if not m:
                     raise IOError("invalid response for query of data point {!r} [{}]".format(data_point, resp))
                 name = m.group(1).strip()
