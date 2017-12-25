@@ -115,7 +115,7 @@ class HtParam:
         :returns: The command string.
         :rtype: ``str``
         """
-        return "{},NR={}".format(self.dp_type, self.dp_number)
+        return "{},NR={:d}".format(self.dp_type, self.dp_number)
 
     @staticmethod
     def _from_str(value, data_type):
@@ -152,7 +152,9 @@ class HtParam:
         return value
 
     def from_str(self, arg):
-        """ TODO doc
+        """ Convert the passed value (in form of a string) to the expected data type.
+
+        TODO doc
         """
         if isinstance(self, HtParam):
             assert isinstance(arg, str)
@@ -167,7 +169,7 @@ class HtParam:
         """ Convert the passed value to a string.
 
         :param value: The passed value.
-        :type value: ``str``, ``bool``, ``int`` or ``float``
+        :type value: str, bool, int or float
         :param data_type: The data type of the passed value, see :class:`htparams.HtDataTypes`.
         :type data_type: HtDataTypes
         :returns: The string representation of the passed value.
@@ -193,7 +195,9 @@ class HtParam:
         return value
 
     def to_str(self, arg):
-        """ TODO doc
+        """ Convert the passed value to a string.
+
+        TODO doc
         """
         if isinstance(self, HtParam):
             assert isinstance(arg, (str, bool, int, float))

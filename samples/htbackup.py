@@ -17,29 +17,21 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" Command line tool to query for parameters of the Heliotherm heat pump.
+""" Command line tool to create a backup of the Heliotherm heat pump settings.
 
     Example:
 
     .. code-block:: shell
 
-       $ python3 htquery.py --device /dev/ttyUSB1 "Temp. Aussen" "Stoerung"
-       Stoerung    : False
-       Temp. Aussen: 5.0
-
-       $ python3 htquery.py --json "Temp. Aussen" "Stoerung"
-       {
-           "Stoerung": false,
-           "Temp. Aussen": 3.2
-       }
+       $ python3 htbackup.py --device /dev/ttyUSB1 --baudrate 9600
+       ... TODO ...
 """
 
 import sys
 import argparse
 import textwrap
-import json
+import re
 from htheatpump.htheatpump import HtHeatpump
-from htheatpump.htparams import HtDataTypes, HtParams
 from timeit import default_timer as timer
 import logging
 _logger = logging.getLogger(__name__)
@@ -49,13 +41,12 @@ _logger = logging.getLogger(__name__)
 def main():
     parser = argparse.ArgumentParser(
         description = textwrap.dedent('''\
-            Command line tool to query for parameters of the Heliotherm heat pump.
+            Command line tool to create a backup of the Heliotherm heat pump settings.
 
             Example:
 
-              $ python3 %(prog)s --device /dev/ttyUSB1 "Temp. Aussen" "Stoerung"
-              Stoerung    : False
-              Temp. Aussen: 5.0
+              $ python3 %(prog)s --device /dev/ttyUSB1 --baudrate 9600
+              ... TODO ...
             '''),
         formatter_class = argparse.RawDescriptionHelpFormatter,
         epilog = textwrap.dedent('''\
@@ -87,16 +78,6 @@ def main():
         help = "baudrate of the serial connection (same as configured on the heat pump), default: %(default)s")
 
     parser.add_argument(
-        "-j", "--json",
-        action="store_true",
-        help="output will be in JSON format")
-
-    parser.add_argument(
-        "--boolasint",
-        action="store_true",
-        help="boolean values will be stored as '0' and '1'")
-
-    parser.add_argument(
         "-t", "--time",
         action = "store_true",
         help = "measure the execution time")
@@ -106,12 +87,6 @@ def main():
         action = "store_true",
         help = "increase output verbosity by activating logging")
 
-    parser.add_argument(
-        "name",
-        type = str,
-        nargs = '*',
-        help = "parameter name(s) to query for (as defined in htparams.csv) or omit to query for all known parameters")
-
     args = parser.parse_args()
 
     # activate logging with level INFO in verbose mode
@@ -119,8 +94,6 @@ def main():
         logging.basicConfig(level=logging.INFO)
     else:
         logging.basicConfig(level=logging.ERROR)
-    # if not given, query for all "known" parameters
-    params = args.name if args.name else HtParams.keys()
 
     hp = HtHeatpump(args.device, baudrate=args.baudrate)
     start = timer()
@@ -135,24 +108,23 @@ def main():
         if args.verbose:
             _logger.info("software version = {} ({:d})".format(ver[0], ver[1]))
 
-        # query for the given parameter(s)
-        values = {}
-        for p in params:
-            val = hp.get_param(p)
-            if args.boolasint and HtParams[p].data_type == HtDataTypes.BOOL:
-                val = 1 if val else 0
-            values.update({p: val})
-
-        # print the current value(s) of the retrieved parameter(s)
-        if args.json:
-            print(json.dumps(values, indent=4, sort_keys=True))
-        else:
-            if len(params) > 1:
-                for p in sorted(params):
-                    print("{:{width}}: {}".format(p, values[p], width=len(max(params, key=len))))
-            elif len(params) == 1:
-                print(values[params[0]])
-
+        for i in range(0, 999):
+            data_point = "SP,NR={:d}".format(i)
+            # send request for data point to the heat pump
+            hp.send_request(data_point)
+            # ... and wait for the response
+            try:
+                resp = hp.read_response()
+                # search for pattern "NAME=..." and "VAL=..." inside the response string
+                m = re.match("^{},.*NAME=([^,]+).*VAL=([^,]+).*$".format(data_point, resp))
+                if not m:
+                    raise IOError("invalid response for query of data point {!r} [{}]".format(data_point, resp))
+                name = m.group(1).strip()
+                val = m.group(2).strip()
+                print("{} ({}): {}".format(data_point, name, val))
+            except Exception as e:
+                _logger.warning("query of data point {!r} failed: {!s}".format(data_point, e))
+                continue
     except Exception as ex:
         _logger.error(ex)
         sys.exit(1)

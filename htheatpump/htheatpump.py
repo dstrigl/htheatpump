@@ -194,19 +194,20 @@ class HtHeatpump:
             hp.close_connection()
     """
 
-    _ser_settings = None
-    """ The serial device settings (device, baudrate, bytesize, parity, stopbits, xonxoff, rtscts, dsrdtr)
-        as ``dict``.
-    """
+    #_ser_settings = None
+    #""" The serial device settings (device, baudrate, bytesize, parity, stopbits, xonxoff, rtscts, dsrdtr)
+    #    as ``dict``.
+    #"""
 
-    _ser = None
-    """ The object which does the serial talking.
-    """
+    #_ser = None
+    #""" The object which does the serial talking.
+    #"""
 
     def __init__(self, device, **kwargs):
         # store the serial settings for later connection establishment
         self._ser_settings = { 'device': device }
         self._ser_settings.update(kwargs)
+        self._ser = None
 
     def __del__(self):
         # close the connection if still established
@@ -702,7 +703,7 @@ class HtHeatpump:
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
         :type name: str
         :param val: The value to set.
-        :type val: ``str``, ``bool``, ``int`` or ``float``
+        :type val: str, bool, int or float
         :returns: Returned value of the parameter set request.
             In case of success this value should be the same as the one
             passed to the function.
