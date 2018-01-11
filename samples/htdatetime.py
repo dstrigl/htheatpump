@@ -144,7 +144,7 @@ def main():
         _logger.error(ex)
         sys.exit(1)
     finally:
-        hp.logout()  # try to logout for a ordinary cancellation (if possible)
+        hp.logout()  # try to logout for an ordinary cancellation (if possible)
         hp.close_connection()
     end = timer()
 
