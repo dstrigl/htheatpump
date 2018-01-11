@@ -154,12 +154,26 @@ class HtParam:
     def from_str(self, arg):
         """ Convert the passed value (in form of a string) to the expected data type.
 
-        TODO doc
+        This method can be called as a *static method*, e.g.::
+
+            val = HtParam.from_str("123", HtDataTypes.INT)
+
+        or as a *member method* of :class:`HtParam`, e.g.::
+
+            param = HtParams["Temp. Aussen"]
+            val = param.from_str(s)
+
+        If the method is called as a member method of :class:`HtParam`, the expected data
+        type don't have to be specified. It will be automatically determined from the
+        :class:`HtParam` instance.
+
+        :raises ValueError:
+            Will be raised if the passed value could not be converted to the expected data type.
         """
-        if isinstance(self, HtParam):
+        if isinstance(self, HtParam):  # called as a member method of HtParam
             assert isinstance(arg, str)
             return HtParam._from_str(arg, self.data_type)
-        else:
+        else:  # called as a static method of HtParam
             assert isinstance(self, str)
             assert isinstance(arg, HtDataTypes)
             return HtParam._from_str(self, arg)
@@ -197,12 +211,23 @@ class HtParam:
     def to_str(self, arg):
         """ Convert the passed value to a string.
 
-        TODO doc
+        This method can be called as a *static method*, e.g.::
+
+            s = HtParam.to_str(123, HtDataTypes.FLOAT)
+
+        or as a *member method* of :class:`HtParam`, e.g.::
+
+            param = HtParams["Temp. Aussen"]
+            s = param.to_str(3.2)
+
+        If the method is called as a member method of :class:`HtParam`, the data type of the
+        passed value don't have to be specified. It will be automatically determined from the
+        :class:`HtParam` instance.
         """
-        if isinstance(self, HtParam):
+        if isinstance(self, HtParam):  # called as a member method of HtParam
             assert isinstance(arg, (str, bool, int, float))
             return HtParam._to_str(arg, self.data_type)
-        else:
+        else:  # called as a static method of HtParam
             assert isinstance(self, (str, bool, int, float))
             assert isinstance(arg, HtDataTypes)
             return HtParam._to_str(self, arg)
