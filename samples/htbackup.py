@@ -31,6 +31,8 @@ import sys
 import argparse
 import textwrap
 import re
+import json
+import csv
 from htheatpump.htheatpump import HtHeatpump
 from timeit import default_timer as timer
 import logging
@@ -78,6 +80,16 @@ def main():
         help = "baudrate of the serial connection (same as configured on the heat pump), default: %(default)s")
 
     parser.add_argument(
+        "-j", "--json",
+        type = str,
+        help="write the result to the specified JSON file")
+
+    parser.add_argument(
+        "-c", "--csv",
+        type = str,
+        help="write the result to the specified CSV file")
+
+    parser.add_argument(
         "-t", "--time",
         action = "store_true",
         help = "measure the execution time")
@@ -108,29 +120,49 @@ def main():
         if args.verbose:
             _logger.info("software version = {} ({:d})".format(ver[0], ver[1]))
 
-        for i in range(0, 999):
-            data_point = "SP,NR={:d}".format(i)
-            # send request for data point to the heat pump
-            hp.send_request(data_point)
-            # ... and wait for the response
-            try:
-                resp = hp.read_response()
-                # search for pattern "NAME=..." and "VAL=..." inside the response string
-                m = re.match("^{},.*NAME=([^,]+).*VAL=([^,]+).*$".format(data_point), resp)
-                if not m:
-                    raise IOError("invalid response for query of data point {!r} [{}]".format(data_point, resp))
-                name = m.group(1).strip()
-                val = m.group(2).strip()
-                print("{} [{}]: {}".format(data_point, name, val))
-            except Exception as e:
-                _logger.warning("query of data point {!r} failed: {!s}".format(data_point, e))
-                hp.reconnect()  # perform a reconnect
-                continue
+        result = {}
+        for dp_type in ("SP", "MP"):  # for all known data point types
+            result.update({dp_type: {}})
+            i = -1
+            while True:
+                i += 1
+                data_point = "{},NR={:d}".format(dp_type, i)
+                # send request for data point to the heat pump
+                hp.send_request(data_point)
+                # ... and wait for the response
+                try:
+                    resp = hp.read_response()
+                    # search for pattern "NAME=..." and "VAL=..." inside the answer
+                    m = re.match("^{},.*NAME=([^,]+).*VAL=([^,]+).*$".format(data_point), resp)
+                    if not m:
+                        raise IOError("invalid response for query of data point {!r} [{}]".format(data_point, resp))
+                    name, value = m.group(1, 2)  # extract name and value
+                    print("{!r} [{}]: {}".format(data_point, name, value))
+                    # store the determined data in the result dict
+                    result[dp_type].update({i: {"name": name, "value": value}})
+                except Exception as e:
+                    _logger.warning("query of data point {!r} failed: {!s}".format(data_point, e))
+                    # hp.reconnect()  # perform a reconnect
+                    break
+
+        if args.json:  # write result to JSON file
+            with open(args.json, 'w') as jsonfile:
+                json.dump(result, jsonfile, indent=4, sort_keys=True)
+
+        if args.csv:  # write result to CSV file
+            with open(args.csv, 'w') as csvfile:
+                fieldnames = ["type", "number", "name", "value"]
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                for dp_type, content in result.items():
+                    for i, data in content.items():
+                        writer.writerow({"type": dp_type, "number": i, "name": data["name"], "value": data["value"]})
+
     except Exception as ex:
         _logger.error(ex)
         sys.exit(1)
     finally:
-        hp.logout()  # try to logout for a ordinary cancellation (if possible)
+        hp.logout()  # try to logout for an ordinary cancellation (if possible)
         hp.close_connection()
     end = timer()
 

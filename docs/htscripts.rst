@@ -126,3 +126,18 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htfaultlist.py
     #009 [2014-08-06T13:26:37]: 65298, Info: L.I.D. geaendert
     #010 [2014-08-06T13:28:23]: 65534, Keine Stoerung
     #011 [2014-08-06T13:28:27]: 65534, Keine Stoerung
+
+
+htbackup
+--------
+
+Command line tool to ...
+
+Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htbackup.py
+
+**Example:**
+
+.. code-block:: shell
+
+    $ python3 htbackup.py --device /dev/ttyUSB1 --baudrate 9600
+    TODO
