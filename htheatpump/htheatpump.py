@@ -24,6 +24,7 @@ from htheatpump.htparams import HtParams
 #from timeit import default_timer as timer
 
 #import sys
+import enum
 import serial
 import time
 import re
@@ -54,14 +55,24 @@ _login_retries = 2
 # Protocol constants
 # --------------------------------------------------------------------------------------------- #
 
+@enum.unique
+class HtResponseTypes(enum.Enum):
+    UNKNOWN = 0
+    ANSWER  = 1
+    ERROR   = 2
+
+
 REQUEST_HEADER = b"\x02\xfd\xd0\xe0\x00\x00"
 RESPONSE_HEADER_LEN = 6
 RESPONSE_HEADER = {
-    b"\x02\xfd\xe0\xd0\x00\x00" : None,  # checksum has to be computed!
-    # on HP08S10W-WEB, SW 3.0.20
-    b"\x02\xfd\xe0\xd0\x04\x00" : 0x00,  # checksum seems to be fixed 0x0, but why?
-    # on HP10S12W-WEB, SW 3.0.8
-    b"\x02\xfd\xe0\xd0\x08\x00" : 0x00,  # @Kilian; another response header with fixed checksum?!
+    # normal response header with answer; checksum has to be computed!
+    b"\x02\xfd\xe0\xd0\x00\x00" : { "type": HtResponseTypes.ANSWER, "checksum": None },
+    # on HP08S10W-WEB, SW 3.0.20: checksum seems to be fixed 0x0, but why?
+    b"\x02\xfd\xe0\xd0\x04\x00" : { "type": HtResponseTypes.ANSWER, "checksum": 0x00 },
+    # on HP10S12W-WEB, SW 3.0.8: another response header with fixed checksum?!
+    b"\x02\xfd\xe0\xd0\x08\x00" : { "type": HtResponseTypes.ANSWER, "checksum": 0x00 },
+    # error response header; checksum has to be computed!
+    b"\x02\xfd\xe0\xd0\x02\x00" : { "type": HtResponseTypes.ERROR,  "checksum": None },
 }
 
 # special commands of the heat pump; the request and response of this commands differ from the
@@ -299,19 +310,24 @@ class HtHeatpump:
 
         .. note::
 
-            **There is a little bit strange behavior how the heat pump sometimes replies on some
-            requests:**
+            **There is a little bit strange behavior how the heat pump sometimes replies on some requests:**
 
             A response from the heat pump normally consists of the following header
-            :data:`b"\\x02\\xfd\\xe0\\xd0\\x00\\x00"` together with the payload and a
-            computed checksum. But sometimes the heat pump replies with a different header
-            (:data:`b"\\x02\\xfd\\xe0\\xd0\\x04\\x00"` or :data:`b"\\x02\\xfd\\xe0\\xd0\\x08\\x00"`)
-            together with the payload and a *fixed* value of :data:`0x0` for the checksum.
+            ``b"\\x02\\xfd\\xe0\\xd0\\x00\\x00"`` together with the payload and a computed checksum.
+            But sometimes the heat pump replies with a different header (``b"\\x02\\xfd\\xe0\\xd0\\x04\\x00"``
+            or ``b"\\x02\\xfd\\xe0\\xd0\\x08\\x00"``) together with the payload and a *fixed* value of
+            ``0x0`` for the checksum.
 
-            We have no idea about the reason for this behavior. But after analysing the
-            communication between the `Heliotherm home control <http://homecontrol.heliotherm.com/>`_
-            Windows application and the heat pump, which simply accepts this kind of responses,
-            we also decided to handle it as a valid response.
+            We have no idea about the reason for this behavior. But after analysing the communication between
+            the `Heliotherm home control <http://homecontrol.heliotherm.com/>`_ Windows application and the
+            heat pump, which simply accepts this kind of responses, we also decided to handle it as a valid
+            answer to a request.
+
+            Furthermore, we have noticed another behavior, which is not fully explainable:
+            For some response messages from the heat pump (e.g. for the error message ``"ERR,INVALID IDX"``)
+            the transmitted payload length in the protocol is zero (0 bytes), although some payload follows.
+            In this case we read until we will found the trailing ``b"\\r\\n"`` at the end of the payload
+            to determine the payload of the message.
         """
         if not self._ser:
             raise IOError("serial connection not open")
@@ -320,37 +336,65 @@ class HtHeatpump:
         if not header:
             raise IOError("data stream broken during reading response header")
         elif header not in RESPONSE_HEADER:
-            raise IOError("wrong response header for a request [{}]".format(header))
+            raise IOError("invalid or unknown response header [{}]".format(header))
         # read the length of the following payload
         payload_len = self._ser.read(1)
         if not payload_len:
             raise IOError("data stream broken during reading payload length")
-        # read the payload itself
-        payload = self._ser.read(payload_len[0])
-        if not payload or len(payload) < payload_len[0]:
-            raise IOError("data stream broken during reading payload")
+        # We don't know why, but for some messages (e.g. for the error message "ERR,INVALID IDX") the
+        # heat pump answers with a payload length of zero bytes. In order to also accept such responses
+        # we read until we will found the trailing '\r\n' at the end of the payload. The payload length
+        # itself will then be computed afterwards by counting the number of bytes of the payload.
+        if payload_len[0] == 0:
+            _logger.info(
+                "received response with a payload length of zero; "
+                "try to read until the occurrence of '\\r\\n' (header=[{}])".format(header))
+            payload = b""
+            while payload[-2:] != b"\r\n":
+                tmp = self._ser.read(1)
+                if not tmp:
+                    raise IOError("data stream broken during reading payload ending with '\\r\\n'")
+                payload += tmp
+            # Sorry, but again another inconsistency in the protocol:
+            #   It seems that in this case (when the heat pump answers with payload length of zero) the trailing
+            #   '\r\n' is not counted for the payload length used for the checksum computation in the next step :-/
+            #   Otherwise, the checksum validation will always fail.
+            #   Therefore, the payload length used for the checksum computation is the length of the payload
+            #   without the two trailing characters '\r\n':
+            payload_len = bytes([len(payload) - 2])
+        else:
+            # read the payload itself
+            payload = self._ser.read(payload_len[0])
+            if not payload or len(payload) < payload_len[0]:
+                raise IOError("data stream broken during reading payload")
         # read the checksum and verify the validity of the response
         checksum = self._ser.read(1)
         if not checksum:
             raise IOError("data stream broken during reading checksum")
-        comp_checksum = RESPONSE_HEADER[header]
+        comp_checksum = RESPONSE_HEADER[header]["checksum"]
         if comp_checksum is None:
-            # compute the checksum over header and payload
+            # compute the checksum over header, payload length and the payload itself
             comp_checksum = calc_checksum(header + payload_len + payload)
         else:  # log about response with unlikely (but handled) header!
-            _logger.info("FYI: received response with \"unlikely\" header, but handled normally (checksum={})"
+            _logger.info("received response with \"unlikely\" header, but handled normally (checksum={})"
                          .format(hex(checksum[0])))
         if checksum[0] != comp_checksum:
-            raise IOError("received response has an invalid checksum [{}]".format(hex(checksum[0])))
+            raise IOError("received response has an invalid checksum [{}] (header=[{}], payload=[{}])"
+                          .format(hex(checksum[0]), header, payload))
         # debug log of the received response
         _logger.debug("received response: [{}]".format(header + payload_len + payload + checksum))
         _logger.debug("  header = {}".format(header))
+        _logger.debug("  payload length = {}".format(payload_len[0]))
         _logger.debug("  payload = {}".format(payload))
         _logger.debug("  checksum = {}".format(hex(checksum[0])))
         # extract the relevant data from the payload (without header '~' and trailer ';\r\n')
         m = re.match("^~([^;]*);\r\n$", payload.decode("ascii"))
         if not m:
             raise IOError("failed to extract response data from payload [{}]".format(payload))
+        # if the response includes an error message throw an exception
+        if RESPONSE_HEADER[header]["type"] == HtResponseTypes.ERROR:
+            raise IOError(m.group(1))
+        # otherwise return the extracted data
         return m.group(1)
 
     def login(self, max_retries=_login_retries):
@@ -683,7 +727,7 @@ class HtHeatpump:
         """
         #
         # TODO: check received value against limits (min, max) in 'htparams.csv'
-        #          and write a warning to the log if it doesn't match
+        #           (and write a warning to the log if it doesn't match)
         #
         # find the corresponding definition for the requested parameter
         if name not in HtParams:
