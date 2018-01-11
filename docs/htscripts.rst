@@ -66,7 +66,7 @@ htquery
 
 Command line tool to query for parameters of the Heliotherm heat pump.
 
-If the -j, --json option is used, the output will be in JSON format.
+If the ``-j``, ``--json`` option is used, the output will be in JSON format.
 
 Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htquery.py
 
@@ -131,7 +131,10 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htfaultlist.py
 htbackup
 --------
 
-Command line tool to ...
+Command line tool to create a backup of the Heliotherm heat pump data points.
+
+The option ``-c``, ``--csv`` and ``-j``, ``--json`` can be used to write the
+read data point values to a specified CSV or JSON file.
 
 Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htbackup.py
 
@@ -139,5 +142,12 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htbackup.py
 
 .. code-block:: shell
 
-    $ python3 htbackup.py --device /dev/ttyUSB1 --baudrate 9600
-    TODO
+    $ python3 htbackup.py --baudrate 9600 --csv backup.csv
+    'SP,NR=0' [Language]: 0
+    'SP,NR=1' [TBF_BIT]: 0
+    'SP,NR=2' [Rueckruferlaubnis]: 1
+    ...
+    'MP,NR=0' [Temp. Aussen]: 0.1
+    'MP,NR=1' [Temp. Aussen verzoegert]: 0.1
+    'MP,NR=2' [Temp. Brauchwasser]: 50.2
+    ...

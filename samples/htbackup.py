@@ -17,14 +17,21 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" Command line tool to create a backup of the Heliotherm heat pump settings.
+""" Command line tool to create a backup of the Heliotherm heat pump data points.
 
     Example:
 
     .. code-block:: shell
 
-       $ python3 htbackup.py --device /dev/ttyUSB1 --baudrate 9600
-       ... TODO ...
+       $ python3 htbackup.py --baudrate 9600 --csv backup.csv
+       'SP,NR=0' [Language]: 0
+       'SP,NR=1' [TBF_BIT]: 0
+       'SP,NR=2' [Rueckruferlaubnis]: 1
+       ...
+       'MP,NR=0' [Temp. Aussen]: 0.1
+       'MP,NR=1' [Temp. Aussen verzoegert]: 0.1
+       'MP,NR=2' [Temp. Brauchwasser]: 50.2
+       ...
 """
 
 import sys
@@ -47,8 +54,11 @@ def main():
 
             Example:
 
-              $ python3 %(prog)s --device /dev/ttyUSB1 --baudrate 9600
-              ... TODO ...
+              $ python3 %(prog)s --baudrate 9600 --csv backup.csv
+              'SP,NR=0' [Language]: 0
+              'SP,NR=1' [TBF_BIT]: 0
+              'SP,NR=2' [Rueckruferlaubnis]: 1
+              ...
             '''),
         formatter_class = argparse.RawDescriptionHelpFormatter,
         epilog = textwrap.dedent('''\
