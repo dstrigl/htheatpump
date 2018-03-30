@@ -60,8 +60,9 @@ Tested with [*]_
 * Heliotherm HP08S10W-WEB, SW 3.0.20
 * Heliotherm HP10S12W-WEB, SW 3.0.8
 * Heliotherm HP08E-K-BC, SW 3.0.7B
+* Heliotherm HP05S07W-WEB, SW 3.0.17
 
-  .. [*] thanks to Kilian and Hans for contribution
+  .. [*] thanks to Kilian, Hans and Alois for contribution
 
 
 Installing
