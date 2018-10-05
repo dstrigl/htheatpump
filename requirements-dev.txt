@@ -7,4 +7,4 @@ flake8==3.5.0
 coverage==4.5.1
 tox==3.4.0
 Sphinx==1.8.1
-sphinx_rtd_theme==0.4.1
+sphinx_rtd_theme==0.4.2
