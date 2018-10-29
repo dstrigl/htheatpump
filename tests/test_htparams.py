@@ -112,7 +112,7 @@ class TestHtParam:
 
     @pytest.mark.parametrize("name, cmd", [(name, param.cmd()) for name, param in HtParams.items()])
     def test_cmd_format(self, name, cmd):
-        m = re.match("^[S|M]P,NR=(\d+)$", cmd)
+        m = re.match(r"^[S|M]P,NR=(\d+)$", cmd)
         assert m is not None, "non valid command string for parameter {!r} [{!r}]".format(name, cmd)
         #assert 0
 
@@ -140,7 +140,7 @@ class TestHtParams:
     @pytest.mark.parametrize("name, acl", [(name, param.acl) for name, param in HtParams.items()])
     def test_acl(self, name, acl):
         assert acl is not None, "acl must not be None"
-        m = re.match("^(r-|-w|rw)$", acl)
+        m = re.match(r"^(r-|-w|rw)$", acl)
         assert m is not None, "invalid acl definition for parameter {!r} [{!r}]".format(name, acl)
         #assert 0
 
@@ -157,7 +157,7 @@ class TestHtParams:
     def test_validate_param(self, hthp, name, param):
         hthp.send_request(param.cmd())
         resp = hthp.read_response()
-        m = re.match("^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(param.cmd()), resp)
+        m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(param.cmd()), resp)
         assert m is not None, "invalid response for query of parameter {!r} [{!r}]".format(name, resp)
         dp_name = m.group(1).strip()
         assert dp_name == name,\

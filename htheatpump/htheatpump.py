@@ -77,32 +77,32 @@ RESPONSE_HEADER = {
 
 # special commands of the heat pump; the request and response of this commands differ from the
 #   normal parameter requests defined in htparams.py
-LOGIN_CMD    = "LIN"                                                              # login command
-LOGIN_RESP   = "OK"
-LOGOUT_CMD   = "LOUT"                                                            # logout command
-LOGOUT_RESP  = "OK"
-RID_CMD      = "RID"          # returns the manufacturer's serial number, e.g. "~RID,123456;\r\n"
-RID_RESP     = "^RID,(\d+)$"
-VERSION_CMD  = "SP,NR=9"                          # returns the software version of the heat pump
-VERSION_RESP = "^SP,NR=9,.*NAME=([^,]+).*VAL=([^,]+).*$"
-CLK_CMD      = ("CLK",                       # get/set the current date and time of the heat pump
-                "CLK,DA={:02d}.{:02d}.{:02d},TI={:02d}:{:02d}:{:02d},WD={:d}")
-CLK_RESP     = ("^CLK"
-                ",DA=(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"   # date, e.g. '26.11.15'
-                ",TI=([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                # time, e.g. '21:28:57'
-                ",WD=([1-7])$")                             # weekday 1-7 (Monday through Sunday)
-ALC_CMD      = "ALC"                            # returns the last fault message of the heat pump
-ALC_RESP     = ("^AA,(\d+),(\d+)"                           # fault list index and error code (?)
-                ",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"      # date, e.g. '14.09.14'
-                "-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                   # time, e.g. '11:52:08'
-                ",(.*)$")                                    # error message, e.g. 'EQ_Spreizung'
-ALS_CMD      = "ALS"                               # returns the fault list size of the heat pump
-ALS_RESP     = "^SUM=(\d+)$"
-AR_CMD       = "AR,{}"                               # returns a specific entry of the fault list
-AR_RESP      = ("^AA,(\d+),(\d+)"                           # fault list index and error code (?)
-                ",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"      # date, e.g. '14.09.14'
-                "-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                   # time, e.g. '11:52:08'
-                ",(.*)$")                                    # error message, e.g. 'EQ_Spreizung'
+LOGIN_CMD    = r"LIN"                                                             # login command
+LOGIN_RESP   = r"^OK"
+LOGOUT_CMD   = r"LOUT"                                                           # logout command
+LOGOUT_RESP  = r"^OK"
+RID_CMD      = r"RID"         # returns the manufacturer's serial number, e.g. "~RID,123456;\r\n"
+RID_RESP     = r"^RID,(\d+)$"
+VERSION_CMD  = r"SP,NR=9"                         # returns the software version of the heat pump
+VERSION_RESP = r"^SP,NR=9,.*NAME=([^,]+).*VAL=([^,]+).*$"
+CLK_CMD      = (r"CLK",                      # get/set the current date and time of the heat pump
+                r"CLK,DA={:02d}.{:02d}.{:02d},TI={:02d}:{:02d}:{:02d},WD={:d}")
+CLK_RESP     = (r"^CLK"
+                r",DA=(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"  # date, e.g. '26.11.15'
+                r",TI=([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"               # time, e.g. '21:28:57'
+                r",WD=([1-7])$")                            # weekday 1-7 (Monday through Sunday)
+ALC_CMD      = r"ALC"                           # returns the last fault message of the heat pump
+ALC_RESP     = (r"^AA,(\d+),(\d+)"                          # fault list index and error code (?)
+                r",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"     # date, e.g. '14.09.14'
+                r"-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                  # time, e.g. '11:52:08'
+                r",(.*)$")                                   # error message, e.g. 'EQ_Spreizung'
+ALS_CMD      = r"ALS"                              # returns the fault list size of the heat pump
+ALS_RESP     = r"^SUM=(\d+)$"
+AR_CMD       = r"AR,{}"                              # returns a specific entry of the fault list
+AR_RESP      = (r"^AA,(\d+),(\d+)"                          # fault list index and error code (?)
+                r",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"     # date, e.g. '14.09.14'
+                r"-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                  # time, e.g. '11:52:08'
+                r",(.*)$")                                   # error message, e.g. 'EQ_Spreizung'
 
 
 # --------------------------------------------------------------------------------------------- #
@@ -388,7 +388,7 @@ class HtHeatpump:
         _logger.debug("  payload = {}".format(payload))
         _logger.debug("  checksum = {}".format(hex(checksum[0])))
         # extract the relevant data from the payload (without header '~' and trailer ';\r\n')
-        m = re.match("^~([^;]*);\r\n$", payload.decode("ascii"))
+        m = re.match(r"^~([^;]*);\r\n$", payload.decode("ascii"))
         if not m:
             raise IOError("failed to extract response data from payload [{}]".format(payload))
         # if the response includes an error message throw an exception
@@ -416,10 +416,11 @@ class HtHeatpump:
             # ... and wait for the response
             try:
                 resp = self.read_response()
-                if resp == LOGIN_RESP:
-                    success = True
-                else:
+                m = re.match(LOGIN_RESP, resp)
+                if not m:
                     raise IOError("invalid response for LOGIN command [{}]".format(resp))
+                else:
+                    success = True
             except Exception as e:
                 _logger.warning("login try {:d} failed: {!s}".format(retry, e))
                 retry += 1
@@ -439,7 +440,8 @@ class HtHeatpump:
             self.send_request(LOGOUT_CMD)
             # ... and wait for the response
             resp = self.read_response()
-            if resp != LOGOUT_RESP:
+            m = re.match(LOGOUT_RESP, resp)
+            if not m:
                 raise IOError("invalid response for LOGOUT command [{}]".format(resp))
             _logger.info("logout successfully")
         except Exception as e:
@@ -739,7 +741,7 @@ class HtHeatpump:
         try:
             resp = self.read_response()
             # search for pattern "VAL=..." inside the response string
-            m = re.match("^{},.*VAL=([^,]+).*$".format(param.cmd()), resp)
+            m = re.match(r"^{},.*VAL=([^,]+).*$".format(param.cmd()), resp)
             if not m:
                 raise IOError("invalid response for query of parameter {!r} [{}]".format(name, resp))
             val = m.group(1).strip()
@@ -792,7 +794,7 @@ class HtHeatpump:
         try:
             resp = self.read_response()
             # search for pattern "VAL=..." inside the response string
-            m = re.match("^{},.*VAL=([^,]+).*$".format(param.cmd()), resp)
+            m = re.match(r"^{},.*VAL=([^,]+).*$".format(param.cmd()), resp)
             if not m:
                 raise IOError("invalid response for set parameter {!r} to {!r} [{}]".format(name, val, resp))
             val = m.group(1).strip()
