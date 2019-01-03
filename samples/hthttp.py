@@ -13,8 +13,7 @@ class GetHandler(BaseHTTPRequestHandler):
         parsed_path = urlparse.urlparse(self.path)
         message_parts = [
             'CLIENT VALUES:',
-            'client_address=%s (%s)' % (self.client_address,
-            self.address_string()),
+            'client_address=%s (%s)' % (self.client_address, self.address_string()),
             'command=%s' % self.command,
             'path=%s' % self.path,
             'real path=%s' % parsed_path.path,
