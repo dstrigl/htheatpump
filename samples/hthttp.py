@@ -8,26 +8,26 @@ from htheatpump.htparams import HtParams
 
 
 class GetHandler(BaseHTTPRequestHandler):
-    
+
     def do_GET(self):
         parsed_path = urlparse.urlparse(self.path)
         message_parts = [
-                'CLIENT VALUES:',
-                'client_address=%s (%s)' % (self.client_address,
-                                            self.address_string()),
-                'command=%s' % self.command,
-                'path=%s' % self.path,
-                'real path=%s' % parsed_path.path,
-                'query=%s' % parsed_path.query,
-                'request_version=%s' % self.request_version,
-                '',
-                'SERVER VALUES:',
-                'server_version=%s' % self.server_version,
-                'sys_version=%s' % self.sys_version,
-                'protocol_version=%s' % self.protocol_version,
-                '',
-                'HEADERS RECEIVED:',
-                ]
+            'CLIENT VALUES:',
+            'client_address=%s (%s)' % (self.client_address,
+            self.address_string()),
+            'command=%s' % self.command,
+            'path=%s' % self.path,
+            'real path=%s' % parsed_path.path,
+            'query=%s' % parsed_path.query,
+            'request_version=%s' % self.request_version,
+            '',
+            'SERVER VALUES:',
+            'server_version=%s' % self.server_version,
+            'sys_version=%s' % self.sys_version,
+            'protocol_version=%s' % self.protocol_version,
+            '',
+            'HEADERS RECEIVED:',
+        ]
         for name, value in sorted(self.headers.items()):
             message_parts.append('%s=%s' % (name, value.rstrip()))
         message_parts.append('')
@@ -36,7 +36,7 @@ class GetHandler(BaseHTTPRequestHandler):
         param_parts = []
         for query in qsl:
             name, value = query
-			# convert the passed value (as string) to the specific data type
+            # convert the passed value (as string) to the specific data type
             value = HtParams[name].from_str(value)
             # set the parameter of the heat pump to the passed value
             value = hp.set_param(name, value)
@@ -49,7 +49,7 @@ class GetHandler(BaseHTTPRequestHandler):
         self.wfile.write(bytes(message, 'utf8'))
         return
 
-		
+
 # Main program
 def main():
     global hp
@@ -66,6 +66,6 @@ def main():
     #hp.logout()  # try to logout for an ordinary cancellation (if possible)
     #hp.close_connection()
 
-	
+
 if __name__ == "__main__":
     main()
