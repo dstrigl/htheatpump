@@ -22,7 +22,7 @@ from urllib import parse as urlparse
 from htheatpump.htheatpump import HtHeatpump
 from htheatpump.htparams import HtParams
 import json
-import logging
+#import logging
 
 
 class GetHandler(BaseHTTPRequestHandler):
@@ -47,7 +47,7 @@ class GetHandler(BaseHTTPRequestHandler):
             params.update({name: value})
             print("{}: {}".format(name, value))
         hp.logout()
- 
+
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
         self.end_headers()
@@ -70,7 +70,7 @@ def main():
     print("Software version: {} ({:d})".format(ver[0], ver[1]))
     hp.logout()
     server = HTTPServer(("192.168.11.90", 8080), GetHandler)
-    print('Starting server at http://localhost:8080, use <Ctrl-C> to stop.')
+    print("Starting server at http://localhost:8080, use <Ctrl-C> to stop.")
     server.serve_forever()
     hp.close_connection()
 
