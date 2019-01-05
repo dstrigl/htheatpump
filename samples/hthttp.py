@@ -67,10 +67,6 @@ class HttpGetHandler(BaseHTTPRequestHandler):
         return
 
 
-# --------------------------------------------------------------------------------------------- #
-# Main program
-# --------------------------------------------------------------------------------------------- #
-
 class HtHttpDaemon(Daemon):
     def run(self):
         #logging.basicConfig(level=logging.INFO)
@@ -90,6 +86,11 @@ class HtHttpDaemon(Daemon):
               "Starting server at: {}".format(server.server_address))
         server.serve_forever()
         hp.close_connection()
+
+
+# --------------------------------------------------------------------------------------------- #
+# Main program
+# --------------------------------------------------------------------------------------------- #
 
 def main():
     daemon = HtHttpDaemon("/tmp/hthttp-daemon.pid",

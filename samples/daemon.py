@@ -59,8 +59,8 @@ class Daemon:
 
     def __init__(self, pidfile, stdin="/dev/null", stdout="/dev/null", stderr="/dev/null"):
         self._pidfile = pidfile
-        self._stdin   = stdin  if stdin  is not None else "/dev/null"
-        self._stdout  = stdout if stdout is not None else "/dev/null"
+        self._stdin = stdin if stdin is not None else "/dev/null"
+        self._stdout = stdout if stdout is not None else "/dev/null"
         self._stderr  = stderr if stderr is not None else "/dev/null"
 
     def daemonize(self):
@@ -180,7 +180,7 @@ class Daemon:
         try:
             if os.path.exists(self._pidfile):
                 os.remove(self._pidfile)
-        except IOError as e:
+        except IOError:
             sys.stderr.write("failed to remove pidfile {}\n".format(self._pidfile))
             sys.exit(1)
 
