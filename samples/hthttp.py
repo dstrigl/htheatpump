@@ -39,22 +39,28 @@ class HttpGetHandler(BaseHTTPRequestHandler):
         if parsed_path.path.lower() == "/datetime":
             dt, _ = hp.set_date_time(datetime.now())
             params.update({"datetime": dt.isoformat()})
-            print("[{}]".format(datetime.now().isoformat()), dt.isoformat())
+            #print("[{}]".format(datetime.now().isoformat()), dt.isoformat())
         elif parsed_path.path.lower() == "/":
             qsl = urlparse.parse_qsl(parsed_path.query, keep_blank_values=True)
             print("[{}]".format(datetime.now().isoformat()), qsl)
-            for query in qsl:
-                name, value = query
-                if not value:
-                    # query for the given parameter
+            if not qsl:
+                for name in HtParams.keys():
                     value = hp.get_param(name)
-                else:
-                    # convert the passed value (as string) to the specific data type
-                    value = HtParams[name].from_str(value)
-                    # set the parameter of the heat pump to the passed value
-                    value = hp.set_param(name, value)
-                params.update({name: value})
-                print("[{}]".format(datetime.now().isoformat()), "{}: {}".format(name, value))
+                    params.update({name: value})
+                    #print("[{}]".format(datetime.now().isoformat()), "{}: {}".format(name, value))
+            else:
+                for query in qsl:
+                    name, value = query
+                    if not value:
+                        # query for the given parameter
+                        value = hp.get_param(name)
+                    else:
+                        # convert the passed value (as string) to the specific data type
+                        value = HtParams[name].from_str(value)
+                        # set the parameter of the heat pump to the passed value
+                        value = hp.set_param(name, value)
+                    params.update({name: value})
+                    #print("[{}]".format(datetime.now().isoformat()), "{}: {}".format(name, value))
         hp.logout()
 
         self.send_response(200)
