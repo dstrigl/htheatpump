@@ -34,19 +34,33 @@ class HttpGetHandler(BaseHTTPRequestHandler):
         parsed_path = urlparse.urlparse(self.path)
 
         hp.login()
-        params = {}
+        result = {}
         print("[{}]".format(datetime.now().isoformat()), parsed_path.path.lower())
         if parsed_path.path.lower() == "/datetime":
             dt, _ = hp.set_date_time(datetime.now())
-            params.update({"datetime": dt.isoformat()})
+            result.update({"datetime": dt.isoformat()})
             #print("[{}]".format(datetime.now().isoformat()), dt.isoformat())
+        elif parsed_path.path.lower() == "/faultlist/last":
+            # query for the last fault message of the heat pump
+            idx, err, dt, msg = hp.get_last_fault()
+            result.update({idx: {"error": err, "datetime": dt.isoformat(), "message": msg}})
+            #print("[{}]".format(datetime.now().isoformat()),
+            #      "#{:d} [{}]: {:d}, {}".format(idx, dt.isoformat(), err, msg))
+        elif parsed_path.path.lower() == "/faultlist":
+            # query for the whole fault list of the heat pump
+            fault_lst = hp.get_fault_list()
+            for idx, err in fault_lst.items():
+                err.update({"datetime": err["datetime"].isoformat()})
+                result.update({idx: err})
+                #print("[{}]".format(datetime.now().isoformat()),
+                #      "#{:03d} [{}]: {:05d}, {}".format(idx, err["datetime"], err["error"], err["message"]))
         elif parsed_path.path.lower() == "/":
             qsl = urlparse.parse_qsl(parsed_path.query, keep_blank_values=True)
             print("[{}]".format(datetime.now().isoformat()), qsl)
             if not qsl:
                 for name in HtParams.keys():
                     value = hp.get_param(name)
-                    params.update({name: value})
+                    result.update({name: value})
                     #print("[{}]".format(datetime.now().isoformat()), "{}: {}".format(name, value))
             else:
                 for query in qsl:
@@ -59,7 +73,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                         value = HtParams[name].from_str(value)
                         # set the parameter of the heat pump to the passed value
                         value = hp.set_param(name, value)
-                    params.update({name: value})
+                    result.update({name: value})
                     #print("[{}]".format(datetime.now().isoformat()), "{}: {}".format(name, value))
         hp.logout()
 
@@ -67,7 +81,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json")
         self.end_headers()
 
-        message = json.dumps(params, indent=2, sort_keys=True)
+        message = json.dumps(result, indent=2, sort_keys=True)
         print("[{}]".format(datetime.now().isoformat()), message)
         self.wfile.write(bytes(message, "utf8"))
         return
