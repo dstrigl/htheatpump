@@ -17,51 +17,79 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+""" Simple HTTP server which provides the possibility to communicate with the Heliotherm heat pump via URL requests.
+
+    ... TODO doc ...
+
+    Example:
+
+    .. code-block:: shell
+
+       $ python3 hthttp.py start --device /dev/ttyUSB1 --ip 192.168.11.91 --port 8081
+       hthttp.py started with PID 2061
+
+       $ python3 hthttp.py stop
+"""
+
+# TODO error handling (try/except -> reconnect)
+
+
+import argparse
+import textwrap
+import sys
+import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib import parse as urlparse
 from htheatpump.htheatpump import HtHeatpump
 from htheatpump.htparams import HtParams
 from daemon import Daemon
 from datetime import datetime
-import json
-import sys
-#import logging
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class HttpGetHandler(BaseHTTPRequestHandler):
-
     def do_GET(self):
         parsed_path = urlparse.urlparse(self.path)
+        _logger.info("[{}] {}".format(datetime.now().isoformat(), parsed_path.path.lower()))
 
         hp.login()
         result = {}
-        print("[{}]".format(datetime.now().isoformat()), parsed_path.path.lower())
+
         if parsed_path.path.lower() == "/datetime":
+            # synchronize the system time of the heat pump with the current time
             dt, _ = hp.set_date_time(datetime.now())
             result.update({"datetime": dt.isoformat()})
-            #print("[{}]".format(datetime.now().isoformat()), dt.isoformat())
+            _logger.debug("[{}] {}".format(datetime.now().isoformat(), dt.isoformat()))
+
         elif parsed_path.path.lower() == "/faultlist/last":
             # query for the last fault message of the heat pump
             idx, err, dt, msg = hp.get_last_fault()
             result.update({idx: {"error": err, "datetime": dt.isoformat(), "message": msg}})
-            #print("[{}]".format(datetime.now().isoformat()),
-            #      "#{:d} [{}]: {:d}, {}".format(idx, dt.isoformat(), err, msg))
+            _logger.debug("[{}] {}".format(datetime.now().isoformat(),
+                          "#{:d} [{}]: {:d}, {}".format(idx, dt.isoformat(), err, msg)))
+
         elif parsed_path.path.lower() == "/faultlist":
             # query for the whole fault list of the heat pump
             fault_lst = hp.get_fault_list()
             for idx, err in fault_lst.items():
                 err.update({"datetime": err["datetime"].isoformat()})
                 result.update({idx: err})
-                #print("[{}]".format(datetime.now().isoformat()),
-                #      "#{:03d} [{}]: {:05d}, {}".format(idx, err["datetime"], err["error"], err["message"]))
+                _logger.debug("[{}] {}".format(datetime.now().isoformat(),
+                              "#{:03d} [{}]: {:05d}, {}".format(idx, err["datetime"], err["error"], err["message"])))
+
         elif parsed_path.path.lower() == "/":
             qsl = urlparse.parse_qsl(parsed_path.query, keep_blank_values=True)
-            print("[{}]".format(datetime.now().isoformat()), qsl)
+            _logger.info("[{}] {}".format(datetime.now().isoformat(), qsl))
             if not qsl:
+                # query for all "known" parameters
                 for name in HtParams.keys():
                     value = hp.get_param(name)
+                    # converted boolean values to 0/1 (if requested)
+                    if args.boolasint and HtParams[name].data_type == HtDataTypes.BOOL:
+                        value = 1 if value else 0
                     result.update({name: value})
-                    #print("[{}]".format(datetime.now().isoformat()), "{}: {}".format(name, value))
+                    _logger.debug("[{}] {}".format(datetime.now().isoformat(), "{}: {}".format(name, value)))
             else:
                 for query in qsl:
                     name, value = query
@@ -73,8 +101,12 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                         value = HtParams[name].from_str(value)
                         # set the parameter of the heat pump to the passed value
                         value = hp.set_param(name, value)
+                    # converted boolean values to 0/1 (if requested)
+                    if args.boolasint and HtParams[name].data_type == HtDataTypes.BOOL:
+                        value = 1 if value else 0
                     result.update({name: value})
-                    #print("[{}]".format(datetime.now().isoformat()), "{}: {}".format(name, value))
+                    _logger.debug("[{}] {}".format(datetime.now().isoformat(), "{}: {}".format(name, value)))
+
         hp.logout()
 
         self.send_response(200)
@@ -82,57 +114,126 @@ class HttpGetHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
         message = json.dumps(result, indent=2, sort_keys=True)
-        print("[{}]".format(datetime.now().isoformat()), message)
+        _logger.info("[{}] {}".format(datetime.now().isoformat(), message))
         self.wfile.write(bytes(message, "utf8"))
-        return
 
 
 class HtHttpDaemon(Daemon):
     def run(self):
-        #logging.basicConfig(level=logging.INFO)
+        _logger.info("[{}] {}".format(datetime.now().isoformat(), "=" * 100))
         global hp
-        hp = HtHeatpump("/dev/ttyUSB0", baudrate=115200)
+        hp = HtHeatpump(args.device, baudrate=args.baudrate)
         hp.open_connection()
         hp.login()
         rid = hp.get_serial_number()
-        print("[{}]".format(datetime.now().isoformat()),
-              "Connected successfully to heat pump with serial number: {:d}".format(rid))
+        _logger.info("[{}] {}".format(datetime.now().isoformat(),
+                     "Connected successfully to heat pump with serial number: {:d}".format(rid)))
         ver = hp.get_version()
-        print("[{}]".format(datetime.now().isoformat()),
-              "Software version: {} ({:d})".format(ver[0], ver[1]))
+        _logger.info("[{}] {}".format(datetime.now().isoformat(),
+                     "Software version: {} ({:d})".format(ver[0], ver[1])))
         hp.logout()
-        server = HTTPServer(("192.168.11.90", 8080), HttpGetHandler)
-        print("[{}]".format(datetime.now().isoformat()),
-              "Starting server at: {}".format(server.server_address))
-        server.serve_forever()
+        server = HTTPServer((args.ip, args.port), HttpGetHandler)
+        _logger.info("[{}] {}".format(datetime.now().isoformat(),
+                     "Starting server at: {}".format(server.server_address)))
+        server.serve_forever()  # start the server and wait for requests
         hp.close_connection()
 
 
-# --------------------------------------------------------------------------------------------- #
 # Main program
-# --------------------------------------------------------------------------------------------- #
-
 def main():
-    daemon = HtHttpDaemon("/tmp/hthttp-daemon.pid",
-                          stdout="/tmp/hthttp-daemon.log",
-                          stderr="/tmp/hthttp-daemon.log")
-    if len(sys.argv) == 2:
-        cmd = sys.argv[1].lower()
-        if cmd == "start":
-            daemon.start()
-        elif cmd == "stop":
-            daemon.stop()
-        elif cmd == "restart":
-            daemon.restart()
-        elif cmd == "status":
-            daemon.status()
-        else:
-            sys.stderr.write("unknown command\n")
-            sys.exit(2)
-        sys.exit(0)
+    parser = argparse.ArgumentParser(
+        description = textwrap.dedent('''\
+            Simple HTTP server which provides the possibility to communicate with the Heliotherm heat pump via URL requests.
+            
+            ... TODO doc ...
+
+            Example:
+
+              $ python3 %(prog)s start --device /dev/ttyUSB1 --ip 192.168.11.91 --port 8081
+              hthttp.py started with PID 2061
+              
+              $ python3 %(prog)s stop
+            '''),
+        formatter_class = argparse.RawDescriptionHelpFormatter,
+        epilog = textwrap.dedent('''\
+            DISCLAIMER
+            ----------
+
+              Please note that any incorrect or careless usage of this program as well as
+              errors in the implementation can damage your heat pump!
+
+              Therefore, the author does not provide any guarantee or warranty concerning
+              to correctness, functionality or performance and does not accept any liability
+              for damage caused by this program or mentioned information.
+
+              Thus, use it on your own risk!
+            ''') + "\r\n")
+
+    parser.add_argument(
+        "cmd",
+        type = str.lower,
+        choices = ["start", "stop", "restart", "status"],
+        help = "command to be executed for the HTTP server daemon")
+
+    parser.add_argument(
+        "-ip", "--ip",
+        default = "192.168.11.90",
+        type = str,
+        help = "IP address of the HTTP server, default: %(default)s")
+
+    parser.add_argument(
+        "-p", "--port",
+        default = 8080,
+        type = int,
+        help = "port number of the HTTP server, default: %(default)s")
+
+    parser.add_argument(
+        "-d", "--device",
+        default = "/dev/ttyUSB0",
+        type = str,
+        help = "the serial device on which the heat pump is connected, default: %(default)s")
+
+    parser.add_argument(
+        "-b", "--baudrate",
+        default = 115200,
+        type = int,
+        # the supported baudrates of the Heliotherm heat pump (HP08S10W-WEB):
+        choices = [9600, 19200, 38400, 57600, 115200],
+        help = "baudrate of the serial connection (same as configured on the heat pump), default: %(default)s")
+
+    parser.add_argument(
+        "--boolasint",
+        action = "store_true",
+        help = "boolean values will be stored as '0' and '1'")
+
+    parser.add_argument(
+        "-v", "--verbose",
+        action = "store_true",
+        help = "increase output verbosity by activating logging")
+
+    global args
+    args = parser.parse_args()
+
+    # activate logging with level INFO in verbose mode
+    if args.verbose:
+        logging.basicConfig(level=logging.INFO)
     else:
-        sys.stderr.write("usage: {} start|stop|restart|status\n".format(sys.argv[0]))
-        sys.exit(2)
+        logging.basicConfig(level=logging.ERROR)
+    #logging.basicConfig(level=logging.DEBUG)
+
+    daemon = HtHttpDaemon("/tmp/hthttp-daemon.pid", stdout="/tmp/hthttp-daemon.log", stderr="/tmp/hthttp-daemon.log")
+    if args.cmd == "start":
+        daemon.start()
+    elif args.cmd == "stop":
+        daemon.stop()
+    elif args.cmd == "restart":
+        daemon.restart()
+    elif args.cmd == "status":
+        daemon.status()
+    else:
+        sys.stderr.write("unknown command\n")
+        sys.exit(1)
+    sys.exit(0)
 
 
 if __name__ == "__main__":
