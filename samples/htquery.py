@@ -88,13 +88,13 @@ def main():
 
     parser.add_argument(
         "-j", "--json",
-        action="store_true",
-        help="output will be in JSON format")
+        action = "store_true",
+        help = "output will be in JSON format")
 
     parser.add_argument(
         "--boolasint",
-        action="store_true",
-        help="boolean values will be stored as '0' and '1'")
+        action = "store_true",
+        help = "boolean values will be stored as '0' and '1'")
 
     parser.add_argument(
         "-t", "--time",

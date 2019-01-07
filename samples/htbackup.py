@@ -92,12 +92,12 @@ def main():
     parser.add_argument(
         "-j", "--json",
         type = str,
-        help="write the result to the specified JSON file")
+        help = "write the result to the specified JSON file")
 
     parser.add_argument(
         "-c", "--csv",
         type = str,
-        help="write the result to the specified CSV file")
+        help = "write the result to the specified CSV file")
 
     parser.add_argument(
         "-t", "--time",
