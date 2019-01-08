@@ -61,6 +61,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
         _logger.info(parsed_path.path.lower())
 
         result = {}
+        hp.reconnect()
         hp.login()
 
         if parsed_path.path.lower() in ("/datetime", "/datetime/"):
