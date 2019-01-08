@@ -58,7 +58,7 @@ _logger = logging.getLogger(__name__)
 class HttpGetHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed_path = urlparse.urlparse(self.path)
-        _logger.info("[{}] {}".format(datetime.now().isoformat(), parsed_path.path.lower()))
+        _logger.info(parsed_path.path.lower())
 
         result = {}
         hp.login()
@@ -67,14 +67,13 @@ class HttpGetHandler(BaseHTTPRequestHandler):
             # synchronize the system time of the heat pump with the current time
             dt, _ = hp.set_date_time(datetime.now())
             result.update({"datetime": dt.isoformat()})
-            _logger.debug("[{}] {}".format(datetime.now().isoformat(), dt.isoformat()))
+            _logger.debug(dt.isoformat())
 
         elif parsed_path.path.lower() in ("/faultlist/last", "/faultlist/last/"):
             # query for the last fault message of the heat pump
             idx, err, dt, msg = hp.get_last_fault()
             result.update({idx: {"error": err, "datetime": dt.isoformat(), "message": msg}})
-            _logger.debug("[{}] {}".format(datetime.now().isoformat(),
-                          "#{:d} [{}]: {:d}, {}".format(idx, dt.isoformat(), err, msg)))
+            _logger.debug("#{:d} [{}]: {:d}, {}".format(idx, dt.isoformat(), err, msg))
 
         elif parsed_path.path.lower() in ("/faultlist", "/faultlist/"):
             # query for the whole fault list of the heat pump
@@ -82,12 +81,11 @@ class HttpGetHandler(BaseHTTPRequestHandler):
             for idx, err in fault_lst.items():
                 err.update({"datetime": err["datetime"].isoformat()})
                 result.update({idx: err})
-                _logger.debug("[{}] {}".format(datetime.now().isoformat(),
-                              "#{:03d} [{}]: {:05d}, {}".format(idx, err["datetime"], err["error"], err["message"])))
+                _logger.debug("#{:03d} [{}]: {:05d}, {}".format(idx, err["datetime"], err["error"], err["message"]))
 
         elif parsed_path.path.lower() == "/":
             qsl = urlparse.parse_qsl(parsed_path.query, keep_blank_values=True)
-            _logger.info("[{}] {}".format(datetime.now().isoformat(), qsl))
+            _logger.info(qsl)
             if not qsl:
                 # query for all "known" parameters
                 for name in HtParams.keys():
@@ -96,7 +94,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                     if args.boolasint and HtParams[name].data_type == HtDataTypes.BOOL:
                         value = 1 if value else 0
                     result.update({name: value})
-                    _logger.debug("[{}] {}".format(datetime.now().isoformat(), "{}: {}".format(name, value)))
+                    _logger.debug("{}: {}".format(name, value))
             else:
                 for query in qsl:
                     name, value = query
@@ -112,7 +110,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                     if args.boolasint and HtParams[name].data_type == HtDataTypes.BOOL:
                         value = 1 if value else 0
                     result.update({name: value})
-                    _logger.debug("[{}] {}".format(datetime.now().isoformat(), "{}: {}".format(name, value)))
+                    _logger.debug("{}: {}".format(name, value))
 
         else:
             pass  # TODO error
@@ -124,28 +122,25 @@ class HttpGetHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
         message = json.dumps(result, indent=2, sort_keys=True)
-        _logger.info("[{}] {}".format(datetime.now().isoformat(), message))
+        _logger.info(message)
         self.wfile.write(bytes(message, "utf8"))
 
 
 class HtHttpDaemon(Daemon):
     def run(self):
-        _logger.info("[{}] {}".format(datetime.now().isoformat(), "=" * 100))
+        _logger.info("=" * 100)
         global hp
         try:
             hp = HtHeatpump(args.device, baudrate=args.baudrate)
             hp.open_connection()
             hp.login()
             rid = hp.get_serial_number()
-            _logger.info("[{}] {}".format(datetime.now().isoformat(),
-                         "Connected successfully to heat pump with serial number: {:d}".format(rid)))
+            _logger.info("Connected successfully to heat pump with serial number: {:d}".format(rid))
             ver = hp.get_version()
-            _logger.info("[{}] {}".format(datetime.now().isoformat(),
-                         "Software version: {} ({:d})".format(ver[0], ver[1])))
+            _logger.info("Software version: {} ({:d})".format(ver[0], ver[1]))
             hp.logout()
             server = HTTPServer((args.ip, args.port), HttpGetHandler)
-            _logger.info("[{}] {}".format(datetime.now().isoformat(),
-                         "Starting server at: {}".format(server.server_address)))
+            _logger.info("Starting server at: {}".format(server.server_address))
             server.serve_forever()  # start the server and wait for requests
         except Exception as ex:
             _logger.error(ex)
@@ -238,12 +233,9 @@ def main():
     args = parser.parse_args()
 
     # activate logging with level INFO in verbose mode
-    if args.verbose:
-        logging.basicConfig(level=logging.INFO)
-    else:
-        logging.basicConfig(level=logging.ERROR)
-    # TODO logging format
-    #logging.basicConfig(level=logging.DEBUG)
+    level = logging.INFO if args.verbose else logging.ERROR
+    #level = logging.DEBUG
+    logging.basicConfig(level=level, format="[%(asctime)s][%(levelname)-8s] %(message)s")
 
     daemon = HtHttpDaemon("/tmp/hthttp-daemon.pid", stdout="/tmp/hthttp-daemon.log", stderr="/tmp/hthttp-daemon.log")
     if args.cmd == "start":
