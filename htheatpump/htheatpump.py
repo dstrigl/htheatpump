@@ -425,8 +425,7 @@ class HtHeatpump:
                 _logger.warning("login try {:d} failed: {!s}".format(retry, e))
                 retry += 1
                 # try a reconnect, maybe this will help ;-)
-                self.close_connection()
-                self.open_connection()
+                self.reconnect()
         if not success:
             _logger.error("login failed after {:d} retries".format(retry))
             raise IOError("login failed after {:d} retries".format(retry))
