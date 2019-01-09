@@ -21,12 +21,18 @@
 
     Supported URL requests:
 
-      * http://<ip>:<port>/datetime
-      * http://<ip>:<port>/faultlist
-      * http://<ip>:<port>/faultlist/last
-      * http://<ip>:<port>/?Param1&Param2&Param3=Value&Param4=Value...
+      * http://ip:port/datetime/sync
+          synchronize the system time of the heat pump with the current time
+      * http://ip:port/faultlist/last
+          query for the last fault message of the heat pump
+      * http://ip:port/faultlist
+          query for the whole fault list of the heat pump
+      * http://ip:port/?Param1&Param2&Param3=Value&Param4=Value ...
+          query and/or set specific parameter values of the heat pump
+      * http://ip:port/
+          query for all "known" parameter values of the heat pump
 
-      TODO doc
+      The result in HTTP response is given in JSON format.
 
     Example:
 
@@ -37,9 +43,6 @@
 
        $ python3 hthttp.py stop
 """
-
-# TODO error handling (try/except -> reconnect?)
-
 
 import argparse
 import textwrap
@@ -55,76 +58,113 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
+class HttpGetException(Exception):
+    def __init__(self, response_code, message):
+        self._response_code = response_code
+        Exception.__init__(self, message)
+    @property
+    def response_code(self):
+        return self._response_code
+
+
 class HttpGetHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed_path = urlparse.urlparse(self.path)
         _logger.info(parsed_path.path.lower())
 
         result = {}
-        hp.reconnect()
-        hp.login()
+        try:
+            hp.reconnect()
+            hp.login()
 
-        if parsed_path.path.lower() in ("/datetime", "/datetime/"):
-            # synchronize the system time of the heat pump with the current time
-            dt, _ = hp.set_date_time(datetime.now())
-            result.update({"datetime": dt.isoformat()})
-            _logger.debug(dt.isoformat())
+            if parsed_path.path.lower() in ("/datetime/sync", "/datetime/sync/"):
+                # synchronize the system time of the heat pump with the current time
+                dt, _ = hp.set_date_time(datetime.now())
+                result.update({"datetime": dt.isoformat()})
+                _logger.debug(dt.isoformat())
 
-        elif parsed_path.path.lower() in ("/faultlist/last", "/faultlist/last/"):
-            # query for the last fault message of the heat pump
-            idx, err, dt, msg = hp.get_last_fault()
-            result.update({idx: {"error": err, "datetime": dt.isoformat(), "message": msg}})
-            _logger.debug("#{:d} [{}]: {:d}, {}".format(idx, dt.isoformat(), err, msg))
+            elif parsed_path.path.lower() in ("/faultlist/last", "/faultlist/last/"):
+                # query for the last fault message of the heat pump
+                idx, err, dt, msg = hp.get_last_fault()
+                result.update({idx: {"error": err, "datetime": dt.isoformat(), "message": msg}})
+                _logger.debug("#{:d} [{}]: {:d}, {}".format(idx, dt.isoformat(), err, msg))
 
-        elif parsed_path.path.lower() in ("/faultlist", "/faultlist/"):
-            # query for the whole fault list of the heat pump
-            fault_lst = hp.get_fault_list()
-            for idx, err in fault_lst.items():
-                err.update({"datetime": err["datetime"].isoformat()})
-                result.update({idx: err})
-                _logger.debug("#{:03d} [{}]: {:05d}, {}".format(idx, err["datetime"], err["error"], err["message"]))
+            elif parsed_path.path.lower() in ("/faultlist", "/faultlist/"):
+                # query for the whole fault list of the heat pump
+                fault_lst = hp.get_fault_list()
+                for idx, err in fault_lst.items():
+                    err.update({"datetime": err["datetime"].isoformat()})
+                    result.update({idx: err})
+                    _logger.debug("#{:03d} [{}]: {:05d}, {}".format(idx, err["datetime"], err["error"], err["message"]))
 
-        elif parsed_path.path.lower() == "/":
-            qsl = urlparse.parse_qsl(parsed_path.query, keep_blank_values=True)
-            _logger.info(qsl)
-            if not qsl:
-                # query for all "known" parameters
-                for name in HtParams.keys():
-                    value = hp.get_param(name)
-                    # converted boolean values to 0/1 (if requested)
-                    if args.boolasint and HtParams[name].data_type == HtDataTypes.BOOL:
-                        value = 1 if value else 0
-                    result.update({name: value})
-                    _logger.debug("{}: {}".format(name, value))
-            else:
-                for query in qsl:
-                    name, value = query
-                    if not value:
-                        # query for the given parameter
+            elif parsed_path.path.lower() == "/":
+                qsl = urlparse.parse_qsl(parsed_path.query, keep_blank_values=True)
+                _logger.info(qsl)
+                if not qsl:
+                    # query for all "known" parameters
+                    for name in HtParams.keys():
                         value = hp.get_param(name)
-                    else:
-                        # convert the passed value (as string) to the specific data type
-                        value = HtParams[name].from_str(value)
-                        # set the parameter of the heat pump to the passed value
-                        value = hp.set_param(name, value)
-                    # converted boolean values to 0/1 (if requested)
-                    if args.boolasint and HtParams[name].data_type == HtDataTypes.BOOL:
-                        value = 1 if value else 0
-                    result.update({name: value})
-                    _logger.debug("{}: {}".format(name, value))
+                        # convert boolean values to 0/1 (if requested)
+                        if args.boolasint and HtParams[name].data_type == HtDataTypes.BOOL:
+                            value = 1 if value else 0
+                        result.update({name: value})
+                        _logger.debug("{}: {}".format(name, value))
+                else:
+                    params = {}
+                    try:
+                        # check if all requested/given parameter names are known and all passed values are valid
+                        for query in qsl:
+                            name, value = query  # value = None for parameter requests (non given value)
+                            if value:  # for given values (value not None)
+                                # try to convert the passed value (as string) to the specific data type
+                                value = HtParams[name].from_str(value)
+                            params.update({name: value})
+                    except KeyError as ex:
+                        # for unknown parameter name: HTTP response 404 = Not Found
+                        raise HttpGetException(404, str(ex))
+                    except ValueError as ex:
+                        # for an invalid parameter value: HTTP response 400 = Bad Request
+                        raise HttpGetException(400, str(ex))
+                    # query/set all requested parameter values
+                    for name, value in params.items():
+                        if value is None:
+                            # query for the value of the given parameter
+                            value = hp.get_param(name)
+                        else:
+                            # set the parameter of the heat pump to the passed value
+                            value = hp.set_param(name, value)
+                        # convert boolean values to 0/1 (if requested)
+                        if args.boolasint and HtParams[name].data_type == HtDataTypes.BOOL:
+                            value = 1 if value else 0
+                        result.update({name: value})
+                        _logger.debug("{}: {}".format(name, value))
 
+            else:
+                # for an invalid url request: HTTP response 400 = Bad Request
+                raise HttpGetException(400, "invalid url request {!r}".format(parsed_path.path.lower()))
+
+        except HttpGetException as ex:
+            _logger.error(ex)
+            self.send_response(ex.response_code, str(ex))
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+        except Exception as ex:
+            _logger.error(ex)
+            # HTTP response 500 = Internal Server Error
+            self.send_response(500, str(ex))
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
         else:
-            pass  # TODO error
+            # HTTP response 200 = OK
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            message = json.dumps(result, indent=2, sort_keys=True)
+            _logger.info(message)
+            self.wfile.write(bytes(message, "utf8"))
 
-        hp.logout()
-
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json")
-        self.end_headers()
-
-        message = json.dumps(result, indent=2, sort_keys=True)
-        _logger.info(message)
-        self.wfile.write(bytes(message, "utf8"))
+        finally:
+            hp.logout()  # should not fail!
 
 
 class HtHttpDaemon(Daemon):
@@ -159,12 +199,18 @@ def main():
 
             Supported URL requests:
 
-              * http://<ip>:<port>/datetime
-              * http://<ip>:<port>/faultlist
-              * http://<ip>:<port>/faultlist/last
-              * http://<ip>:<port>/?Param1&Param2&Param3=Value&Param4=Value...
+              * http://ip:port/datetime/sync
+                  synchronize the system time of the heat pump with the current time
+              * http://ip:port/faultlist/last
+                  query for the last fault message of the heat pump
+              * http://ip:port/faultlist
+                  query for the whole fault list of the heat pump
+              * http://ip:port/?Param1&Param2&Param3=Value&Param4=Value ...
+                  query and/or set specific parameter values of the heat pump
+              * http://ip:port/
+                  query for all "known" parameter values of the heat pump
 
-              TODO doc
+              The result in HTTP response is given in JSON format.
 
             Example:
 
@@ -223,7 +269,7 @@ def main():
     parser.add_argument(
         "--boolasint",
         action = "store_true",
-        help = "boolean values will be stored as '0' and '1'")
+        help = "boolean values will be returned as '0' and '1'")
 
     parser.add_argument(
         "-v", "--verbose",
@@ -233,9 +279,8 @@ def main():
     global args
     args = parser.parse_args()
 
-    # activate logging with level INFO in verbose mode
-    level = logging.INFO if args.verbose else logging.ERROR
-    #level = logging.DEBUG
+    # activate logging with level DEBUG in verbose mode
+    level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(level=level, format="[%(asctime)s][%(levelname)-8s] %(message)s")
 
     daemon = HtHttpDaemon("/tmp/hthttp-daemon.pid", stdout="/tmp/hthttp-daemon.log", stderr="/tmp/hthttp-daemon.log")

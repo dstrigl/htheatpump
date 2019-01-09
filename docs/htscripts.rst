@@ -151,3 +151,33 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htbackup.py
     'MP,NR=1' [Temp. Aussen verzoegert]: 0.1
     'MP,NR=2' [Temp. Brauchwasser]: 50.2
     ...
+
+
+hthttp
+------
+
+Simple HTTP server which provides the possibility to access the Heliotherm heat pump via URL requests.
+
+**Supported URL requests:**
+
+  * http://ip:port/datetime/sync
+      synchronize the system time of the heat pump with the current time
+  * http://ip:port/faultlist/last
+      query for the last fault message of the heat pump
+  * http://ip:port/faultlist
+      query for the whole fault list of the heat pump
+  * http://ip:port/?Param1&Param2&Param3=Value&Param4=Value ...
+      query and/or set specific parameter values of the heat pump
+  * http://ip:port/
+      query for all "known" parameter values of the heat pump
+
+  The result in HTTP response is given in JSON format.
+
+**Example:**
+
+.. code-block:: shell
+
+    $ python3 hthttp.py start --device /dev/ttyUSB1 --ip 192.168.11.91 --port 8081
+    hthttp.py started with PID 2061
+
+    $ python3 hthttp.py stop
