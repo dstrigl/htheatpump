@@ -32,7 +32,7 @@
       * http://ip:port/
           query for all "known" parameter values of the heat pump
 
-      The result in HTTP response is given in JSON format.
+      The result in the HTTP response is given in JSON format.
 
     Example:
 
@@ -211,7 +211,7 @@ def main():
               * http://ip:port/
                   query for all "known" parameter values of the heat pump
 
-              The result in HTTP response is given in JSON format.
+              The result in the HTTP response is given in JSON format.
 
             Example:
 
