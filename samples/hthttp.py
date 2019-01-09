@@ -62,6 +62,7 @@ class HttpGetException(Exception):
     def __init__(self, response_code, message):
         self._response_code = response_code
         Exception.__init__(self, message)
+
     @property
     def response_code(self):
         return self._response_code
