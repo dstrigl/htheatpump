@@ -60,8 +60,8 @@ _logger = logging.getLogger(__name__)
 
 class HttpGetException(Exception):
     def __init__(self, response_code, message):
-        self._response_code = response_code
         Exception.__init__(self, message)
+        self._response_code = response_code
 
     @property
     def response_code(self):
@@ -145,12 +145,12 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                 raise HttpGetException(400, "invalid url request {!r}".format(parsed_path.path.lower()))
 
         except HttpGetException as ex:
-            _logger.error("error: {!s}".format(ex))
+            _logger.error(ex)
             self.send_response(ex.response_code, str(ex))
             self.send_header("Content-Type", "application/json")
             self.end_headers()
         except Exception as ex:
-            _logger.error("error: {!s}".format(ex))
+            _logger.error(ex)
             # HTTP response 500 = Internal Server Error
             self.send_response(500, str(ex))
             self.send_header("Content-Type", "application/json")
@@ -170,7 +170,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
 
 class HtHttpDaemon(Daemon):
     def run(self):
-        _logger.info("=" * 100)
+        _logger.info("=== HtHttpDaemon.run() {}".format("="*100))
         global hp
         try:
             hp = HtHeatpump(args.device, baudrate=args.baudrate)
@@ -185,7 +185,7 @@ class HtHttpDaemon(Daemon):
             _logger.info("Starting server at: {}".format(server.server_address))
             server.serve_forever()  # start the server and wait for requests
         except Exception as ex:
-            _logger.error("error: {!s}".format(ex))
+            _logger.error(ex)
             sys.exit(2)
         finally:
             hp.logout()  # try to logout for an ordinary cancellation (if possible)
