@@ -105,20 +105,20 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                     # query for all "known" parameters
                     for name in HtParams.keys():
                         value = hp.get_param(name)
-                        # convert boolean values to 0/1 (if requested)
+                        # convert boolean values to 0/1 (if required)
                         if args.boolasint and HtParams[name].data_type == HtDataTypes.BOOL:
                             value = 1 if value else 0
                         result.update({name: value})
                         _logger.debug("{}: {}".format(name, value))
                 else:
+                    # query and/or set specific parameter values of the heat pump
                     params = {}
                     try:
                         # check if all requested/given parameter names are known and all passed values are valid
                         for query in qsl:
-                            name, value = query  # value = None for parameter requests (non given value)
-                            if value:  # for given values (value not None)
-                                # try to convert the passed value (as string) to the specific data type
-                                value = HtParams[name].from_str(value)
+                            name, value = query  # value is '' (blank string) for non given values
+                            # try to convert the passed value (if given) to the specific data type
+                            value = HtParams[name].from_str(value) if value else None
                             params.update({name: value})
                     except KeyError as ex:
                         # for unknown parameter name: HTTP response 404 = Not Found
@@ -129,12 +129,12 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                     # query/set all requested parameter values
                     for name, value in params.items():
                         if value is None:
-                            # query for the value of the given parameter
+                            # query for the value of the requested parameter
                             value = hp.get_param(name)
                         else:
                             # set the parameter of the heat pump to the passed value
                             value = hp.set_param(name, value)
-                        # convert boolean values to 0/1 (if requested)
+                        # convert boolean values to 0/1 (if required)
                         if args.boolasint and HtParams[name].data_type == HtDataTypes.BOOL:
                             value = 1 if value else 0
                         result.update({name: value})
@@ -145,12 +145,12 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                 raise HttpGetException(400, "invalid url request {!r}".format(parsed_path.path.lower()))
 
         except HttpGetException as ex:
-            _logger.error(ex)
+            _logger.error("error: {!s}".format(ex))
             self.send_response(ex.response_code, str(ex))
             self.send_header("Content-Type", "application/json")
             self.end_headers()
         except Exception as ex:
-            _logger.error(ex)
+            _logger.error("error: {!s}".format(ex))
             # HTTP response 500 = Internal Server Error
             self.send_response(500, str(ex))
             self.send_header("Content-Type", "application/json")
@@ -165,7 +165,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
             self.wfile.write(bytes(message, "utf8"))
 
         finally:
-            hp.logout()  # should not fail!
+            hp.logout()  # logout() should not fail!
 
 
 class HtHttpDaemon(Daemon):
@@ -185,7 +185,7 @@ class HtHttpDaemon(Daemon):
             _logger.info("Starting server at: {}".format(server.server_address))
             server.serve_forever()  # start the server and wait for requests
         except Exception as ex:
-            _logger.error(ex)
+            _logger.error("error: {!s}".format(ex))
             sys.exit(2)
         finally:
             hp.logout()  # try to logout for an ordinary cancellation (if possible)
