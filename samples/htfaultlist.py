@@ -103,8 +103,8 @@ def main():
 
     parser.add_argument(
         "-l", "--last",
-        action="store_true",
-        help="print only the last fault message of the heat pump")
+        action = "store_true",
+        help = "print only the last fault message of the heat pump")
 
     args = parser.parse_args()
 
