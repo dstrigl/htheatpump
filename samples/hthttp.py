@@ -170,7 +170,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
 
 class HtHttpDaemon(Daemon):
     def run(self):
-        _logger.info("=== HtHttpDaemon.run() {}".format("="*100))
+        _logger.info("=== HtHttpDaemon.run() {}".format("=" * 100))
         global hp
         try:
             hp = HtHeatpump(args.device, baudrate=args.baudrate)
