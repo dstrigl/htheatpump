@@ -677,7 +677,7 @@ class HtHeatpump:
         # ... and wait for the response
         try:
             resp = []
-            # read all all requested fault list entries
+            # read all requested fault list entries
             for _ in args:
                 resp.append(self.read_response())  # e.g. "AA,29,20,14.09.14-11:52:08,EQ_Spreizung"
             # extract data (fault list index, error code, date, time and message)
