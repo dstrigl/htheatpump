@@ -25,6 +25,6 @@ def main():
     print("Easy-to-use Python communication module for Heliotherm heat pumps.")
     sys.exit(0)
 
-    
+
 if __name__ == "__main__":
     main()
