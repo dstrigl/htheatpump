@@ -41,6 +41,8 @@
 import sys
 import argparse
 import textwrap
+import json
+import csv
 from htheatpump.htheatpump import HtHeatpump
 from timeit import default_timer as timer
 import logging
@@ -106,6 +108,16 @@ def main():
         action = "store_true",
         help = "print only the last fault message of the heat pump")
 
+    parser.add_argument(
+        "-j", "--json",
+        type = str,
+        help = "write the fault list to the specified JSON file")
+
+    parser.add_argument(
+        "-c", "--csv",
+        type = str,
+        help = "write the fault list to the specified CSV file")
+
     args = parser.parse_args()
 
     # activate logging with level INFO in verbose mode
@@ -130,13 +142,35 @@ def main():
         if args.last:
             # query for the last fault message of the heat pump
             idx, err, dt, msg = hp.get_last_fault()
-            print("#{:d} [{}]: {:d}, {}".format(idx, dt.isoformat(), err, msg))
+            fault_lst = [{"index"   : idx,             # fault list index
+                          "error"   : err,             # error code
+                          "datetime": dt.isoformat(),  # date and time of the entry
+                          "message" : msg,             # error message
+                          }]
+            print("#{:03d} [{}]: {:05d}, {}".format(idx, dt.isoformat(), err, msg))
         else:
             # query for the whole fault list of the heat pump
-            lst = hp.get_fault_list()
-            for idx, e in lst.items():
-                print("#{:03d} [{}]: {:05d}, {}".format(idx, e["datetime"].isoformat(), e["error"], e["message"]))
+            fault_lst = []
+            for e in hp.get_fault_list():
+                e.update({"datetime": e["datetime"].isoformat()})  # convert datetime dict entry to str
+                fault_lst.append(e)
+                print("#{:03d} [{}]: {:05d}, {}".format(e["index"], e["datetime"], e["error"], e["message"]))
 
+        if args.json:  # write fault list entries to JSON file
+            with open(args.json, 'w') as jsonfile:
+                json.dump(fault_lst, jsonfile, indent=4, sort_keys=True)
+
+        if args.csv:  # write fault list entries to CSV file
+            with open(args.csv, 'w') as csvfile:
+                fieldnames = ["index", "datetime", "error", "message"]
+                writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
+                writer.writeheader()
+                for e in fault_lst:
+                    writer.writerow({"index"   : e["index"],
+                                     "datetime": e["datetime"],
+                                     "error"   : e["error"],
+                                     "message" : e["message"]
+                                     })
     except Exception as ex:
         _logger.error(ex)
         sys.exit(1)
