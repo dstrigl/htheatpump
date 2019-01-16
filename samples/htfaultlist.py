@@ -163,7 +163,7 @@ def main():
         if args.csv:  # write fault list entries to CSV file
             with open(args.csv, 'w') as csvfile:
                 fieldnames = ["index", "datetime", "error", "message"]
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
                 writer.writeheader()
                 for e in fault_lst:
                     writer.writerow({"index"   : e["index"],

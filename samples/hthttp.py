@@ -87,7 +87,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
             elif parsed_path.path.lower() in ("/faultlist/last", "/faultlist/last/"):
                 # query for the last fault message of the heat pump
                 idx, err, dt, msg = hp.get_last_fault()
-                result = {idx: {"error": err, "datetime": dt.isoformat(), "message": msg}}
+                result = {"index": idx, "error": err, "datetime": dt.isoformat(), "message": msg}
                 _logger.debug("#{:d} [{}]: {:d}, {}".format(idx, dt.isoformat(), err, msg))
 
             elif parsed_path.path.lower() in ("/faultlist", "/faultlist/"):

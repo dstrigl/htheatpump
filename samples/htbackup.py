@@ -162,7 +162,7 @@ def main():
         if args.csv:  # write result to CSV file
             with open(args.csv, 'w') as csvfile:
                 fieldnames = ["type", "number", "name", "value"]
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
                 writer.writeheader()
                 for dp_type, content in result.items():
                     for i, data in content.items():
