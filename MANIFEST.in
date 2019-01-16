@@ -12,6 +12,8 @@ include samples/htquery.py
 include samples/htset.py
 include samples/htfaultlist.py
 include samples/htbackup.py
+include samples/daemon.py
+include samples/hthttp.py
 
 recursive-include tests *
 recursive-exclude * __pycache__
