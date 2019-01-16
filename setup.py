@@ -44,6 +44,7 @@ setup(
     # Project description
     description="Easy-to-use Python communication module for Heliotherm heat pumps",
     long_description=readme + '\n\n' + history,
+    long_description_content_type='text/x-rst',
 
     # Choosen license
     license="GNU General Public License v3",
@@ -113,4 +114,11 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     setup_requires=setup_requirements,
+
+    # Entry points specification
+    entry_points={
+        "console_scripts": [
+            "htheatpump=htheatpump.__main__:main",
+        ]
+    },
 )
