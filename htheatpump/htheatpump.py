@@ -653,17 +653,18 @@ class HtHeatpump:
 
         :param args: The list of entry numbers requested from the fault list;
             if :const:`None` all entries are returned.
-        :returns: The requested entries of the fault list as ``dict``, e.g.:
+        :returns: The requested entries of the fault list as ``list``, e.g.:
             ::
 
-                { 29: { "error"   : 20,                     # error code
-                        "datetime": datetime.datetime(...), # date and time of the entry
-                        "message" : "EQ_Spreizung",         # error message
-                      },
+                [ { "index"   : 29,                     # fault list index
+                    "error"   : 20,                     # error code
+                    "datetime": datetime.datetime(...), # date and time of the entry
+                    "message" : "EQ_Spreizung",         # error message
+                  },
                   # ...
-                }
+                ]
 
-        :rtype: ``dict``
+        :rtype: ``list``
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
@@ -680,7 +681,7 @@ class HtHeatpump:
             for _ in args:
                 resp.append(self.read_response())  # e.g. "AA,29,20,14.09.14-11:52:08,EQ_Spreizung"
             # extract data (fault list index, error code, date, time and message)
-            faults = {}
+            faults = []
             for i, r in enumerate(resp):
                 m = re.match(AR_RESP, r)
                 if not m:
@@ -693,11 +694,11 @@ class HtHeatpump:
                 _logger.debug("(idx: {:03d}, err: {:05d})[{}]: {}".format(idx, err, dt.isoformat(), msg))
                 if idx != args[i]:
                     raise IOError("fault list index doesn't match [{:d}, but should be {:d}]".format(idx, args[i]))
-                # add the received fault list entry to the result dict
-                faults.update({ idx: { "error"   : err,  # error code
-                                       "datetime": dt,   # date and time of the entry
-                                       "message" : msg,  # error message
-                                       }
+                # add the received fault list entry to the result list
+                faults.append({ "index"   : idx,  # fault list index
+                                "error"   : err,  # error code
+                                "datetime": dt,   # date and time of the entry
+                                "message" : msg,  # error message
                                 })
             return faults
         except Exception as e:

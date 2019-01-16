@@ -73,7 +73,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
         parsed_path = urlparse.urlparse(self.path)
         _logger.info(parsed_path.path.lower())
 
-        result = {}
+        result = None
         try:
             hp.reconnect()
             hp.login()
@@ -81,26 +81,27 @@ class HttpGetHandler(BaseHTTPRequestHandler):
             if parsed_path.path.lower() in ("/datetime/sync", "/datetime/sync/"):
                 # synchronize the system time of the heat pump with the current time
                 dt, _ = hp.set_date_time(datetime.now())
-                result.update({"datetime": dt.isoformat()})
+                result = {"datetime": dt.isoformat()}
                 _logger.debug(dt.isoformat())
 
             elif parsed_path.path.lower() in ("/faultlist/last", "/faultlist/last/"):
                 # query for the last fault message of the heat pump
                 idx, err, dt, msg = hp.get_last_fault()
-                result.update({idx: {"error": err, "datetime": dt.isoformat(), "message": msg}})
+                result = {idx: {"error": err, "datetime": dt.isoformat(), "message": msg}}
                 _logger.debug("#{:d} [{}]: {:d}, {}".format(idx, dt.isoformat(), err, msg))
 
             elif parsed_path.path.lower() in ("/faultlist", "/faultlist/"):
                 # query for the whole fault list of the heat pump
-                fault_lst = hp.get_fault_list()
-                for idx, err in fault_lst.items():
-                    err.update({"datetime": err["datetime"].isoformat()})
-                    result.update({idx: err})
-                    _logger.debug("#{:03d} [{}]: {:05d}, {}".format(idx, err["datetime"], err["error"], err["message"]))
+                result = []
+                for e in hp.get_fault_list():
+                    e.update({"datetime": e["datetime"].isoformat()})  # convert datetime dict entry to string
+                    result.append(e)
+                    _logger.debug("#{:03d} [{}]: {:05d}, {}".format(e["index"], e["datetime"], e["error"], e["message"]))
 
             elif parsed_path.path.lower() == "/":
                 qsl = urlparse.parse_qsl(parsed_path.query, keep_blank_values=True)
                 _logger.info(qsl)
+                result = {}
                 if not qsl:
                     # query for all "known" parameters
                     for name in HtParams.keys():
