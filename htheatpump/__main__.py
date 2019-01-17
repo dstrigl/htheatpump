@@ -18,11 +18,12 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
+import htheatpump.version as __version
 
 
 # Main program
 def main():
-    print("Easy-to-use Python communication module for Heliotherm heat pumps.")
+    print("{!s}: Easy-to-use Python communication module for Heliotherm heat pumps.".format(__version.version))
     sys.exit(0)
 
 
