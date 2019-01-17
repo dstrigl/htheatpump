@@ -176,11 +176,16 @@ Simple HTTP server which provides the possibility to access the Heliotherm heat 
 
   The result in the HTTP response is given in JSON format.
 
+Source: https://github.com/dstrigl/htheatpump/blob/master/samples/hthttp.py
+
 **Example:**
 
 .. code-block:: shell
 
     $ python3 hthttp.py start --device /dev/ttyUSB1 --ip 192.168.11.91 --port 8081
     hthttp.py started with PID 2061
+
+    $ tail /tmp/hthttp-daemon.log
+    ... TODO ...
 
     $ python3 hthttp.py stop
