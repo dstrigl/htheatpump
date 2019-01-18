@@ -39,7 +39,19 @@
     .. code-block:: shell
 
        $ python3 hthttp.py start --device /dev/ttyUSB1 --ip 192.168.11.91 --port 8081
-       hthttp.py started with PID 2061
+       hthttp.py started with PID 1099
+
+       $ tail /tmp/hthttp-daemon.log
+       [2019-01-18 20:24:20,379][INFO    ] Serial<id=0x764857f0, open=True>(port='/dev/ttyUSB0', baudrate=115200, ...
+       [2019-01-18 20:24:20,389][INFO    ] login successfully
+       192.168.11.127 - - [18/Jan/2019 20:24:20] "GET /faultlist/last HTTP/1.1" 200 -
+       [2019-01-18 20:24:20,414][INFO    ] {
+         "datetime": "2018-09-07T09:14:02",
+         "error": 65534,
+         "index": 61,
+         "message": "Keine Stoerung"
+       }
+       [2019-01-18 20:24:20,425][INFO    ] logout successfully
 
        $ python3 hthttp.py stop
 """
@@ -217,7 +229,10 @@ def main():
             Example:
 
               $ python3 %(prog)s start --device /dev/ttyUSB1 --ip 192.168.11.91 --port 8081
-              hthttp.py started with PID 2061
+              hthttp.py started with PID 1099
+
+              $ tail /tmp/hthttp-daemon.log
+              ...
 
               $ python3 %(prog)s stop
             '''),
