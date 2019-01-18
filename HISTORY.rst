@@ -4,7 +4,7 @@ History
 1.0.1 (2019-??-??)
 ------------------
 
-* added some more heat pump parameters (data points)
+* added some more heat pump parameters (data points) in ``htparams.csv``
 * extended sample script ``htfaultlist.py`` by the possibility to write JSON/CSV file
 * added new sample script ``hthttp.py``
 * fixed some formatting (flake8) errors

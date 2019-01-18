@@ -71,6 +71,9 @@ setup(
     # prevent zip archive creation
     zip_safe=False,
 
+    # keywords that describes the project
+    keywords='python python3 heatpump serial protocol Heliotherm',
+
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         # How mature is this project? Common values are
