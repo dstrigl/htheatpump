@@ -185,7 +185,7 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/hthttp.py
     $ python3 hthttp.py start --device /dev/ttyUSB1 --ip 192.168.11.91 --port 8081
     hthttp.py started with PID 1099
 
-    $  tail /tmp/hthttp-daemon.log
+    $ tail /tmp/hthttp-daemon.log
     [2019-01-18 20:24:20,379][INFO    ] Serial<id=0x764857f0, open=True>(port='/dev/ttyUSB0', baudrate=115200, ...
     [2019-01-18 20:24:20,389][INFO    ] login successfully
     192.168.11.127 - - [18/Jan/2019 20:24:20] "GET /faultlist/last HTTP/1.1" 200 -
