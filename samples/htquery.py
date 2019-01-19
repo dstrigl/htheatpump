@@ -114,9 +114,9 @@ def main():
 
     args = parser.parse_args()
 
-    # activate logging with level INFO in verbose mode
+    # activate logging with level DEBUG in verbose mode
     if args.verbose:
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.ERROR)
     # if not given, query for all "known" parameters
