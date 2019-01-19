@@ -742,6 +742,8 @@ class HtHeatpump:
             resp = self.read_response()
             # search for pattern "VAL=..." inside the response string
             m = re.match(r"^{},.*VAL=([^,]+).*$".format(param.cmd()), resp)
+            # to be more safe match also against the parameter name (e.g. "NAME=Temp. Aussen")
+            #m = re.match(r"^{},.*NAME={}.*VAL=([^,]+).*$".format(param.cmd(), name), resp)
             if not m:
                 raise IOError("invalid response for query of parameter {!r} [{}]".format(name, resp))
             val = m.group(1).strip()
