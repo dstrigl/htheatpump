@@ -23,22 +23,22 @@ Frischwasserpumpe, MP, 50, r-, INT, 0, 100
 Verdichteranforderung, MP, 56, r-, INT, 0, 5
 HKR_Sollwert, MP, 57, r-, FLOAT, 0.0, 50.0
 
-# Temp. Pufferspeicher, MP, 5, r-, FLOAT, 0.0, 0.0
-# Temp. Heissgas, MP, 15, r-, FLOAT, 0.0, 0.0
-# Pufferladepumpe, MP, 23, r-, BOOL, 0, 1
-# Vierwegeventil Luft, MP, 32, r-, BOOL, 0, 1
-# EVU_Sperre, MP, 37, r-, BOOL, 0, 1
-# Verdichter Soll-n(%), MP, 47, r-, INT, 0, 0
-# WMZ_Heizung (kWh), MP, 52, r-, FLOAT, 0.0, 0.0
-# Stromz_Heizung (kWh), MP, 53, r-, FLOAT, 0.0, 0.0
-# WMZ_Brauchwasser (kWh), MP, 54, r-, FLOAT, 0.0, 0.0
-# Stromz_Brauchwasser (kWh), MP, 55, r-, FLOAT, 0.0, 0.0
-# Stromz_Gesamt (kWh), MP, 75, r-, FLOAT, 0.0, 0.0
-# Stromz_Leistung (W), MP, 83, r-, FLOAT, 0.0, 0.0
-# WMZ_Gesamt (kWh), MP, 84, r-, FLOAT, 0.0, 0.0
-# WMZ_Durchfluss, MP, 85, r-, INT, 0, 0
-# WMZ_Leistung (kW), MP, 89, r-, FLOAT, 0.0, 0.0
-# COP, MP, 98, r-, FLOAT, 0.0, 0.0
+#Temp. Pufferspeicher, MP, 5, r-, FLOAT, 0.0, 70.0
+#Temp. Heissgas, MP, 15, r-, FLOAT, 0.0, 150.0
+#Pufferladepumpe, MP, 23, r-, BOOL, 0, 1
+#Vierwegeventil Luft, MP, 32, r-, BOOL, 0, 1
+#EVU_Sperre, MP, 37, r-, BOOL, 0, 1
+#AO1 HKP, MP, 47, r-, INT, 0, 100
+#WMZ_Heizung (kWh), MP, 52, r-, FLOAT, 0.0, 12157522.0
+#Stromz_Heizung (kWh), MP, 53, r-, FLOAT, 0.0, 12157522.0
+#WMZ_Brauchwasser (kWh), MP, 54, r-, FLOAT, 0.0, 12157522.0
+#Stromz_Brauchwasser (kWh), MP, 55, r-, FLOAT, 0.0, 12157522.0
+#Stromz_Gesamt (kWh):, MP, 75, r-, FLOAT, 0.0, 141006544.0
+#Stromz_Leistung (W):, MP, 83, r-, FLOAT, 0.0, 141006544.0
+#WMZ_Gesamt (kWh):, MP, 84, r-, FLOAT, 0.0, 141006544.0
+#WMZ_Durchfluss:, MP, 85, r-, INT, 0, 1000000000
+#WMZ_Leistung (kW):, MP, 89, r-, FLOAT, 0.0, 141006544.0
+#flow_m, MP, 98, r-, FLOAT, 0.0, 100.0
 
 #Softwareversion, SP, 9, r-, INT, None, None
 Verdichter_Status, SP, 10, r-, INT, 0, 11
@@ -52,27 +52,27 @@ HKR RLT Soll_oHG (Heizkurve), SP, 80, r-, FLOAT, 15.0, 40.0
 HKR RLT Soll_0 (Heizkurve), SP, 81, r-, FLOAT, 20.0, 50.0
 HKR RLT Soll_uHG (Heizkurve), SP, 82, r-, FLOAT, 25.0, 60.0
 WW Normaltemp., SP, 83, r-, INT, 10, 75
-WW Normaltemp. Hyst., SP, 84, r-, INT, 1, 10
+WW Hysterese Normaltemp., SP, 84, r-, INT, 1, 10
 WW Minimaltemp., SP, 85, r-, INT, 5, 45
-WW Minimaltemp. Hyst., SP, 86, r-, INT, 1, 10
-BSZ Heizkreispumpe Betriebsstunden, SP, 153, r-, INT, 0, 100000
-BSZ Heizkreispumpe Schaltzyklen, SP, 155, r-, INT, 0, 100000
-BSZ EQ Pumpe Betriebsstunden, SP, 162, r-, INT, 0, 100000
-BSZ EQ Pumpe Schaltzyklen, SP, 164, r-, INT, 0, 100000
-BSZ Frischwasserpumpe Betriebsstunden, SP, 165, r-, INT, 0, 100000
-BSZ Frischwasserpumpe Schaltzyklen, SP, 167, r-, INT, 0, 100000
-BSZ Zirkulationspumpe Betriebsstunden, SP, 168, r-, INT, 0, 100000
-BSZ Zirkulationspumpe Schaltzyklen, SP, 170, r-, INT, 0, 100000
+WW Hysterese Minimaltemp., SP, 86, r-, INT, 1, 10
+BSZ HKP Betriebsstunden, SP, 153, r-, INT, 0, 100000
+BSZ HKP Schaltung, SP, 155, r-, INT, 0, 100000
+BSZ EQ Betriebsstunden, SP, 162, r-, INT, 0, 100000
+BSZ EQ Schaltungen, SP, 164, r-, INT, 0, 100000
+BSZ WWV Betriebsstunden, SP, 165, r-, INT, 0, 100000
+BSZ WWV Schaltungen, SP, 167, r-, INT, 0, 100000
+BSZ ZIPWW Betriebsstunden, SP, 168, r-, INT, 0, 100000
+BSZ ZIPWW Schaltungen, SP, 170, r-, INT, 0, 100000
 BSZ Verdichter Betriebsst. WW, SP, 171, r-, INT, 0, 100000
 BSZ Verdichter Betriebsst. HKR, SP, 172, r-, INT, 0, 100000
 BSZ Verdichter Betriebsst. ges, SP, 173, r-, INT, 0, 100000
 MKR2 Aktiviert, SP, 222, r-, INT, 0, 2
 Energiezaehler, SP, 263, r-, INT, 0, 2
 
-# MKR1 Soll_Raum, SP, 200, r-, FLOAT, 0.0, 0.0
-# MKR1 Heizgrenze, SP, 205, r-, INT, 0, 0
-# MKR1 Betriebsart, SP, 221, r-, INT, 0, 0
-# MKR2 Soll_Raum, SP, 223, r-, FLOAT, 0.0, 0.0
-# MKR2 Heizgrenze, SP, 228, r-, INT, 0, 0
-# MKR2 Betriebsart, SP, 244, r-, INT, 0, 0
-# Kuehlgrenze, SP, 293, r-, INT, 0, 0
+#MKR1 Soll_Raum, SP, 200, r-, FLOAT, 10.0, 25.0
+#MKR1 Heizgrenze, SP, 205, r-, INT, 0, 45
+#MKR1 Betriebsart, SP, 221, r-, INT, 0, 7
+#MKR2 Soll_Raum, SP, 223, r-, FLOAT, 10.0, 25.0
+#MKR2 Heizgrenze, SP, 228, r-, INT, 0, 45
+#MKR2 Betriebsart, SP, 244, r-, INT, 0, 7
+#Kuehlgrenze, SP, 293, r-, INT, 10, 30
