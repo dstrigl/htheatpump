@@ -58,38 +58,57 @@ Get Started!
 
 Ready to contribute? Here's how to set up ``htheatpump`` for local development.
 
-1. Fork the ``htheatpump`` repo on GitHub.
+1. Fork the ``htheatpump`` repository on GitHub.
 2. Clone your fork locally::
 
     $ git clone git@github.com:your_name_here/htheatpump.git
 
-3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
+3. Install your local copy into a virtualenv [1]_. Assuming you have ``virtualenvwrapper`` installed, this is how you
+   set up your fork for local development under Python 3.5::
 
-    $ mkvirtualenv htheatpump
+    $ mkvirtualenv hthp-py35 -p python3.5
     $ cd htheatpump/
     $ python setup.py develop
 
-4. Create a branch for local development::
+4. Install all project dependencies for local development::
+
+    $ pip install -r requirements-dev.txt
+
+5. Create a branch for local development::
 
     $ git checkout -b name-of-your-bugfix-or-feature
 
    Now you can make your changes locally.
 
-5. When you're done making changes, check that your changes pass flake8 and the tests, including testing other Python versions with tox::
+6. When you're done making changes, check that your changes pass ``flake8`` and the *tests* (using ``setup.py`` or
+   ``pytest``), including testing other Python versions with ``tox``::
 
     $ flake8 htheatpump tests samples setup.py
-    $ python setup.py test or pytest
+    $ python setup.py test OR pytest
     $ tox
 
-   To get flake8 and tox, just pip install them into your virtualenv.
+   There are also a few tests which only run if a heat pump is connected. These can be executed by passing the argument
+   ``--connected`` to the test commands::
 
-6. Commit your changes and push your branch to GitHub::
+    $ python setup.py test --addopts --connected
+    $ pytest --connected
+
+   To change the default device (``/dev/ttyUSB0``) and baudrate (115200) use the arguments ``--device`` and
+   ``--baudrate``::
+
+    $ python setup.py test --addopts --connected --device /dev/ttyUSB1 --baudrate 9600
+    $ pytest --connected --device /dev/ttyUSB1 --baudrate 9600
+
+7. Commit your changes and push your branch to GitHub::
 
     $ git add .
     $ git commit -m "Your detailed description of your changes."
     $ git push origin name-of-your-bugfix-or-feature
 
-7. Submit a pull request through the GitHub website.
+8. Submit a pull request through the GitHub website.
+
+.. [1] If you need more information about Python virtual environments take a look at this
+       `article on RealPython <https://realpython.com/blog/python/python-virtual-environments-a-primer/>`_.
 
 Pull Request Guidelines
 -----------------------
