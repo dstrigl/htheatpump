@@ -142,14 +142,14 @@ def main():
                 # ... and wait for the response
                 try:
                     resp = hp.read_response()
-                    # search for pattern "NAME=..." and "VAL=..." inside the answer
-                    m = re.match("^{},.*NAME=([^,]+).*VAL=([^,]+).*$".format(data_point), resp)
+                    # search for pattern "NAME=...", "VAL=...", "MAX=..." and "MIN=..." inside the answer
+                    m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(data_point), resp)
                     if not m:
                         raise IOError("invalid response for query of data point {!r} [{}]".format(data_point, resp))
-                    name, value = m.group(1, 2)  # extract name and value
-                    print("{!r} [{}]: {}".format(data_point, name, value))
+                    name, value, max, min = m.group(1, 4)  # extract name and value
+                    print("{!r} [{}]: VAL={}, MIN={}, MAX={}".format(data_point, name, value, min, max))
                     # store the determined data in the result dict
-                    result[dp_type].update({i: {"name": name, "value": value}})
+                    result[dp_type].update({i: {"name": name, "value": value, "min": min, "max": max}})
                 except Exception as e:
                     _logger.warning("query of data point {!r} failed: {!s}".format(data_point, e))
                     # hp.reconnect()  # perform a reconnect
@@ -161,12 +161,13 @@ def main():
 
         if args.csv:  # write result to CSV file
             with open(args.csv, 'w') as csvfile:
-                fieldnames = ["type", "number", "name", "value"]
+                fieldnames = ["type", "number", "name", "value", "min", "max"]
                 writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
                 writer.writeheader()
                 for dp_type, content in result.items():
                     for i, data in content.items():
-                        writer.writerow({"type": dp_type, "number": i, "name": data["name"], "value": data["value"]})
+                        writer.writerow({"type": dp_type, "number": i, "name": data["name"],
+                                         "value": data["value"], "min": data["min"], "max": data["max"]})
 
     except Exception as ex:
         _logger.error(ex)
