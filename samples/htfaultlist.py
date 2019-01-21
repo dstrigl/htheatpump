@@ -124,7 +124,7 @@ def main():
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     else:
-        logging.basicConfig(level=logging.ERROR)
+        logging.basicConfig(level=logging.WARNING)
 
     hp = HtHeatpump(args.device, baudrate=args.baudrate)
     start = timer()

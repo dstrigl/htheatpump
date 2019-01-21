@@ -115,7 +115,7 @@ def main():
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     else:
-        logging.basicConfig(level=logging.ERROR)
+        logging.basicConfig(level=logging.WARNING)
 
     hp = HtHeatpump(args.device, baudrate=args.baudrate)
     start = timer()
@@ -146,7 +146,7 @@ def main():
                     m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(data_point), resp)
                     if not m:
                         raise IOError("invalid response for query of data point {!r} [{}]".format(data_point, resp))
-                    name, value, max, min = m.group(1, 4)  # extract name and value
+                    name, value, max, min = m.group(1, 2, 3, 4)  # extract name, value, max and min
                     print("{!r} [{}]: VAL={}, MIN={}, MAX={}".format(data_point, name, value, min, max))
                     # store the determined data in the result dict
                     result[dp_type].update({i: {"name": name, "value": value, "min": min, "max": max}})
