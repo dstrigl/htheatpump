@@ -118,7 +118,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                     # query for all "known" parameters
                     for name in HtParams.keys():
                         value = hp.get_param(name)
-                        # convert boolean values to 0/1 (if required)
+                        # convert boolean values to 0/1 (if desired)
                         if args.boolasint and HtParams[name].data_type == HtDataTypes.BOOL:
                             value = 1 if value else 0
                         result.update({name: value})
@@ -147,7 +147,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                         else:
                             # set the parameter of the heat pump to the passed value
                             value = hp.set_param(name, value)
-                        # convert boolean values to 0/1 (if required)
+                        # convert boolean values to 0/1 (if desired)
                         if args.boolasint and HtParams[name].data_type == HtDataTypes.BOOL:
                             value = 1 if value else 0
                         result.update({name: value})
