@@ -296,6 +296,7 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
         if not path.exists(filename):
             # ... and switch back to the default one if no one was found
             filename = path.join(path.dirname(path.abspath(__file__)), CSV_FILE)
+        print("htheatpump: load parameter definitions from: {}".format(filename))
         params = {}
         with open(filename) as f:
             reader = csv.reader(f, delimiter=',', skipinitialspace=True)
