@@ -219,6 +219,7 @@ class HtHeatpump:
         self._ser_settings = { 'device': device }
         self._ser_settings.update(kwargs)
         self._ser = None
+        self._verify_param_name = True
 
     def __del__(self):
         # close the connection if still established
@@ -278,12 +279,27 @@ class HtHeatpump:
 
     @property
     def is_open(self):
-        """  Returns the state of the serial port, whether it’s open or not.
+        """ Returns the state of the serial port, whether it’s open or not.
 
         :returns: The state of the serial port as ``bool``.
         :rtype: ``bool``
         """
         return self._ser and self._ser.is_open
+
+    @property
+    def verify_param_name(self):
+        """ Property to get or set whether the parameter name verification during a :class:`get_param`
+        or :class:`set_param` should be active or not.
+
+        :param: Boolean value which indicates whether the verification should be active or not.
+        :returns: :const:`True` if the verification is active, :const:`False` otherwise.
+        :rtype: ``bool``
+        """
+        return self._verify_param_name
+
+    @verify_param_name.setter
+    def verify_param_name(self, val):
+        self._verify_param_name = val
 
     def send_request(self, cmd):
         """ Sends a request to the heat pump.
@@ -741,12 +757,17 @@ class HtHeatpump:
         try:
             resp = self.read_response()
             # search for pattern "VAL=..." inside the response string
-            m = re.match(r"^{},.*VAL=([^,]+).*$".format(param.cmd()), resp)
-            # to be more safe match also against the parameter name (e.g. "NAME=Temp. Aussen")
-            #m = re.match(r"^{},.*NAME={}.*VAL=([^,]+).*$".format(param.cmd(), name), resp)
+            m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*$".format(param.cmd()), resp)
             if not m:
                 raise IOError("invalid response for query of parameter {!r} [{}]".format(name, resp))
-            val = m.group(1).strip()
+            # to be more safe check if the parameter name matches with its definition (e.g. "NAME=Temp. Aussen")
+            resp_name = m.group(1).strip()
+            if resp_name != name:
+                if self._verify_param_name:
+                    raise IOError("parameter name doesn't match {!r} [{}]".format(name, resp_name))
+                else:
+                    _logger.warning("get_param({!r}): parameter name doesn't match [{}]".format(name, resp_name))
+            val = m.group(2).strip()
             # convert the returned value (string) to the expected data type
             val = param.from_str(val)
             _logger.debug("{!r} = {!s}".format(name, val))
@@ -788,6 +809,10 @@ class HtHeatpump:
         # find the corresponding definition for the requested parameter
         if name not in HtParams:
             raise KeyError("parameter definition for parameter {!r} not found".format(name))
+        # verify the parameter name before changing any value (if desired) by calling 'get_param(...)'
+        #   (this is just for safety, so that no wrong parameter will be changed)
+        if self._verify_param_name:
+            self.get_param(name)
         param = HtParams[name]
         # send command to the heat pump
         val = param.to_str(val)
@@ -796,10 +821,17 @@ class HtHeatpump:
         try:
             resp = self.read_response()
             # search for pattern "VAL=..." inside the response string
-            m = re.match(r"^{},.*VAL=([^,]+).*$".format(param.cmd()), resp)
+            m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*$".format(param.cmd()), resp)
             if not m:
                 raise IOError("invalid response for set parameter {!r} to {!r} [{}]".format(name, val, resp))
-            val = m.group(1).strip()
+            # to be more safe check if the parameter name matches with its definition (e.g. "NAME=HKR Soll_Raum")
+            resp_name = m.group(1).strip()
+            if resp_name != name:
+                if self._verify_param_name:
+                    raise IOError("parameter name doesn't match {!r} [{}]".format(name, resp_name))
+                else:
+                    _logger.warning("set_param({!r}): parameter name doesn't match [{}]".format(name, resp_name))
+            val = m.group(2).strip()
             # convert the returned value (string) to the expected data type
             val = param.from_str(val)
             _logger.debug("{!r} = {!s}".format(name, val))
