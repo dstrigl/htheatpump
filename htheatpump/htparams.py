@@ -291,7 +291,7 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
 
         :rtype: ``dict``
         """
-        # search for a user defined parameter CSV file in "~/.htheatpump/..."
+        # search for a user defined parameter CSV file in "~/.htheatpump"
         filename = path.expanduser(path.join("~/.htheatpump", CSV_FILE))
         if not path.exists(filename):
             # ... and switch back to the default one if no one was found
