@@ -760,7 +760,7 @@ class HtHeatpump:
             m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*$".format(param.cmd()), resp)
             if not m:
                 raise IOError("invalid response for query of parameter {!r} [{}]".format(name, resp))
-            # to be more safe check if the parameter name matches with its definition (e.g. "NAME=Temp. Aussen")
+            # to be more safe check if the returned parameter name matches with its definition (e.g. "Temp. Aussen")
             resp_name = m.group(1).strip()
             if resp_name != name:
                 if self._verify_param_name:
@@ -810,7 +810,7 @@ class HtHeatpump:
         if name not in HtParams:
             raise KeyError("parameter definition for parameter {!r} not found".format(name))
         # verify the parameter name before changing any value (if desired) by calling 'get_param(...)'
-        #   (this is just for safety, so that no wrong parameter will be changed)
+        #   (this is just for safety, so that no wrong parameter will be changed!)
         if self._verify_param_name:
             self.get_param(name)
         param = HtParams[name]
@@ -824,7 +824,7 @@ class HtHeatpump:
             m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*$".format(param.cmd()), resp)
             if not m:
                 raise IOError("invalid response for set parameter {!r} to {!r} [{}]".format(name, val, resp))
-            # to be more safe check if the parameter name matches with its definition (e.g. "NAME=HKR Soll_Raum")
+            # to be more safe check if the returned parameter name matches with its definition (e.g. "HKR Soll_Raum")
             resp_name = m.group(1).strip()
             if resp_name != name:
                 if self._verify_param_name:

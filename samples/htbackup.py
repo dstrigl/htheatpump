@@ -21,7 +21,7 @@
 
     Example:
 
-    .. code-block:: shell
+    .. code-block:: shell  TODO
 
        $ python3 htbackup.py --baudrate 9600 --csv backup.csv
        'SP,NR=0' [Language]: 0
@@ -50,9 +50,9 @@ _logger = logging.getLogger(__name__)
 def main():
     parser = argparse.ArgumentParser(
         description = textwrap.dedent('''\
-            Command line tool to create a backup of the Heliotherm heat pump settings.
+            Command line tool to create a backup of the Heliotherm heat pump data points.
 
-            Example:
+            Example:  TODO
 
               $ python3 %(prog)s --baudrate 9600 --csv backup.csv
               'SP,NR=0' [Language]: 0
@@ -109,6 +109,11 @@ def main():
         action = "store_true",
         help = "increase output verbosity by activating logging")
 
+    parser.add_argument(
+        "--without-values",
+        action = "store_true",
+        help = "store heat pump data points without their current value (keep it blank)")
+
     args = parser.parse_args()
 
     # activate logging with level DEBUG in verbose mode
@@ -147,7 +152,9 @@ def main():
                     if not m:
                         raise IOError("invalid response for query of data point {!r} [{}]".format(data_point, resp))
                     name, value, max, min = m.group(1, 2, 3, 4)  # extract name, value, max and min
-                    print("{!r} [{}]: VAL={}, MIN={}, MAX={}".format(data_point, name, value, min, max))
+                    if args.without_values:
+                        value = ""  # keep it blank (if desired)
+                    print("{!r} [{}]: VAL={!r}, MIN={!r}, MAX={!r}".format(data_point, name, value, min, max))
                     # store the determined data in the result dict
                     result[dp_type].update({i: {"name": name, "value": value, "min": min, "max": max}})
                 except Exception as e:
