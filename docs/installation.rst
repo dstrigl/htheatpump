@@ -3,6 +3,9 @@
 Installation
 ============
 
+For both installation methods described in the following sections the usage of Python virtual environments [1]_
+is highly recommended.
+
 
 Stable release
 --------------
@@ -48,3 +51,7 @@ Once you have a copy of the source, you can install it with:
 
 .. _Github repo: https://github.com/dstrigl/htheatpump
 .. _tarball: https://github.com/dstrigl/htheatpump/tarball/master
+
+
+.. [1] If you need more information about Python virtual environments take a look at this
+       `article on RealPython <https://realpython.com/blog/python/python-virtual-environments-a-primer/>`_.
