@@ -24,13 +24,13 @@
     .. code-block:: shell
 
        $ python3 htbackup.py --baudrate 9600 --csv backup.csv
-       'SP,NR=0' [Language]: 0
-       'SP,NR=1' [TBF_BIT]: 0
-       'SP,NR=2' [Rueckruferlaubnis]: 1
+       'SP,NR=0' [Language]: VAL='0', MIN='0', MAX='4'
+       'SP,NR=1' [TBF_BIT]: VAL='0', MIN='0', MAX='1'
+       'SP,NR=2' [Rueckruferlaubnis]: VAL='1', MIN='0', MAX='1'
        ...
-       'MP,NR=0' [Temp. Aussen]: 0.1
-       'MP,NR=1' [Temp. Aussen verzoegert]: 0.1
-       'MP,NR=2' [Temp. Brauchwasser]: 50.2
+       'MP,NR=0' [Temp. Aussen]: VAL='-7.0', MIN='-20.0', MAX='40.0'
+       'MP,NR=1' [Temp. Aussen verzoegert]: VAL='-6.9', MIN='-20.0', MAX='40.0'
+       'MP,NR=2' [Temp. Brauchwasser]: VAL='45.7', MIN='0.0', MAX='70.0'
        ...
 """
 
@@ -50,14 +50,14 @@ _logger = logging.getLogger(__name__)
 def main():
     parser = argparse.ArgumentParser(
         description = textwrap.dedent('''\
-            Command line tool to create a backup of the Heliotherm heat pump settings.
+            Command line tool to create a backup of the Heliotherm heat pump data points.
 
             Example:
 
               $ python3 %(prog)s --baudrate 9600 --csv backup.csv
-              'SP,NR=0' [Language]: 0
-              'SP,NR=1' [TBF_BIT]: 0
-              'SP,NR=2' [Rueckruferlaubnis]: 1
+              'SP,NR=0' [Language]: VAL='0', MIN='0', MAX='4'
+              'SP,NR=1' [TBF_BIT]: VAL='0', MIN='0', MAX='1'
+              'SP,NR=2' [Rueckruferlaubnis]: VAL='1', MIN='0', MAX='1'
               ...
             '''),
         formatter_class = argparse.RawDescriptionHelpFormatter,
@@ -109,13 +109,18 @@ def main():
         action = "store_true",
         help = "increase output verbosity by activating logging")
 
+    parser.add_argument(
+        "--without-values",
+        action = "store_true",
+        help = "store heat pump data points without their current value (keep it blank)")
+
     args = parser.parse_args()
 
     # activate logging with level DEBUG in verbose mode
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     else:
-        logging.basicConfig(level=logging.ERROR)
+        logging.basicConfig(level=logging.WARNING)
 
     hp = HtHeatpump(args.device, baudrate=args.baudrate)
     start = timer()
@@ -146,8 +151,10 @@ def main():
                     m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(data_point), resp)
                     if not m:
                         raise IOError("invalid response for query of data point {!r} [{}]".format(data_point, resp))
-                    name, value, max, min = m.group(1, 4)  # extract name and value
-                    print("{!r} [{}]: VAL={}, MIN={}, MAX={}".format(data_point, name, value, min, max))
+                    name, value, max, min = m.group(1, 2, 3, 4)  # extract name, value, max and min
+                    if args.without_values:
+                        value = ""  # keep it blank (if desired)
+                    print("{!r} [{}]: VAL={!r}, MIN={!r}, MAX={!r}".format(data_point, name, value, min, max))
                     # store the determined data in the result dict
                     result[dp_type].update({i: {"name": name, "value": value, "min": min, "max": max}})
                 except Exception as e:

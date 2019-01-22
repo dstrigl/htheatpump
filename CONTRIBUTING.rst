@@ -66,7 +66,7 @@ Ready to contribute? Here's how to set up ``htheatpump`` for local development.
 3. Install your local copy into a virtualenv [1]_. Assuming you have ``virtualenvwrapper`` installed, this is how you
    set up your fork for local development under Python 3.5::
 
-    $ mkvirtualenv hthp-py35 -p python3.5
+    $ mkvirtualenv hthp-py35 -p $(which python3.5)
     $ cd htheatpump/
     $ python setup.py develop
 

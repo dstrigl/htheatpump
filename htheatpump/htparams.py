@@ -252,6 +252,12 @@ class HtParamsMeta(type):
 class HtParams(Singleton, metaclass=HtParamsMeta):
     """ Dictionary of the supported Heliotherm heat pump parameters. [*]_
 
+    .. note::
+
+        The supported parameters and their definitions are loaded from the CSV file
+        ``htparams.csv`` in this package, but the user can create his own user specific
+        CSV file under ``~/.htheatpump/htparams.csv``.
+
     .. [*] Most of the supported heat pump parameters were found by "sniffing" the
            serial communication of the Heliotherm home control Windows application
            (http://homecontrol.heliotherm.com) during a refresh! ;-)
@@ -277,11 +283,9 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
                           param.data_type if param.data_type else "<unknown>",
                           param.min, param.max))
 
-    def _load_from_csv(filename):
-        """ Load all supported heat pump parameter definitions from the passed CSV file.
+    def _load_from_csv():
+        """ Load all supported heat pump parameter definitions from the CSV file.
 
-        :param filename: Name of the CSV file with the parameter definitions.
-        :type filename: str
         :returns: Dictionary of the supported heat pump parameters:
             ::
 
@@ -293,6 +297,12 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
 
         :rtype: ``dict``
         """
+        # search for a user defined parameter CSV file in "~/.htheatpump"
+        filename = path.expanduser(path.join("~/.htheatpump", CSV_FILE))
+        if not path.exists(filename):
+            # ... and switch back to the default one if no one was found
+            filename = path.join(path.dirname(path.abspath(__file__)), CSV_FILE)
+        print("htheatpump: load parameter definitions from: {}".format(filename))
         params = {}
         with open(filename) as f:
             reader = csv.reader(f, delimiter=',', skipinitialspace=True)
@@ -316,7 +326,7 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
         return params
 
     # Dictionary of the supported Heliotherm heat pump parameters
-    _params = _load_from_csv(path.join(path.dirname(path.abspath(__file__)), CSV_FILE))
+    _params = _load_from_csv()
 
 
 # --------------------------------------------------------------------------------------------- #

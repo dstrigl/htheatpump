@@ -118,7 +118,7 @@ def main():
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     else:
-        logging.basicConfig(level=logging.ERROR)
+        logging.basicConfig(level=logging.WARNING)
     # if not given, query for all "known" parameters
     params = args.name if args.name else HtParams.keys()
 
