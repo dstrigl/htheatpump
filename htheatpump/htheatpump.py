@@ -219,7 +219,7 @@ class HtHeatpump:
         self._ser_settings = { 'device': device }
         self._ser_settings.update(kwargs)
         self._ser = None
-        self._verify_param_name = True
+        self._verify_param = True
 
     def __del__(self):
         # close the connection if still established
@@ -287,19 +287,20 @@ class HtHeatpump:
         return self._ser and self._ser.is_open
 
     @property
-    def verify_param_name(self):
-        """ Property to get or set whether the parameter name verification during a :class:`get_param`
-        or :class:`set_param` should be active or not.
+    def verify_param(self):
+        """ Property to get or set whether the parameter verification (of *name*, *min* and *max*) during
+        a :class:`get_param` or :class:`set_param` should be active or not. This is just for safety
+        to be sure that the parameter definitions in ``HtParams`` are correct!
 
         :param: Boolean value which indicates whether the verification should be active or not.
         :returns: :const:`True` if the verification is active, :const:`False` otherwise.
         :rtype: ``bool``
         """
-        return self._verify_param_name
+        return self._verify_param
 
-    @verify_param_name.setter
-    def verify_param_name(self, val):
-        self._verify_param_name = val
+    @verify_param.setter
+    def verify_param(self, val):
+        self._verify_param = val
 
     def send_request(self, cmd):
         """ Sends a request to the heat pump.
@@ -721,6 +722,46 @@ class HtHeatpump:
             _logger.error("query for fault list failed: {!s}".format(e))
             raise
 
+    def _verify_param_resp(self, name, param, resp):
+        """ Perform a verification of the parameter response string and return the extracted parameter value.
+        It checks whether the name, min and max value matches with the parameter definition in ``HtParams``.
+
+        :param name: The parameter name, e.g. :data:`"Betriebsart"`.
+        :type name: str
+        :param param: The corresponding parameter definition.
+        :type param: htparams.HtParam
+        :param resp: The received response string of the heat pump.
+        :type resp: str
+
+        :returns: Returned value of the parameter.
+        :rtype: ``str``, ``bool``, ``int`` or ``float``
+        """
+        # search for pattern "NAME=...", "VAL=...", "MAX=..." and "MIN=..." inside the response string
+        m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(param.cmd()), resp)
+        if not m:
+            raise IOError("invalid response for access to parameter {!r} [{}]".format(name, resp))
+        try:
+            # verify 'NAME'
+            resp_name = m.group(1).strip()
+            if resp_name != name:
+                raise IOError("parameter name doesn't match with {!r} [{}]".format(name, resp_name))
+            # verify 'MAX'
+            resp_max = param.from_str(m.group(3).strip())
+            if resp_max != param.max:
+                raise IOError("parameter max value doesn't match with {!r} [{}]".format(param.max, resp_max))
+            # verify 'MIN'
+            resp_min = param.from_str(m.group(4).strip())
+            if resp_min != param.min:
+                raise IOError("parameter min value doesn't match with {!r} [{}]".format(param.min, resp_min))
+        except Exception as e:
+            if self._verify_param:
+                raise
+            else:
+                _logger.warning("response verification of param {!r}: {!s}".format(name, e))
+        # convert the returned value (string) to the expected data type (defined in HtParams)
+        val = param.from_str(m.group(2).strip())
+        return val
+
     def get_param(self, name):
         """ Query for a specific parameter of the heat pump.
 
@@ -743,10 +784,6 @@ class HtHeatpump:
 
         will return the current measured outdoor temperature in °C.
         """
-        #
-        # TODO: check received value against limits (min, max) in 'htparams.csv'
-        #           (and write a warning to the log if it doesn't match)
-        #
         # find the corresponding definition for the requested parameter
         if name not in HtParams:
             raise KeyError("parameter definition for parameter {!r} not found".format(name))
@@ -756,20 +793,7 @@ class HtHeatpump:
         # ... and wait for the response
         try:
             resp = self.read_response()
-            # search for pattern "VAL=..." inside the response string
-            m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*$".format(param.cmd()), resp)
-            if not m:
-                raise IOError("invalid response for query of parameter {!r} [{}]".format(name, resp))
-            # to be more safe check if the returned parameter name matches with its definition (e.g. "Temp. Aussen")
-            resp_name = m.group(1).strip()
-            if resp_name != name:
-                if self._verify_param_name:
-                    raise IOError("parameter name doesn't match {!r} [{}]".format(name, resp_name))
-                else:
-                    _logger.warning("get_param({!r}): parameter name doesn't match [{}]".format(name, resp_name))
-            val = m.group(2).strip()
-            # convert the returned value (string) to the expected data type
-            val = param.from_str(val)
+            val = self._verify_param_resp(name, param, resp)
             _logger.debug("{!r} = {!s}".format(name, val))
             return val
         except Exception as e:
@@ -802,16 +826,12 @@ class HtHeatpump:
 
         will set the desired room temperature of the heating circuit to 21.5 °C.
         """
-        #
-        # TODO: check write access right of the parameter; see 'HtParam.acl'
-        # TODO: check passed value against defined limits (min, max) in 'htparams.csv'
-        #
         # find the corresponding definition for the requested parameter
         if name not in HtParams:
             raise KeyError("parameter definition for parameter {!r} not found".format(name))
-        # verify the parameter name before changing any value (if desired) by calling 'get_param(...)'
-        #   (this is just for safety, so that no wrong parameter will be changed!)
-        if self._verify_param_name:
+        # verify the parameter definition before changing any value (if desired) by calling 'get_param(...)'
+        #   (this is just for safety to be sure that the parameter definitions in HtParams are correct!)
+        if self._verify_param:
             self.get_param(name)
         param = HtParams[name]
         # send command to the heat pump
@@ -820,20 +840,7 @@ class HtHeatpump:
         # ... and wait for the response
         try:
             resp = self.read_response()
-            # search for pattern "VAL=..." inside the response string
-            m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*$".format(param.cmd()), resp)
-            if not m:
-                raise IOError("invalid response for set parameter {!r} to {!r} [{}]".format(name, val, resp))
-            # to be more safe check if the returned parameter name matches with its definition (e.g. "HKR Soll_Raum")
-            resp_name = m.group(1).strip()
-            if resp_name != name:
-                if self._verify_param_name:
-                    raise IOError("parameter name doesn't match {!r} [{}]".format(name, resp_name))
-                else:
-                    _logger.warning("set_param({!r}): parameter name doesn't match [{}]".format(name, resp_name))
-            val = m.group(2).strip()
-            # convert the returned value (string) to the expected data type
-            val = param.from_str(val)
+            val = self._verify_param_resp(name, param, resp)
             _logger.debug("{!r} = {!s}".format(name, val))
             return val
         except Exception as e:
