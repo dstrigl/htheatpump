@@ -723,7 +723,7 @@ class HtHeatpump:
             raise
 
     def _verify_param_resp(self, name, param, resp):
-        """ Perform a verification of the parameter response string and return the extracted parameter value.
+        """ Perform a verification of the parameter access response string and return the extracted parameter value.
         It checks whether the name, min and max value matches with the parameter definition in ``HtParams``.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
@@ -739,7 +739,7 @@ class HtHeatpump:
         # search for pattern "NAME=...", "VAL=...", "MAX=..." and "MIN=..." inside the response string
         m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(param.cmd()), resp)
         if not m:
-            raise IOError("invalid response for access to parameter {!r} [{}]".format(name, resp))
+            raise IOError("invalid response for access of parameter {!r} [{}]".format(name, resp))
         try:
             # verify 'NAME'
             resp_name = m.group(1).strip()
@@ -754,11 +754,11 @@ class HtHeatpump:
             if resp_min != param.min:
                 raise IOError("parameter min value doesn't match with {!r} [{}]".format(param.min, resp_min))
         except Exception as e:
-            if self._verify_param:
+            if self._verify_param:  # interpret as error?
                 raise
-            else:
+            else:  # or only as a warning?
                 _logger.warning("response verification of param {!r}: {!s}".format(name, e))
-        # convert the returned value (string) to the expected data type (defined in HtParams)
+        # convert the returned value (string) to the expected data type (as defined in HtParams)
         val = param.from_str(m.group(2).strip())
         return val
 
