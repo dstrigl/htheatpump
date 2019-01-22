@@ -21,16 +21,16 @@
 
     Example:
 
-    .. code-block:: shell  TODO
+    .. code-block:: shell
 
        $ python3 htbackup.py --baudrate 9600 --csv backup.csv
-       'SP,NR=0' [Language]: 0
-       'SP,NR=1' [TBF_BIT]: 0
-       'SP,NR=2' [Rueckruferlaubnis]: 1
+       'SP,NR=0' [Language]: VAL='0', MIN='0', MAX='4'
+       'SP,NR=1' [TBF_BIT]: VAL='0', MIN='0', MAX='1'
+       'SP,NR=2' [Rueckruferlaubnis]: VAL='1', MIN='0', MAX='1'
        ...
-       'MP,NR=0' [Temp. Aussen]: 0.1
-       'MP,NR=1' [Temp. Aussen verzoegert]: 0.1
-       'MP,NR=2' [Temp. Brauchwasser]: 50.2
+       'MP,NR=0' [Temp. Aussen]: VAL='-7.0', MIN='-20.0', MAX='40.0'
+       'MP,NR=1' [Temp. Aussen verzoegert]: VAL='-6.9', MIN='-20.0', MAX='40.0'
+       'MP,NR=2' [Temp. Brauchwasser]: VAL='45.7', MIN='0.0', MAX='70.0'
        ...
 """
 
@@ -52,12 +52,12 @@ def main():
         description = textwrap.dedent('''\
             Command line tool to create a backup of the Heliotherm heat pump data points.
 
-            Example:  TODO
+            Example:
 
               $ python3 %(prog)s --baudrate 9600 --csv backup.csv
-              'SP,NR=0' [Language]: 0
-              'SP,NR=1' [TBF_BIT]: 0
-              'SP,NR=2' [Rueckruferlaubnis]: 1
+              'SP,NR=0' [Language]: VAL='0', MIN='0', MAX='4'
+              'SP,NR=1' [TBF_BIT]: VAL='0', MIN='0', MAX='1'
+              'SP,NR=2' [Rueckruferlaubnis]: VAL='1', MIN='0', MAX='1'
               ...
             '''),
         formatter_class = argparse.RawDescriptionHelpFormatter,
