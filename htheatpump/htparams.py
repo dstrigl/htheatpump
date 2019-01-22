@@ -252,6 +252,12 @@ class HtParamsMeta(type):
 class HtParams(Singleton, metaclass=HtParamsMeta):
     """ Dictionary of the supported Heliotherm heat pump parameters. [*]_
 
+    .. note::
+
+        The supported parameters and their definitions are loaded from the CSV file
+        ``htparams.csv`` in this package, but the user can create his own user specific
+        CSV file under ``~/.htheatpump/htparams.csv``.
+
     .. [*] Most of the supported heat pump parameters were found by "sniffing" the
            serial communication of the Heliotherm home control Windows application
            (http://homecontrol.heliotherm.com) during a refresh! ;-)
