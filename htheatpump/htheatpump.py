@@ -746,13 +746,15 @@ class HtHeatpump:
             if resp_name != name:
                 raise IOError("parameter name doesn't match with {!r} [{}]".format(name, resp_name))
             # verify 'MAX'
-            resp_max = param.from_str(m.group(3).strip())
-            if resp_max != param.max:
-                raise IOError("parameter max value doesn't match with {!r} [{}]".format(param.max, resp_max))
+            if param.max is not None:  # None for max in HtParam means "doesn't matter"
+                resp_max = param.from_str(m.group(3).strip())
+                if resp_max != param.max:
+                    raise IOError("parameter max value doesn't match with {!r} [{}]".format(param.max, resp_max))
             # verify 'MIN'
-            resp_min = param.from_str(m.group(4).strip())
-            if resp_min != param.min:
-                raise IOError("parameter min value doesn't match with {!r} [{}]".format(param.min, resp_min))
+            if param.min is not None:  # None for min in HtParam means "doesn't matter"
+                resp_min = param.from_str(m.group(4).strip())
+                if resp_min != param.min:
+                    raise IOError("parameter min value doesn't match with {!r} [{}]".format(param.min, resp_min))
         except Exception as e:
             if self._verify_param:  # interpret as error?
                 raise
