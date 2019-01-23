@@ -95,9 +95,9 @@ class HtParam:
     :type acl: str
     :param data_type: The data type, see :class:`htparams.HtDataTypes`.
     :type data_type: HtDataTypes
-    :param min: The minimal value (default :const:`None`).
+    :param min: The minimal value (default :const:`None`, which means "doesn't matter").
     :type min: int, float or None
-    :param max: The maximal value (default :const:`None`).
+    :param max: The maximal value (default :const:`None`, which means "doesn't matter").
     :type max: int, float or None
     """
 
@@ -302,7 +302,7 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
         if not path.exists(filename):
             # ... and switch back to the default one if no one was found
             filename = path.join(path.dirname(path.abspath(__file__)), CSV_FILE)
-        print("htheatpump: load parameter definitions from: {}".format(filename))
+        print("HTHEATPUMP: load parameter definitions from: {}".format(filename))
         params = {}
         with open(filename) as f:
             reader = csv.reader(f, delimiter=',', skipinitialspace=True)
