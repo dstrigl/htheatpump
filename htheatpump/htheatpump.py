@@ -167,6 +167,20 @@ def create_request(cmd):
 
 
 # --------------------------------------------------------------------------------------------- #
+# Exception classes
+# --------------------------------------------------------------------------------------------- #
+
+class ParamVerificationException(ValueError):
+    """ Exception which represents a verification error during parameter access.
+
+    :param message: A detailed message describing the parameter verification failure.
+    :type message: str
+    """
+    def __init__(self, message):
+        ValueError.__init__(self, message)
+
+
+# --------------------------------------------------------------------------------------------- #
 # HtHeatpump class
 # --------------------------------------------------------------------------------------------- #
 
@@ -744,22 +758,24 @@ class HtHeatpump:
             # verify 'NAME'
             resp_name = m.group(1).strip()
             if resp_name != name:
-                raise IOError("parameter name doesn't match with {!r} [{}]".format(name, resp_name))
+                raise ParamVerificationException("parameter name doesn't match with {!r} [{}]".format(name, resp_name))
             # verify 'MAX'
             if param.max is not None:  # None for max in HtParam means "doesn't matter"
                 resp_max = param.from_str(m.group(3).strip())
                 if resp_max != param.max:
-                    raise IOError("parameter max value doesn't match with {!r} [{}]".format(param.max, resp_max))
+                    raise ParamVerificationException("parameter max value doesn't match with {!r} [{}]"
+                                                     .format(param.max, resp_max))
             # verify 'MIN'
             if param.min is not None:  # None for min in HtParam means "doesn't matter"
                 resp_min = param.from_str(m.group(4).strip())
                 if resp_min != param.min:
-                    raise IOError("parameter min value doesn't match with {!r} [{}]".format(param.min, resp_min))
+                    raise ParamVerificationException("parameter min value doesn't match with {!r} [{}]"
+                                                     .format(param.min, resp_min))
         except Exception as e:
             if self._verify_param:  # interpret as error?
                 raise
             else:  # or only as a warning?
-                _logger.warning("response verification of param {!r}: {!s}".format(name, e))
+                _logger.warning("response verification of param {!r} failed: {!s}".format(name, e))
         # convert the returned value (string) to the expected data type (as defined in HtParams)
         val = param.from_str(m.group(2).strip())
         return val
@@ -929,4 +945,4 @@ class HtHeatpump:
 # Exported symbols
 # --------------------------------------------------------------------------------------------- #
 
-__all__ = ["HtHeatpump"]
+__all__ = ["ParamVerificationException", "HtHeatpump"]
