@@ -171,7 +171,7 @@ def main():
                 fieldnames = ["type", "number", "name", "value", "min", "max"]
                 writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
                 writer.writeheader()
-                for dp_type, content in sorted(result.items()):
+                for dp_type, content in sorted(result.items(), reverse=True):
                     for i, data in content.items():
                         writer.writerow({"type": dp_type, "number": i, "name": data["name"],
                                          "value": data["value"], "min": data["min"], "max": data["max"]})
