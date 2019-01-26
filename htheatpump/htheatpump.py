@@ -453,13 +453,13 @@ class HtHeatpump:
                 else:
                     success = True
             except Exception as e:
-                _logger.warning("login try {:d} failed: {!s}".format(retry, e))
                 retry += 1
+                _logger.warning("login try #{:d} failed: {!s}".format(retry, e))
                 # try a reconnect, maybe this will help ;-)
                 self.reconnect()
         if not success:
-            _logger.error("login failed after {:d} retries".format(retry))
-            raise IOError("login failed after {:d} retries".format(retry))
+            _logger.error("login failed after {:d} try/tries".format(retry))
+            raise IOError("login failed after {:d} try/tries".format(retry))
         _logger.info("login successfully")
 
     def logout(self):

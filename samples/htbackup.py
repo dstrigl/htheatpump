@@ -114,6 +114,13 @@ def main():
         action = "store_true",
         help = "store heat pump data points without their current value (keep it blank)")
 
+    parser.add_argument(
+        "--max-retries",
+        default = 2,
+        type = int,
+        choices = range(0, 11),
+        help = "maximum number of retries for a data point request (0..10), default: %(default)s")
+        
     args = parser.parse_args()
 
     # activate logging with level DEBUG in verbose mode
@@ -129,38 +136,52 @@ def main():
         hp.login()
 
         rid = hp.get_serial_number()
-        if args.verbose:
-            _logger.info("connected successfully to heat pump with serial number {:d}".format(rid))
+        print("connected successfully to heat pump with serial number {:d}".format(rid))
         ver = hp.get_version()
-        if args.verbose:
-            _logger.info("software version = {} ({:d})".format(ver[0], ver[1]))
+        print("software version = {} ({:d})".format(ver[0], ver[1]))
 
         result = {}
         for dp_type in ("SP", "MP"):  # for all known data point types
             result.update({dp_type: {}})
-            i = -1
+            i = 0  # start at zero for each data point type
             while True:
-                i += 1
-                data_point = "{},NR={:d}".format(dp_type, i)
-                # send request for data point to the heat pump
-                hp.send_request(data_point)
-                # ... and wait for the response
-                try:
-                    resp = hp.read_response()
-                    # search for pattern "NAME=...", "VAL=...", "MAX=..." and "MIN=..." inside the answer
-                    m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(data_point), resp)
-                    if not m:
-                        raise IOError("invalid response for query of data point {!r} [{}]".format(data_point, resp))
-                    name, value, max, min = m.group(1, 2, 3, 4)  # extract name, value, max and min
-                    if args.without_values:
-                        value = ""  # keep it blank (if desired)
-                    print("{!r} [{}]: VAL={!r}, MIN={!r}, MAX={!r}".format(data_point, name, value, min, max))
-                    # store the determined data in the result dict
-                    result[dp_type].update({i: {"name": name, "value": value, "min": min, "max": max}})
-                except Exception as e:
-                    _logger.warning("query of data point {!r} failed: {!s}".format(data_point, e))
-                    # hp.reconnect()  # perform a reconnect
+                success = False
+                retry = 0
+                while not success and retry <= args.max_retries:
+                    data_point = "{},NR={:d}".format(dp_type, i)
+                    # send request for data point to the heat pump
+                    hp.send_request(data_point)
+                    # ... and wait for the response
+                    try:
+                        resp = hp.read_response()
+                        # search for pattern "NAME=...", "VAL=...", "MAX=..." and "MIN=..." inside the answer
+                        m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$"
+                                     .format(data_point), resp)
+                        if not m:
+                            raise IOError("invalid response for query of data point {!r} [{}]"
+                                          .format(data_point, resp))
+                        name, value, max, min = m.group(1, 2, 3, 4)  # extract name, value, max and min
+                        if args.without_values:
+                            value = ""  # keep it blank (if desired)
+                        print("{!r} [{}]: VAL={!r}, MIN={!r}, MAX={!r}".format(data_point, name, value, min, max))
+                        # store the determined data in the result dict
+                        result[dp_type].update({i: {"name": name, "value": value, "min": min, "max": max}})
+                        success = True
+                    except Exception as e:
+                        retry += 1
+                        _logger.warning("try #{:d}/{:d} for query of data point {!r} failed: {!s}"
+                                        .format(retry, args.max_retries + 1, data_point, e))
+                        # try a reconnect, maybe this will help
+                        hp.reconnect()  # perform a reconnect
+                        try:
+                            hp.login(0) # and a new login
+                        except:
+                            pass  # ignore a potential problem
+                if not success:
+                    _logger.error("query of data point {!r} failed after {:d} try/tries".format(data_point, retry))
                     break
+                else:
+                    i += 1
 
         if args.json:  # write result to JSON file
             with open(args.json, 'w') as jsonfile:
