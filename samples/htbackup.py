@@ -120,7 +120,7 @@ def main():
         type = int,
         choices = range(0, 11),
         help = "maximum number of retries for a data point request (0..10), default: %(default)s")
-        
+
     args = parser.parse_args()
 
     # activate logging with level DEBUG in verbose mode
@@ -172,10 +172,10 @@ def main():
                         _logger.warning("try #{:d}/{:d} for query of data point {!r} failed: {!s}"
                                         .format(retry, args.max_retries + 1, data_point, e))
                         # try a reconnect, maybe this will help
-                        hp.reconnect()  # perform a reconnect
+                        hp.reconnect()   # perform a reconnect
                         try:
-                            hp.login(0) # and a new login
-                        except:
+                            hp.login(0)  # and a new login
+                        except Exception:
                             pass  # ignore a potential problem
                 if not success:
                     _logger.error("query of data point {!r} failed after {:d} try/tries".format(data_point, retry))
