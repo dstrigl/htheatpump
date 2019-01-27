@@ -1,15 +1,18 @@
 # name, data point type (MP;SP), data point number, acl (r-;-w;rw), dtype (STRING;BOOL;INT;FLOAT), min, max
 
 Temp. Aussen, MP, 0, r-, FLOAT, -20.0, 40.0
+Temp. Aussen verzoegert, MP, 1, r-, FLOAT, -20.0, 40.0
 Temp. Brauchwasser, MP, 2, r-, FLOAT, 0.0, 70.0
 Temp. Vorlauf, MP, 3, r-, FLOAT, 0.0, 70.0
 Temp. Ruecklauf, MP, 4, r-, FLOAT, 0.0, 70.0
+Temp. Pufferspeicher, MP, 5, r-, FLOAT, 0.0, 70.0
 Temp. EQ_Eintritt, MP, 6, r-, FLOAT, -20.0, 30.0
 Temp. EQ_Austritt, MP, 7, r-, FLOAT, -20.0, 30.0
 Temp. Sauggas, MP, 9, r-, FLOAT, -20.0, 30.0
 Temp. Frischwasser_Istwert, MP, 11, r-, FLOAT, 0.0, 70.0
 Temp. Verdampfung, MP, 12, r-, FLOAT, -50.0, 30.0
 Temp. Kondensation, MP, 13, r-, FLOAT, -50.0, 60.0
+Temp. Heissgas, MP, 15, r-, FLOAT, 0.0, 150.0
 Niederdruck (bar), MP, 20, r-, FLOAT, 0.0, 18.0
 Hochdruck (bar), MP, 21, r-, FLOAT, 0.0, 40.0
 Heizkreispumpe, MP, 22, r-, BOOL, 0, 1
@@ -23,8 +26,6 @@ Frischwasserpumpe, MP, 50, r-, INT, 0, 100
 Verdichteranforderung, MP, 56, r-, INT, 0, 5
 HKR_Sollwert, MP, 57, r-, FLOAT, 0.0, 50.0
 
-#Temp. Pufferspeicher, MP, 5, r-, FLOAT, 0.0, 70.0
-#Temp. Heissgas, MP, 15, r-, FLOAT, 0.0, 150.0
 #Pufferladepumpe, MP, 23, r-, BOOL, 0, 1
 #Vierwegeventil Luft, MP, 32, r-, BOOL, 0, 1
 #EVU_Sperre, MP, 37, r-, BOOL, 0, 1
