@@ -55,26 +55,25 @@ class TestHtParam:
         ("TestString", HtDataTypes.STRING, "TestString"),
         ("0", HtDataTypes.BOOL, False),
         ("1", HtDataTypes.BOOL, True),
-        ("True", HtDataTypes.BOOL, True),
-        ("False", HtDataTypes.BOOL, False),
-        ("true", HtDataTypes.BOOL, True),
-        ("false", HtDataTypes.BOOL, False),
-        ("yes", HtDataTypes.BOOL, True),
-        ("no", HtDataTypes.BOOL, False),
-        ("y", HtDataTypes.BOOL, True),
-        ("n", HtDataTypes.BOOL, False),
-        ("TRUE", HtDataTypes.BOOL, True),
-        ("FALSE", HtDataTypes.BOOL, False),
-        ("YES", HtDataTypes.BOOL, True),
-        ("NO", HtDataTypes.BOOL, False),
-        ("Y", HtDataTypes.BOOL, True),
-        ("N", HtDataTypes.BOOL, False),
         ("123", HtDataTypes.INT, 123),
         ("-321", HtDataTypes.INT, -321),
         ("123.456", HtDataTypes.FLOAT, 123.456),
         ("-321.456", HtDataTypes.FLOAT, -321.456),
-        ("789", HtDataTypes.FLOAT, 789),
         # -- should raise a 'ValueError':
+        ("True", HtDataTypes.BOOL, None),
+        ("False", HtDataTypes.BOOL, None),
+        ("true", HtDataTypes.BOOL, None),
+        ("false", HtDataTypes.BOOL, None),
+        ("yes", HtDataTypes.BOOL, None),
+        ("no", HtDataTypes.BOOL, None),
+        ("y", HtDataTypes.BOOL, None),
+        ("n", HtDataTypes.BOOL, None),
+        ("TRUE", HtDataTypes.BOOL, None),
+        ("FALSE", HtDataTypes.BOOL, None),
+        ("YES", HtDataTypes.BOOL, None),
+        ("NO", HtDataTypes.BOOL, None),
+        ("Y", HtDataTypes.BOOL, None),
+        ("N", HtDataTypes.BOOL, None),
         ("abc", HtDataTypes.BOOL, None),
         ("def", HtDataTypes.INT, None),
         ("--99", HtDataTypes.INT, None),
@@ -82,6 +81,7 @@ class TestHtParam:
         ("ghi", HtDataTypes.FLOAT, None),
         ("--99.0", HtDataTypes.FLOAT, None),
         ("12.3+55.9", HtDataTypes.FLOAT, None),
+        ("789", HtDataTypes.FLOAT, None),
         # ...
     ])
     def test_from_str(self, str, data_type, exp_value):
@@ -144,12 +144,13 @@ class TestHtParams:
         assert m is not None, "invalid acl definition for parameter {!r} [{!r}]".format(name, acl)
         #assert 0
 
-    @pytest.mark.parametrize("name, min, max", [(name, param.min, param.max) for name, param in HtParams.items()])
-    def test_limits(self, name, min, max):
-        assert min is not None, "minimal value for parameter {!r} must not be None".format(name)
-        assert max is not None, "maximal value for parameter {!r} must not be None".format(name)
-        assert min <= max
-        assert max >= min
+    @pytest.mark.parametrize("name, min_val, max_val", [(name, param.min_val, param.max_val)
+                                                        for name, param in HtParams.items()])
+    def test_limits(self, name, min_val, max_val):
+        assert min_val is not None, "minimal value for parameter {!r} must not be None".format(name)
+        assert max_val is not None, "maximal value for parameter {!r} must not be None".format(name)
+        assert min_val <= max_val
+        assert max_val >= min_val
         #assert 0
 
     @pytest.mark.run_if_connected
@@ -165,11 +166,11 @@ class TestHtParams:
         dp_value = param.from_str(m.group(2))
         assert dp_value is not None, "data point value must not be None [{}]".format(dp_value)
         dp_max = param.from_str(m.group(3))
-        assert dp_max == param.max,\
-            "data point max value doesn't match with the parameter's one {!s} [{!s}]".format(param.max, dp_max)
+        assert dp_max == param.max_val,\
+            "data point max value doesn't match with the parameter's one {!s} [{!s}]".format(param.max_val, dp_max)
         dp_min = param.from_str(m.group(4))
-        assert dp_min == param.min,\
-            "data point min value doesn't match with the parameter's one {!s} [{!s}]".format(param.min, dp_min)
+        assert dp_min == param.min_val,\
+            "data point min value doesn't match with the parameter's one {!s} [{!s}]".format(param.min_val, dp_min)
         #assert 0
 
 

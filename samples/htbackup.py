@@ -160,12 +160,14 @@ def main():
                         if not m:
                             raise IOError("invalid response for query of data point {!r} [{}]"
                                           .format(data_point, resp))
-                        name, value, max, min = m.group(1, 2, 3, 4)  # extract name, value, max and min
+                        # extract name, value, min and max
+                        name, value, min_val, max_val = (g.strip() for g in m.group(1, 2, 4, 3))
                         if args.without_values:
                             value = ""  # keep it blank (if desired)
-                        print("{!r} [{}]: VAL={!r}, MIN={!r}, MAX={!r}".format(data_point, name, value, min, max))
+                        print("{!r} [{}]: VAL={!r}, MIN={!r}, MAX={!r}"
+                              .format(data_point, name, value, min_val, max_val))
                         # store the determined data in the result dict
-                        result[dp_type].update({i: {"name": name, "value": value, "min": min, "max": max}})
+                        result[dp_type].update({i: {"name": name, "value": value, "min": min_val, "max": max_val}})
                         success = True
                     except Exception as e:
                         retry += 1

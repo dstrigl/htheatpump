@@ -758,19 +758,20 @@ class HtHeatpump:
             # verify 'NAME'
             resp_name = m.group(1).strip()
             if resp_name != name:
-                raise ParamVerificationException("parameter name doesn't match with {!r} [{}]".format(name, resp_name))
+                raise ParamVerificationException("parameter name doesn't match with {!r} [{!r}]"
+                                                 .format(name, resp_name))
             # verify 'MAX'
-            if param.max is not None:  # None for max in HtParam means "doesn't matter"
+            if param.max_val is not None:  # None for max_val in HtParam means "doesn't matter"
                 resp_max = param.from_str(m.group(3).strip())
-                if resp_max != param.max:
-                    raise ParamVerificationException("parameter max value doesn't match with {!r} [{}]"
-                                                     .format(param.max, resp_max))
+                if resp_max != param.max_val:
+                    raise ParamVerificationException("parameter max value doesn't match with {!r} [{!r}]"
+                                                     .format(param.max_val, resp_max))
             # verify 'MIN'
-            if param.min is not None:  # None for min in HtParam means "doesn't matter"
+            if param.min_val is not None:  # None for min_val in HtParam means "doesn't matter"
                 resp_min = param.from_str(m.group(4).strip())
-                if resp_min != param.min:
-                    raise ParamVerificationException("parameter min value doesn't match with {!r} [{}]"
-                                                     .format(param.min, resp_min))
+                if resp_min != param.min_val:
+                    raise ParamVerificationException("parameter min value doesn't match with {!r} [{!r}]"
+                                                     .format(param.min_val, resp_min))
         except Exception as e:
             if self._verify_param:  # interpret as error?
                 raise
@@ -779,6 +780,51 @@ class HtHeatpump:
         # convert the returned value (string) to the expected data type (as defined in HtParams)
         val = param.from_str(m.group(2).strip())
         return val
+
+    def _get_param(self, name):
+        """ TODO doc
+        """
+        # find the corresponding definition for the requested parameter
+        if name not in HtParams:
+            raise KeyError("parameter definition for parameter {!r} not found".format(name))
+        param = HtParams[name]
+        # send command to the heat pump
+        self.send_request(param.cmd())
+        # ... and wait for the response
+        try:
+            resp = self.read_response()
+            # search for pattern "NAME=...", "VAL=...", "MAX=..." and "MIN=..." inside the response string
+            m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(param.cmd()), resp)
+            if not m:
+                raise IOError("invalid response for query of parameter {!r} [{}]".format(name, resp))
+            resp_name, resp_val, resp_min, resp_max = (g.strip() for g in m.group(1, 2, 4, 3))
+            _logger.debug("{!r}: NAME={!r}, VAL={!r}, MIN={!r}, MAX={!r}"
+                          .format(name, resp_name, resp_val, resp_min, resp_max))
+            resp_val = param.from_str(resp_val)  # convert VAL to corresponding data type (FLOAT, INT, ...)
+            resp_min = param.from_str(resp_min)  # convert MIN to corresponding data type (FLOAT, INT, ...)
+            resp_max = param.from_str(resp_max)  # convert MAX to corresponding data type (FLOAT, INT, ...)
+            return resp_name, resp_val, resp_min, resp_max  # return name, value, min and max
+        except Exception as e:
+            _logger.error("query of parameter {!r} failed: {!s}".format(name, e))
+            raise
+
+    def update_param_limits(self):
+        """ TODO doc
+        """
+        for name in HtParams.keys():
+            resp_name, _, resp_min, resp_max = self._get_param(name)
+            try:
+                # TODO call _verify_param_resp()?
+                if resp_name != name:
+                    raise ParamVerificationException("parameter name doesn't match with {!r} [{!r}]"
+                                                     .format(name, resp_name))
+            except Exception as e:
+                if self._verify_param:  # interpret as error?
+                    raise
+                else:  # or only as a warning?
+                    _logger.warning("response verification of param {!r} failed: {!s}".format(resp_name, e))
+            HtParams[p].set_limits(resp_min, resp_max)
+            # TODO _logger.debug(...)
 
     def get_param(self, name):
         """ Query for a specific parameter of the heat pump.
