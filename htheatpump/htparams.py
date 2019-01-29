@@ -163,7 +163,7 @@ class HtParam:
         elif data_type == HtDataTypes.FLOAT:
             tmp = float(value.strip())  # convert to floating point number
             try:  # to be more strict, the passed string shouldn't look like an integer
-                _ = int(value.strip())  # try to convert to integer -> should fail!
+                int(value.strip())  # try to convert to integer -> should fail!
             except Exception:
                 value = tmp
             else:

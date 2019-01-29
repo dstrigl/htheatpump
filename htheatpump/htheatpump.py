@@ -823,7 +823,7 @@ class HtHeatpump:
                     raise
                 else:  # or only as a warning?
                     _logger.warning("response verification of param {!r} failed: {!s}".format(resp_name, e))
-            HtParams[p].set_limits(resp_min, resp_max)
+            HtParams[name].set_limits(resp_min, resp_max)
             # TODO _logger.debug(...)
 
     def get_param(self, name):
