@@ -21,15 +21,16 @@
 """
 
 from htheatpump.htparams import HtParams
-#from timeit import default_timer as timer
 
-#import sys
 import enum
 import serial
 import time
 import re
 import datetime
-# import pprint
+
+#import sys
+#import pprint
+#from timeit import default_timer as timer
 
 
 # --------------------------------------------------------------------------------------------- #
@@ -140,7 +141,7 @@ def verify_checksum(s):
 
 
 def add_checksum(s):
-    """ Adds a checksum at the end of the provided bytes array.
+    """ Add a checksum at the end of the provided bytes array.
 
     :param s: The provided byte array.
     :type s: bytes
@@ -241,7 +242,7 @@ class HtHeatpump:
             self._ser.close()
 
     def open_connection(self):
-        """ Opens the serial connection with the defined settings.
+        """ Open the serial connection with the defined settings.
 
         :raises IOError:
             When the serial connection is already open.
@@ -273,8 +274,8 @@ class HtHeatpump:
         _logger.info(self._ser)  # log serial connection properties
 
     def reconnect(self):
-        """ Performs a reconnect of the serial connection. Flushes the output and
-            input buffer, closes the serial connection and opens it again.
+        """ Perform a reconnect of the serial connection. Flush the output and
+            input buffer, close the serial connection and open it again.
         """
         if self._ser and self._ser.is_open:
             self._ser.reset_output_buffer()
@@ -283,7 +284,7 @@ class HtHeatpump:
             self.open_connection()
 
     def close_connection(self):
-        """ Closes the serial connection.
+        """ Close the serial connection.
         """
         if self._ser and self._ser.is_open:
             self._ser.close()
@@ -293,7 +294,7 @@ class HtHeatpump:
 
     @property
     def is_open(self):
-        """ Returns the state of the serial port, whether it’s open or not.
+        """ Return the state of the serial port, whether it’s open or not.
 
         :returns: The state of the serial port as ``bool``.
         :rtype: ``bool``
@@ -302,7 +303,8 @@ class HtHeatpump:
 
     @property
     def verify_param(self):
-        """ Property to get or set whether the parameter verification (of *name*, *min* and *max*) during
+        """ TODO doc
+        Property to get or set whether the parameter verification (of *name*, *min* and *max*) during
         a :class:`get_param` or :class:`set_param` should be active or not. This is just for safety
         to be sure that the parameter definitions in ``HtParams`` are correct!
 
@@ -317,7 +319,7 @@ class HtHeatpump:
         self._verify_param = val
 
     def send_request(self, cmd):
-        """ Sends a request to the heat pump.
+        """ Send a request to the heat pump.
 
         :param cmd: Command to send to the heat pump.
         :type cmd: str
@@ -331,9 +333,9 @@ class HtHeatpump:
         self._ser.write(req)
 
     def read_response(self):
-        """ Reads a response from the heat pump.
+        """ Read the response message from the heat pump.
 
-        :returns: The returned response of the heat pump as ``str``.
+        :returns: The returned response message of the heat pump as ``str``.
         :rtype: ``str``
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
@@ -428,8 +430,9 @@ class HtHeatpump:
         # otherwise return the extracted data
         return m.group(1)
 
-    def login(self, max_retries=_login_retries):
-        """ Log in the heat pump.
+    def login(self, update_param_limits=True, max_retries=_login_retries):
+        """ TODO doc
+        Log in the heat pump.
 
         :param max_retries: Maximal number of retries for a successful login. One regular try
             plus :const:`max_retries` retries.
@@ -461,6 +464,9 @@ class HtHeatpump:
             _logger.error("login failed after {:d} try/tries".format(retry))
             raise IOError("login failed after {:d} try/tries".format(retry))
         _logger.info("login successfully")
+        # perform a limits update of all parameters (if desired)
+        if update_param_limits:
+            self.update_param_limits()
 
     def logout(self):
         """ Log out from the heat pump session.
@@ -736,8 +742,43 @@ class HtHeatpump:
             _logger.error("query for fault list failed: {!s}".format(e))
             raise
 
-    def _verify_param_resp(self, name, param, resp):
-        """ Perform a verification of the parameter access response string and return the extracted parameter value.
+    def _extract_param_data(self, name, resp):
+        """ TODO doc
+        """
+        # get the corresponding definition for the given parameter
+        assert name in HtParams, "parameter definition for parameter {!r} not found".format(name)
+        param = HtParams[name]
+        # search for pattern "NAME=...", "VAL=...", "MAX=..." and "MIN=..." inside the response string
+        m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(param.cmd()), resp)
+        if not m:
+            raise IOError("invalid response for access of parameter {!r} [{}]".format(name, resp))
+        resp_name, resp_min, resp_max, resp_val = (g.strip() for g in m.group(1, 4, 3, 2))
+        _logger.debug("{!r}: NAME={!r}, MIN={!r}, MAX={!r}, VAL={!r}"
+                      .format(name, resp_name, resp_min, resp_max, resp_val))
+        resp_min = param.from_str(resp_min)  # convert MIN to the corresponding data type (FLOAT, INT, ...)
+        resp_max = param.from_str(resp_max)  # convert MAX to the corresponding data type (FLOAT, INT, ...)
+        resp_val = param.from_str(resp_val)  # convert VAL to the corresponding data type (FLOAT, INT, ...)
+        return resp_name, resp_min, resp_max, resp_val  # return (name, min, max, value)
+
+    def _get_param(self, name):
+        """ TODO doc
+        """
+        # get the corresponding definition for the requested parameter
+        assert name in HtParams, "parameter definition for parameter {!r} not found".format(name)
+        param = HtParams[name]
+        # send command to the heat pump
+        self.send_request(param.cmd())
+        # ... and wait for the response
+        try:
+            resp = self.read_response()
+            return self._extract_param_data(name, resp)
+        except Exception as e:
+            _logger.error("query of parameter {!r} failed: {!s}".format(name, e))
+            raise
+
+    def _verify_param_resp(self, name, resp_name, resp_min=None, resp_max=None, resp_val=None):
+        """ TODO func rename?, doc
+        Perform a verification of the parameter access response string and return the extracted parameter value.
         It checks whether the name, min and max value matches with the parameter definition in ``HtParams``.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
@@ -749,82 +790,52 @@ class HtHeatpump:
 
         :returns: Returned value of the parameter.
         :rtype: ``str``, ``bool``, ``int`` or ``float``
+        :raises TODO
         """
-        # search for pattern "NAME=...", "VAL=...", "MAX=..." and "MIN=..." inside the response string
-        m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(param.cmd()), resp)
-        if not m:
-            raise IOError("invalid response for access of parameter {!r} [{}]".format(name, resp))
+        # get the corresponding definition for the given parameter
+        assert name in HtParams, "parameter definition for parameter {!r} not found".format(name)
+        param = HtParams[name]
         try:
             # verify 'NAME'
-            resp_name = m.group(1).strip()
             if resp_name != name:
                 raise ParamVerificationException("parameter name doesn't match with {!r} [{!r}]"
                                                  .format(name, resp_name))
-            # verify 'MAX'
-            if param.max_val is not None:  # None for max_val in HtParam means "doesn't matter"
-                resp_max = param.from_str(m.group(3).strip())
-                if resp_max != param.max_val:
-                    raise ParamVerificationException("parameter max value doesn't match with {!r} [{!r}]"
-                                                     .format(param.max_val, resp_max))
-            # verify 'MIN'
-            if param.min_val is not None:  # None for min_val in HtParam means "doesn't matter"
-                resp_min = param.from_str(m.group(4).strip())
+            # verify 'MIN' (None for min value means "doesn't matter")
+            if resp_min is not None and param.min_val is not None:
                 if resp_min != param.min_val:
                     raise ParamVerificationException("parameter min value doesn't match with {!r} [{!r}]"
                                                      .format(param.min_val, resp_min))
+
+            # verify 'MAX' (None for max value means "doesn't matter")
+            if resp_max is not None and param.max_val is not None:
+                if resp_max != param.max_val:
+                    raise ParamVerificationException("parameter max value doesn't match with {!r} [{!r}]"
+                                                     .format(param.max_val, resp_max))
+            # check 'VAL' against the limits (if given)
+            if resp_val is not None:
+                if (resp_min is not None and resp_val < resp_min) or (resp_max is not None and resp_val > resp_max):
+                    raise ValueError("value {!r} is beyond the limits [{}, {}]".format(resp_val, resp_min, resp_max))
         except Exception as e:
             if self._verify_param:  # interpret as error?
                 raise
             else:  # or only as a warning?
                 _logger.warning("response verification of param {!r} failed: {!s}".format(name, e))
-        # convert the returned value (string) to the expected data type (as defined in HtParams)
-        val = param.from_str(m.group(2).strip())
-        return val
-
-    def _get_param(self, name):
-        """ TODO doc
-        """
-        # find the corresponding definition for the requested parameter
-        if name not in HtParams:
-            raise KeyError("parameter definition for parameter {!r} not found".format(name))
-        param = HtParams[name]
-        # send command to the heat pump
-        self.send_request(param.cmd())
-        # ... and wait for the response
-        try:
-            resp = self.read_response()
-            # search for pattern "NAME=...", "VAL=...", "MAX=..." and "MIN=..." inside the response string
-            m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(param.cmd()), resp)
-            if not m:
-                raise IOError("invalid response for query of parameter {!r} [{}]".format(name, resp))
-            resp_name, resp_val, resp_min, resp_max = (g.strip() for g in m.group(1, 2, 4, 3))
-            _logger.debug("{!r}: NAME={!r}, VAL={!r}, MIN={!r}, MAX={!r}"
-                          .format(name, resp_name, resp_val, resp_min, resp_max))
-            resp_val = param.from_str(resp_val)  # convert VAL to corresponding data type (FLOAT, INT, ...)
-            resp_min = param.from_str(resp_min)  # convert MIN to corresponding data type (FLOAT, INT, ...)
-            resp_max = param.from_str(resp_max)  # convert MAX to corresponding data type (FLOAT, INT, ...)
-            return resp_name, resp_val, resp_min, resp_max  # return name, value, min and max
-        except Exception as e:
-            _logger.error("query of parameter {!r} failed: {!s}".format(name, e))
-            raise
+        return resp_val
 
     def update_param_limits(self):
         """ TODO doc
         """
+        updated_params = []  # stores the name of updated parameters
         for name in HtParams.keys():
-            resp_name, _, resp_min, resp_max = self._get_param(name)
-            try:
-                # TODO call _verify_param_resp()?
-                if resp_name != name:
-                    raise ParamVerificationException("parameter name doesn't match with {!r} [{!r}]"
-                                                     .format(name, resp_name))
-            except Exception as e:
-                if self._verify_param:  # interpret as error?
-                    raise
-                else:  # or only as a warning?
-                    _logger.warning("response verification of param {!r} failed: {!s}".format(resp_name, e))
-            HtParams[name].set_limits(resp_min, resp_max)
-            # TODO _logger.debug(...)
+            resp_name, resp_min, resp_max, _ = self._get_param(name)
+            # only verify the returned NAME here, ignore MIN and MAX (and also the returned VAL)
+            self._verify_param_resp(name, resp_name)
+            # update the limit values in the HtParams database and count the number of updated entries
+            if HtParams[name].set_limits(resp_min, resp_max):
+                updated_params.append(name)
+                _logger.debug("updated param {!r}: MIN={}, MAX={}".format(name, resp_min, resp_max))
+        _logger.info("updated {} (of {}) parameter limits".format(len(updated_params), len(HtParams)))
+        return updated_params
 
     def get_param(self, name):
         """ Query for a specific parameter of the heat pump.
@@ -848,16 +859,12 @@ class HtHeatpump:
 
         will return the current measured outdoor temperature in °C.
         """
-        # find the corresponding definition for the requested parameter
+        # find the corresponding definition for the parameter
         if name not in HtParams:
             raise KeyError("parameter definition for parameter {!r} not found".format(name))
-        param = HtParams[name]
-        # send command to the heat pump
-        self.send_request(param.cmd())
-        # ... and wait for the response
         try:
-            resp = self.read_response()
-            val = self._verify_param_resp(name, param, resp)
+            resp = self._get_param(name)
+            val = self._verify_param_resp(*resp)
             _logger.debug("{!r} = {!s}".format(name, val))
             return val
         except Exception as e:
@@ -865,7 +872,8 @@ class HtHeatpump:
             raise
 
     def set_param(self, name, val):
-        """ Set the value of a specific parameter of the heat pump.
+        """ TODO
+        Set the value of a specific parameter of the heat pump.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
         :type name: str
@@ -890,21 +898,25 @@ class HtHeatpump:
 
         will set the desired room temperature of the heating circuit to 21.5 °C.
         """
-        # find the corresponding definition for the requested parameter
+        # find the corresponding definition for the parameter
         if name not in HtParams:
             raise KeyError("parameter definition for parameter {!r} not found".format(name))
+        # TODO needed?
         # verify the parameter definition before changing any value (if desired) by calling 'get_param(...)'
         #   (this is just for safety to be sure that the parameter definitions in HtParams are correct!)
-        if self._verify_param:
-            self.get_param(name)
+        #if self._verify_param:
+        #    self.get_param(name)
         param = HtParams[name]
+        # check the passed value against the defined limits
+        param.check_limits(val)
         # send command to the heat pump
         val = param.to_str(val)
         self.send_request("{},VAL={}".format(param.cmd(), val))
         # ... and wait for the response
         try:
             resp = self.read_response()
-            val = self._verify_param_resp(name, param, resp)
+            resp = self._extract_param_data(name, resp)
+            val = self._verify_param_resp(name, *resp)
             _logger.debug("{!r} = {!s}".format(name, val))
             return val
         except Exception as e:
@@ -923,11 +935,12 @@ class HtHeatpump:
         """
         return self.get_param("Stoerung")
 
-    def query(self, params):
-        """ Returns a dict of the requested parameters with their retrieved values from the heat pump.
+    def query(self, names=HtParams.keys()):
+        """ TODO doc
+        Return a dict of the requested parameters with their retrieved values from the heat pump.
 
-        :param params: List of parameter names to request from the heat pump.
-        :type params: list
+        :param names: List of parameter names to request from the heat pump.
+        :type names: list
         :returns: A dict of the requested parameters with their values, e.g.:
             ::
 
@@ -946,19 +959,16 @@ class HtHeatpump:
             Will be raised when the login failed or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum) for the requests.
         """
-        result = {}
-        try:
-            self.open_connection()
-            self.login()
-            rid = self.get_serial_number()
-            _logger.info("connected successfully to heat pump with serial number {:d}".format(rid))
-            # query for each parameter in the given list
-            for p in params:
-                result.update({p: self.get_param(p)})
-        finally:
-            self.logout()  # try to logout for an ordinary cancellation (if possible)
-            self.close_connection()
-        return result
+        values = {}
+        # query for each parameter in the given list
+        for n in names:
+            values.update({n: self.get_param(n)})
+        return values
+
+    def fast_query(self):
+        """ TODO
+        """
+        pass
 
 
 # --------------------------------------------------------------------------------------------- #
@@ -969,20 +979,30 @@ class HtHeatpump:
 #def main():
 #    if len(sys.argv) == 2:
 #        logging.basicConfig(level=logging.DEBUG)
-#    params = sys.argv[1:] if len(sys.argv) > 1 else HtParams.keys()
+#    names = sys.argv[1:] if len(sys.argv) > 1 else HtParams.keys()
+#    values = {}
 #    hp = HtHeatpump("/dev/ttyUSB0")
-#    start = timer()
-#    val = hp.query(params)
-#    end = timer()
-#    if len(params) > 1:
-#        for p in sorted(params):
-#            print("{:{width}}: {}".format(p, val[p], width=len(max(params, key=len))))
-#    elif len(params) == 1:
-#        print(val[params[0]])
-#        # pprint.pprint(params)
+#    try:
+#        hp.open_connection()
+#        hp.login()
+#        rid = hp.get_serial_number()
+#        print("connected successfully to heat pump with serial number {:d}".format(rid))
+#        # query for the given parameter(s)
+#        start = timer()
+#        values = hp.query(names)
+#        end = timer()
+#    finally:
+#        hp.logout()  # try to logout for an ordinary cancellation (if possible)
+#        hp.close_connection()
+#    if len(names) > 1:
+#        for n in sorted(names):
+#            print("{:{width}}: {}".format(n, values[n], width=len(max(names, key=len))))
+#    elif len(names) == 1:
+#        print(values[names[0]])
+#        pprint.pprint(names)
 #    print("query took {:.2f} sec".format(end - start))
-
-
+#
+#
 #if __name__ == "__main__":
 #    main()
 

@@ -118,28 +118,34 @@ class HtParam:
         return "{},NR={:d}".format(self.dp_type, self.dp_number)
 
     def set_limits(self, min_val=None, max_val=None):
-        """ Set the limits of the parameter.
+        """ TODO doc
+        Set the limits of the parameter.
 
         :param min_val: The minimal value (default :const:`None`, which means "doesn't matter").
         :type min_val: bool, int, float or None
         :param max_val: The maximal value (default :const:`None`, which means "doesn't matter").
         :type max_val: bool, int, float or None
         """
+        ret = self.min_val != min_val or self.max_val != max_val
         self.min_val = min_val
         self.max_val = max_val
+        return ret
+
+    def check_limits(self, val):
+        """ TODO doc
+        """
+        # check the passed value against the defined limits (if given; 'None' means "doesn't matter")
+        if (self.min_val is not None and val < self.min_val) or (self.max_val is not None and val > self.max_val):
+            raise ValueError("value {!r} is beyond the limits [{}, {}]".format(val, self.min_val, self.max_val))
 
     @staticmethod
-    def _from_str(value, data_type, min_val=None, max_val=None):
+    def _from_str(value, data_type):
         """ Convert the passed value (in form of a string) to the expected data type.
 
         :param value: The passed value (in form of a string).
         :type value: str
         :param data_type: The expected data type, see :class:`htparams.HtDataTypes`.
         :type data_type: HtDataTypes
-        :param min_val: The minimal value (default :const:`None`, which means "doesn't matter").
-        :type min_val: bool, int, float or None
-        :param max_val: The maximal value (default :const:`None`, which means "doesn't matter").
-        :type max_val: bool, int, float or None
         :returns: The passed value which data type matches the expected one.
         :rtype: ``str``, ``bool``, ``int`` or ``float``
         :raises ValueError:
@@ -170,11 +176,6 @@ class HtParam:
                 raise ValueError("invalid representation for data type FLOAT ({!r})".format(value))
         else:
             assert 0, "unsupported data type ({!r})".format(data_type)
-        # check for the defined limits (if given)
-        if data_type in (HtDataTypes.BOOL, HtDataTypes.INT, HtDataTypes.FLOAT):
-            if (min_val is not None and value < min_val) or (max_val is not None and value > max_val):
-                raise ValueError("value {!r} is beyond the defined limits [{}, {}]".format(
-                    value, "None" if min_val is None else min_val, "None" if max_val is None else max_val))
         return value
 
     def from_str(self, arg):
@@ -198,7 +199,7 @@ class HtParam:
         """
         if isinstance(self, HtParam):  # called as a member method of HtParam
             assert isinstance(arg, str)
-            return HtParam._from_str(arg, self.data_type, self.min_val, self.max_val)
+            return HtParam._from_str(arg, self.data_type)
         else:  # called as a static method of HtParam
             assert isinstance(self, str)
             assert isinstance(arg, HtDataTypes)
