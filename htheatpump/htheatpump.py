@@ -863,7 +863,7 @@ class HtHeatpump:
             raise KeyError("parameter definition for parameter {!r} not found".format(name))
         try:
             resp = self._get_param(name)
-            val = self._verify_param_resp(*resp)
+            val = self._verify_param_resp(name, *resp)
             _logger.debug("{!r} = {!s}".format(name, val))
             return val
         except Exception as e:
