@@ -812,9 +812,8 @@ class HtHeatpump:
                     raise ParamVerificationException("parameter max value doesn't match with {!r} [{!r}]"
                                                      .format(param.max_val, resp_max))
             # check 'VAL' against the limits (if given)
-            if resp_val is not None:
-                if (resp_min is not None and resp_val < resp_min) or (resp_max is not None and resp_val > resp_max):
-                    raise ValueError("value {!r} is beyond the limits [{}, {}]".format(resp_val, resp_min, resp_max))
+            #if resp_val is not None:
+            #    param.check_limits(resp_val)
         except Exception as e:
             if self._verify_param:  # interpret as error?
                 raise
