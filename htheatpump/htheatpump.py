@@ -68,26 +68,31 @@ RESPONSE_HEADER = {
     # normal response header with answer; checksum has to be computed!
     b"\x02\xfd\xe0\xd0\x00\x00":
         { "type": HtResponseTypes.ANSWER,
+          # method to calculate the checksum of the response:
           "checksum": lambda header, payload_len, payload: calc_checksum(header + bytes([payload_len]) + payload),
           },
     # on HP08S10W-WEB, SW 3.0.20: checksum seems to be fixed 0x0, but why?
     b"\x02\xfd\xe0\xd0\x04\x00":
         { "type": HtResponseTypes.ANSWER,
+          # method to calculate the checksum of the response:
           "checksum": lambda header, payload_len, payload: 0x00,
           },
     # on HP10S12W-WEB, SW 3.0.8: another response header with fixed checksum?!
     b"\x02\xfd\xe0\xd0\x08\x00":
         { "type": HtResponseTypes.ANSWER,
+          # method to calculate the checksum of the response:
           "checksum": lambda header, payload_len, payload: 0x00,
           },
     # error response header; checksum has to be computed!
     b"\x02\xfd\xe0\xd0\x02\x00":
         { "type": HtResponseTypes.ERROR,
+          # method to calculate the checksum of the response:
           "checksum": lambda header, payload_len, payload: calc_checksum(header + bytes([payload_len]) + payload),
           },
     # response header for some 'MR' answers; checksum has to be computed a little bit different!
     b"\x02\xfd\xe0\xd0\x01\x00":
         { "type": HtResponseTypes.ANSWER,
+          # method to calculate the checksum of the response:
           "checksum": lambda header, payload_len, payload: calc_checksum(header + bytes([payload_len - 1]) + payload),
           },
 }
@@ -378,6 +383,8 @@ class HtHeatpump:
             the transmitted payload length in the protocol is zero (0 bytes), although some payload follows.
             In this case we read until we will found the trailing ``b"\\r\\n"`` at the end of the payload
             to determine the payload of the message.
+
+            TODO doc for b"\x02\xfd\xe0\xd0\x01\x00" ... checksum( ... payload_len - 1 ... )
         """
         if not self._ser:
             raise IOError("serial connection not open")
@@ -960,13 +967,13 @@ class HtHeatpump:
                     m = re.match(MR_RESP, r)
                     if not m:
                         raise IOError("invalid response for MR command [{}]".format(resp))
-                    dp_number, dp_value = m.group(1, 2)
+                    dp_number, dp_value, unknown_val = m.group(1, 2, 3)
                     dp_number = int(dp_number)
                     if dp_number not in dp_dict:
-                        raise IOError("received value of non requested data point [MP,{:d}]".format(dp_number))
+                        raise IOError("non requested data point value received [MP,{:d}]".format(dp_number))
                     name = dp_dict[dp_number]
                     val = HtParams[name].from_str(dp_value)
-                    # TODO _logger.debug()?
+                    _logger.debug("{!r} = {!s} ({})".format(name, val, unknown_val))
                     values.update({name: val})
             except Exception as e:
                 _logger.error("fast query for parameter(s) failed: {!s}".format(e))
