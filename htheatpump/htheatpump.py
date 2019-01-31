@@ -954,18 +954,23 @@ class HtHeatpump:
                 resp = []
                 # read all requested data point (parameter) values
                 for _ in dp_dict:
-                    resp.append(self.read_response())  # e.g. "MA,0,-3.4,17"
+                    resp.append(self.read_response())  # e.g. "MA,11,46.0,16"
                 # extract data (MP data point number and value)
                 for r in resp:
                     m = re.match(MR_RESP, r)
                     if not m:
                         raise IOError("invalid response for MR command [{}]".format(resp))
                     dp_number, dp_value = m.group(1, 2)
-                    pass  # TODO
-                    #if idx != args[i]:
-                    #    raise IOError("fault list index doesn't match [{:d}, but should be {:d}]".format(idx, args[i]))
-            except Exception:
-                pass  # TODO
+                    dp_number = int(dp_number)
+                    if dp_number not in dp_dict:
+                        raise IOError("received value of non requested data point [MP,{:d}]".format(dp_number))
+                    name = dp_dict[dp_number]
+                    val = HtParams[name].from_str(dp_value)
+                    # TODO _logger.debug()?
+                    values.update({name: val})
+            except Exception as e:
+                _logger.error("fast query for parameter(s) failed: {!s}".format(e))
+                raise
         return values
 
 
