@@ -131,12 +131,12 @@ class HtParam:
         self.max_val = max_val
         return ret
 
-    def check_limits(self, val):
+    def in_limits(self, val):
         """ TODO doc
         """
+        assert val is not None, "val must not be None"
         # check the passed value against the defined limits (if given; 'None' means "doesn't matter")
-        if (self.min_val is not None and val < self.min_val) or (self.max_val is not None and val > self.max_val):
-            raise ValueError("value {!r} is beyond the limits [{}, {}]".format(val, self.min_val, self.max_val))
+        return (self.min_val is None or self.min_val <= val) and (self.max_val is None or val <= self.max_val)
 
     @staticmethod
     def _from_str(value, data_type):

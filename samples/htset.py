@@ -120,7 +120,7 @@ def main():
     start = timer()
     try:
         hp.open_connection()
-        hp.login()
+        hp.login(True)  # perform a parameter limit update here!
 
         rid = hp.get_serial_number()
         if args.verbose:
@@ -132,7 +132,7 @@ def main():
         # convert the passed value (as string) to the specific data type
         value = HtParams[args.name[0]].from_str(args.value[0])
         # set the parameter of the heat pump to the passed value
-        value = hp.set_param(args.name[0], value)
+        value = hp.set_param(args.name[0], value, True)
         print(value)
 
     except Exception as ex:

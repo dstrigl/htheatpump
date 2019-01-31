@@ -130,7 +130,7 @@ def main():
     start = timer()
     try:
         hp.open_connection()
-        hp.login()
+        hp.login(False)  # update of parameter limits not needed here!
 
         rid = hp.get_serial_number()
         if args.verbose:

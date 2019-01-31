@@ -811,9 +811,10 @@ class HtHeatpump:
                 if resp_max != param.max_val:
                     raise ParamVerificationException("parameter max value doesn't match with {!r} [{!r}]"
                                                      .format(param.max_val, resp_max))
-            # check 'VAL' against the limits (if given)
-            #if resp_val is not None:
-            #    param.check_limits(resp_val)
+            # check 'VAL' against the limits
+            if resp_val is not None and not param.in_limits(resp_val):
+                _logger.warning("value {!r} is beyond the limits [{}, {}]"
+                                .format(resp_val, param.min_val, param.max_val))
         except Exception as e:
             if self._verify_param:  # interpret as error?
                 raise
@@ -870,7 +871,7 @@ class HtHeatpump:
             _logger.error("query of parameter {!r} failed: {!s}".format(name, e))
             raise
 
-    def set_param(self, name, val):
+    def set_param(self, name, val, ignore_limits=False):
         """ TODO
         Set the value of a specific parameter of the heat pump.
 
@@ -897,17 +898,14 @@ class HtHeatpump:
 
         will set the desired room temperature of the heating circuit to 21.5 °C.
         """
+        assert val is not None, "val must not be None"
         # find the corresponding definition for the parameter
         if name not in HtParams:
             raise KeyError("parameter definition for parameter {!r} not found".format(name))
-        # TODO needed?
-        # verify the parameter definition before changing any value (if desired) by calling 'get_param(...)'
-        #   (this is just for safety to be sure that the parameter definitions in HtParams are correct!)
-        #if self._verify_param:
-        #    self.get_param(name)
         param = HtParams[name]
         # check the passed value against the defined limits
-        param.check_limits(val)
+        if not ignore_limits and not param.in_limits(val):
+            raise ValueError("value {!r} is beyond the limits [{}, {}]".format(val, param.min_val, param.max_val))
         # send command to the heat pump
         val = param.to_str(val)
         self.send_request("{},VAL={}".format(param.cmd(), val))
