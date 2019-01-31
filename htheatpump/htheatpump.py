@@ -650,7 +650,7 @@ class HtHeatpump:
             m = re.match(ALC_RESP, resp)
             if not m:
                 raise IOError("invalid response for ALC command [{}]".format(resp))
-            (idx, err) = [ int(g) for g in m.group(1, 2) ]  # fault list index, error code (?)
+            idx, err = [ int(g) for g in m.group(1, 2) ]  # fault list index, error code (?)
             year = 2000 + int(m.group(5))
             tmp = [ int(g) for g in m.group(4, 3, 6, 7, 8) ]  # month, day, hour, min, sec
             dt = datetime.datetime(year, *tmp)  # create datetime object
@@ -708,6 +708,7 @@ class HtHeatpump:
         """
         if not args:
             args = range(0, self.get_fault_list_size())
+        args = tuple(set(args))  # remove duplicates
         # send AR request to the heat pump
         cmd = AR_CMD.format(','.join(map(lambda i: str(i), args)))
         self.send_request(cmd)
@@ -723,7 +724,7 @@ class HtHeatpump:
                 m = re.match(AR_RESP, r)
                 if not m:
                     raise IOError("invalid response for AR command [{}]".format(resp))
-                (idx, err) = [ int(g) for g in m.group(1, 2) ]  # fault list index, error code
+                idx, err = [ int(g) for g in m.group(1, 2) ]  # fault list index, error code
                 year = 2000 + int(m.group(5))
                 tmp = [ int(g) for g in m.group(4, 3, 6, 7, 8) ]  # month, day, hour, min, sec
                 dt = datetime.datetime(year, *tmp)  # create datetime object from extracted data
@@ -932,7 +933,7 @@ class HtHeatpump:
         """
         return self.get_param("Stoerung")
 
-    def query(self, names=HtParams.keys()):
+    def query(self, *args):
         """ TODO doc
         Return a dict of the requested parameters with their retrieved values from the heat pump.
 
@@ -956,16 +957,14 @@ class HtHeatpump:
             Will be raised when the login failed or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum) for the requests.
         """
+        if not args:
+            args = HtParams.keys()
+        args = tuple(set(args))  # remove duplicates
         values = {}
         # query for each parameter in the given list
-        for n in names:
-            values.update({n: self.get_param(n)})
+        for name in args:
+            values.update({name: self.get_param(name)})
         return values
-
-    def fast_query(self):
-        """ TODO
-        """
-        pass
 
 
 # --------------------------------------------------------------------------------------------- #
