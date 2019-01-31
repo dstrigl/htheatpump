@@ -656,7 +656,7 @@ class HtHeatpump:
             dt = datetime.datetime(year, *tmp)  # create datetime object
             msg = m.group(9).strip()
             _logger.debug("(idx: {:d}, err: {:d})[{}]: {}".format(idx, err, dt.isoformat(), msg))
-            return ( idx, err, dt, msg )
+            return idx, err, dt, msg
         except Exception as e:
             _logger.error("query for last fault message failed: {!s}".format(e))
             raise
@@ -709,39 +709,40 @@ class HtHeatpump:
         if not args:
             args = range(0, self.get_fault_list_size())
         args = tuple(set(args))  # remove duplicates
-        # send AR request to the heat pump
-        cmd = AR_CMD.format(','.join(map(lambda i: str(i), args)))
-        self.send_request(cmd)
-        # ... and wait for the response
-        try:
-            resp = []
-            # read all requested fault list entries
-            for _ in args:
-                resp.append(self.read_response())  # e.g. "AA,29,20,14.09.14-11:52:08,EQ_Spreizung"
-            # extract data (fault list index, error code, date, time and message)
-            faults = []
-            for i, r in enumerate(resp):
-                m = re.match(AR_RESP, r)
-                if not m:
-                    raise IOError("invalid response for AR command [{}]".format(resp))
-                idx, err = [ int(g) for g in m.group(1, 2) ]  # fault list index, error code
-                year = 2000 + int(m.group(5))
-                tmp = [ int(g) for g in m.group(4, 3, 6, 7, 8) ]  # month, day, hour, min, sec
-                dt = datetime.datetime(year, *tmp)  # create datetime object from extracted data
-                msg = m.group(9).strip()
-                _logger.debug("(idx: {:03d}, err: {:05d})[{}]: {}".format(idx, err, dt.isoformat(), msg))
-                if idx != args[i]:
-                    raise IOError("fault list index doesn't match [{:d}, but should be {:d}]".format(idx, args[i]))
-                # add the received fault list entry to the result list
-                faults.append({ "index"   : idx,  # fault list index
-                                "error"   : err,  # error code
-                                "datetime": dt,   # date and time of the entry
-                                "message" : msg,  # error message
-                                })
-            return faults
-        except Exception as e:
-            _logger.error("query for fault list failed: {!s}".format(e))
-            raise
+        faults = []
+        if args:
+            # send AR request to the heat pump
+            cmd = AR_CMD.format(','.join(map(lambda i: str(i), args)))
+            self.send_request(cmd)
+            # ... and wait for the response
+            try:
+                resp = []
+                # read all requested fault list entries
+                for _ in args:
+                    resp.append(self.read_response())  # e.g. "AA,29,20,14.09.14-11:52:08,EQ_Spreizung"
+                # extract data (fault list index, error code, date, time and message)
+                for i, r in enumerate(resp):
+                    m = re.match(AR_RESP, r)
+                    if not m:
+                        raise IOError("invalid response for AR command [{}]".format(resp))
+                    idx, err = [ int(g) for g in m.group(1, 2) ]  # fault list index, error code
+                    year = 2000 + int(m.group(5))
+                    tmp = [ int(g) for g in m.group(4, 3, 6, 7, 8) ]  # month, day, hour, min, sec
+                    dt = datetime.datetime(year, *tmp)  # create datetime object from extracted data
+                    msg = m.group(9).strip()
+                    _logger.debug("(idx: {:03d}, err: {:05d})[{}]: {}".format(idx, err, dt.isoformat(), msg))
+                    if idx != args[i]:
+                        raise IOError("fault list index doesn't match [{:d}, but should be {:d}]".format(idx, args[i]))
+                    # add the received fault list entry to the result list
+                    faults.append({ "index"   : idx,  # fault list index
+                                    "error"   : err,  # error code
+                                    "datetime": dt,   # date and time of the entry
+                                    "message" : msg,  # error message
+                                    })
+            except Exception as e:
+                _logger.error("query for fault list failed: {!s}".format(e))
+                raise
+        return faults
 
     def _extract_param_data(self, name, resp):
         """ TODO doc
