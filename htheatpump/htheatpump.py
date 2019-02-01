@@ -955,6 +955,7 @@ class HtHeatpump:
         if dp_dict:
             # send MR request to the heat pump
             cmd = MR_CMD.format(','.join(map(lambda i: str(i), dp_dict)))
+            print(cmd)  # TODO remove
             self.send_request(cmd)
             # ... and wait for the response
             try:
@@ -976,7 +977,7 @@ class HtHeatpump:
                     _logger.debug("{!r} = {!s} ({})".format(name, val, unknown_val))
                     values.update({name: val})
             except Exception as e:
-                _logger.error("fast query for parameter(s) failed: {!s}".format(e))
+                _logger.error("fast query of parameter(s) failed: {!s}".format(e))
                 raise
         return values
 
