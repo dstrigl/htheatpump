@@ -134,7 +134,7 @@ class HtParam:
     def in_limits(self, val):
         """ TODO doc
         """
-        assert val is not None, "val must not be None"
+        assert val is not None, "'val' must not be None"
         # check the passed value against the defined limits (if given; 'None' means "doesn't matter")
         return (self.min_val is None or self.min_val <= val) and (self.max_val is None or val <= self.max_val)
 

@@ -123,6 +123,7 @@ def main():
     params = args.name if args.name else HtParams.keys()
 
     hp = HtHeatpump(args.device, baudrate=args.baudrate)
+    hp.verify_param = False
     start = timer()
     try:
         hp.open_connection()
@@ -137,19 +138,19 @@ def main():
 
         # query for the given parameter(s)
         values = {}
-        for p in params:
-            val = hp.get_param(p)
-            if args.boolasint and HtParams[p].data_type == HtDataTypes.BOOL:
+        for name in params:
+            val = hp.get_param(name)
+            if args.boolasint and HtParams[name].data_type == HtDataTypes.BOOL:
                 val = 1 if val else 0
-            values.update({p: val})
+            values.update({name: val})
 
         # print the current value(s) of the retrieved parameter(s)
         if args.json:
             print(json.dumps(values, indent=4, sort_keys=True))
         else:
             if len(params) > 1:
-                for p in sorted(params):
-                    print("{:{width}}: {}".format(p, values[p], width=len(max(params, key=len))))
+                for name in sorted(params):
+                    print("{:{width}}: {}".format(name, values[name], width=len(max(params, key=len))))
             elif len(params) == 1:
                 print(values[params[0]])
 

@@ -117,6 +117,7 @@ def main():
         logging.basicConfig(level=logging.WARNING)
 
     hp = HtHeatpump(args.device, baudrate=args.baudrate)
+    hp.verify_param = False
     start = timer()
     try:
         hp.open_connection()

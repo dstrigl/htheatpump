@@ -139,7 +139,7 @@ def test_hthp_is_not_None(hthp):
 class TestHtParams:
     @pytest.mark.parametrize("name, acl", [(name, param.acl) for name, param in HtParams.items()])
     def test_acl(self, name, acl):
-        assert acl is not None, "acl must not be None"
+        assert acl is not None, "'acl' must not be None"
         m = re.match(r"^(r-|-w|rw)$", acl)
         assert m is not None, "invalid acl definition for parameter {!r} [{!r}]".format(name, acl)
         #assert 0

@@ -813,7 +813,7 @@ class HtHeatpump:
                 if resp_max != param.max_val:
                     raise ParamVerificationException("parameter max value doesn't match with {!r} [{!r}]"
                                                      .format(param.max_val, resp_max))
-            # check 'VAL' against the limits
+            # check 'VAL' against the limits and write a WARNING if necessary
             if resp_val is not None and not param.in_limits(resp_val):
                 _logger.warning("value {!r} is beyond the limits [{}, {}]"
                                 .format(resp_val, param.min_val, param.max_val))
@@ -870,7 +870,7 @@ class HtHeatpump:
             _logger.debug("{!r} = {!s}".format(name, val))
             return val
         except Exception as e:
-            _logger.error("query of parameter {!r} failed: {!s}".format(name, e))
+            _logger.error("get parameter {!r} failed: {!s}".format(name, e))
             raise
 
     def set_param(self, name, val, ignore_limits=False):
@@ -900,7 +900,7 @@ class HtHeatpump:
 
         will set the desired room temperature of the heating circuit to 21.5 °C.
         """
-        assert val is not None, "val must not be None"
+        assert val is not None, "'val' must not be None"
         # find the corresponding definition for the parameter
         if name not in HtParams:
             raise KeyError("parameter definition for parameter {!r} not found".format(name))
@@ -962,9 +962,13 @@ class HtHeatpump:
             args = HtParams.keys()
         args = tuple(set(args))  # remove duplicates
         values = {}
-        # query for each parameter in the given list
-        for name in args:
-            values.update({name: self.get_param(name)})
+        try:
+            # query for each parameter in the given list
+            for name in args:
+                values.update({name: self.get_param(name)})
+        except Exception as e:
+            _logger.error("query of parameter(s) failed: {!s}".format(e))
+            raise
         return values
 
 
