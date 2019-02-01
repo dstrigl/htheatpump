@@ -137,12 +137,10 @@ def main():
             _logger.info("software version = {} ({:d})".format(ver[0], ver[1]))
 
         # query for the given parameter(s)
-        values = {}
-        for name in names:
-            val = hp.get_param(name)
+        values = hp.query(names)
+        for name, val in values.items():
             if args.boolasint and HtParams[name].data_type == HtDataTypes.BOOL:
-                val = 1 if val else 0
-            values.update({name: val})
+                values[name] = 1 if val else 0
 
         # print the current value(s) of the retrieved parameter(s)
         if args.json:
