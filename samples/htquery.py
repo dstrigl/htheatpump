@@ -120,7 +120,7 @@ def main():
     else:
         logging.basicConfig(level=logging.WARNING)
     # if not given, query for all "known" parameters
-    params = args.name if args.name else HtParams.keys()
+    names = args.name if args.name else HtParams.keys()
 
     hp = HtHeatpump(args.device, baudrate=args.baudrate)
     hp.verify_param = False
@@ -138,7 +138,7 @@ def main():
 
         # query for the given parameter(s)
         values = {}
-        for name in params:
+        for name in names:
             val = hp.get_param(name)
             if args.boolasint and HtParams[name].data_type == HtDataTypes.BOOL:
                 val = 1 if val else 0
@@ -148,11 +148,11 @@ def main():
         if args.json:
             print(json.dumps(values, indent=4, sort_keys=True))
         else:
-            if len(params) > 1:
-                for name in sorted(params):
-                    print("{:{width}}: {}".format(name, values[name], width=len(max(params, key=len))))
-            elif len(params) == 1:
-                print(values[params[0]])
+            if len(names) > 1:
+                for name in sorted(names):
+                    print("{:{width}}: {}".format(name, values[name], width=len(max(names, key=len))))
+            elif len(names) == 1:
+                print(values[names[0]])
 
     except Exception as ex:
         _logger.error(ex)
