@@ -148,7 +148,11 @@ def main():
         else:
             if len(values) > 1:
                 for name in sorted(values.keys()):
-                    print("{:{width}}: {}".format(name, values[name], width=len(max(values.keys(), key=len))))
+                    print("{:{width}} [{},{:02d}]: {}".format(name,
+                                                              HtParams[name].dp_type,
+                                                              HtParams[name].dp_number,
+                                                              values[name],
+                                                              width=len(max(values.keys(), key=len))))
             elif len(values) == 1:
                 print(next(iter(values.values())))
 

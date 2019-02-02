@@ -433,7 +433,7 @@ class HtHeatpump:
         # compute the checksum over header, payload length and the payload itself, depending on the header
         comp_checksum = RESPONSE_HEADER[header]["checksum"](header, payload_len, payload)
         if checksum != comp_checksum:
-            raise IOError("received response has an invalid checksum [{}/{}] (header=[{}], payload=[{}])"
+            raise IOError("received response has an invalid checksum [{}({})] (header=[{}], payload=[{}])"
                           .format(hex(checksum), hex(comp_checksum), header, payload))
         # debug log of the received response
         _logger.debug("received response: [{}]".format(header + bytes([payload_len]) + payload + bytes([checksum])))
@@ -955,7 +955,6 @@ class HtHeatpump:
         if dp_dict:
             # send MR request to the heat pump
             cmd = MR_CMD.format(','.join(map(lambda i: str(i), dp_dict)))
-            print(cmd)  # TODO remove
             self.send_request(cmd)
             # ... and wait for the response
             try:
