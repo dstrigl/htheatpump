@@ -67,13 +67,35 @@ REQUEST_HEADER = b"\x02\xfd\xd0\xe0\x00\x00"
 RESPONSE_HEADER_LEN = 6
 RESPONSE_HEADER = {
     # normal response header with answer; checksum has to be computed!
-    b"\x02\xfd\xe0\xd0\x00\x00" : { "type": HtResponseTypes.ANSWER, "checksum": None },
+    b"\x02\xfd\xe0\xd0\x00\x00":
+        { "type": HtResponseTypes.ANSWER,
+          # method to calculate the checksum of the response:
+          "checksum": lambda header, payload_len, payload: calc_checksum(header + bytes([payload_len]) + payload),
+          },
     # on HP08S10W-WEB, SW 3.0.20: checksum seems to be fixed 0x0, but why?
-    b"\x02\xfd\xe0\xd0\x04\x00" : { "type": HtResponseTypes.ANSWER, "checksum": 0x00 },
+    b"\x02\xfd\xe0\xd0\x04\x00":
+        { "type": HtResponseTypes.ANSWER,
+          # method to calculate the checksum of the response:
+          "checksum": lambda header, payload_len, payload: 0x00,
+          },
     # on HP10S12W-WEB, SW 3.0.8: another response header with fixed checksum?!
-    b"\x02\xfd\xe0\xd0\x08\x00" : { "type": HtResponseTypes.ANSWER, "checksum": 0x00 },
+    b"\x02\xfd\xe0\xd0\x08\x00":
+        { "type": HtResponseTypes.ANSWER,
+          # method to calculate the checksum of the response:
+          "checksum": lambda header, payload_len, payload: 0x00,
+          },
     # error response header; checksum has to be computed!
-    b"\x02\xfd\xe0\xd0\x02\x00" : { "type": HtResponseTypes.ERROR,  "checksum": None },
+    b"\x02\xfd\xe0\xd0\x02\x00":
+        { "type": HtResponseTypes.ERROR,
+          # method to calculate the checksum of the response:
+          "checksum": lambda header, payload_len, payload: calc_checksum(header + bytes([payload_len]) + payload),
+          },
+    # response header for some 'MR' answers; checksum has to be computed a little bit different!
+    b"\x02\xfd\xe0\xd0\x01\x00":
+        { "type": HtResponseTypes.ANSWER,
+          # method to calculate the checksum of the response:
+          "checksum": lambda header, payload_len, payload: calc_checksum(header + bytes([payload_len - 1]) + payload),
+          },
 }
 
 # special commands of the heat pump; the request and response of this commands differ from the
@@ -104,6 +126,8 @@ AR_RESP      = (r"^AA,(\d+),(\d+)"                          # fault list index a
                 r",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"     # date, e.g. '14.09.14'
                 r"-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                  # time, e.g. '11:52:08'
                 r",(.*)$")                                   # error message, e.g. 'EQ_Spreizung'
+MR_CMD       = r"MR,{}"                             # fast query for several MP data point values
+MR_RESP      = r"^MA,(\d+),([^,]+),(\d+)$"          # MP number, value and ?; e.g. 'MA,0,-3.4,17'
 
 
 # --------------------------------------------------------------------------------------------- #
@@ -361,6 +385,8 @@ class HtHeatpump:
             the transmitted payload length in the protocol is zero (0 bytes), although some payload follows.
             In this case we read until we will found the trailing ``b"\\r\\n"`` at the end of the payload
             to determine the payload of the message.
+
+            TODO doc for b"\x02\xfd\xe0\xd0\x01\x00" ... checksum( ... payload_len - 1 ... )
         """
         if not self._ser:
             raise IOError("serial connection not open")
@@ -374,11 +400,12 @@ class HtHeatpump:
         payload_len = self._ser.read(1)
         if not payload_len:
             raise IOError("data stream broken during reading payload length")
+        payload_len = payload_len[0]
         # We don't know why, but for some messages (e.g. for the error message "ERR,INVALID IDX") the
         # heat pump answers with a payload length of zero bytes. In order to also accept such responses
         # we read until we will found the trailing '\r\n' at the end of the payload. The payload length
         # itself will then be computed afterwards by counting the number of bytes of the payload.
-        if payload_len[0] == 0:
+        if payload_len == 0:
             _logger.info(
                 "received response with a payload length of zero; "
                 "try to read until the occurrence of '\\r\\n' (header=[{}])".format(header))
@@ -394,32 +421,28 @@ class HtHeatpump:
             #   Otherwise, the checksum validation will always fail.
             #   Therefore, the payload length used for the checksum computation is the length of the payload
             #   without the two trailing characters '\r\n':
-            payload_len = bytes([len(payload) - 2])
+            payload_len = len(payload) - 2
         else:
             # read the payload itself
-            payload = self._ser.read(payload_len[0])
-            if not payload or len(payload) < payload_len[0]:
+            payload = self._ser.read(payload_len)
+            if not payload or len(payload) < payload_len:
                 raise IOError("data stream broken during reading payload")
         # read the checksum and verify the validity of the response
         checksum = self._ser.read(1)
         if not checksum:
             raise IOError("data stream broken during reading checksum")
-        comp_checksum = RESPONSE_HEADER[header]["checksum"]
-        if comp_checksum is None:
-            # compute the checksum over header, payload length and the payload itself
-            comp_checksum = calc_checksum(header + payload_len + payload)
-        else:  # log about response with unlikely (but handled) header!
-            _logger.info("received response with \"unlikely\" header, but handled normally (checksum={})"
-                         .format(hex(checksum[0])))
-        if checksum[0] != comp_checksum:
-            raise IOError("received response has an invalid checksum [{}] (header=[{}], payload=[{}])"
-                          .format(hex(checksum[0]), header, payload))
+        checksum = checksum[0]
+        # compute the checksum over header, payload length and the payload itself, depending on the header
+        comp_checksum = RESPONSE_HEADER[header]["checksum"](header, payload_len, payload)
+        if checksum != comp_checksum:
+            raise IOError("received response has an invalid checksum [{}({})] (header=[{}], payload=[{}])"
+                          .format(hex(checksum), hex(comp_checksum), header, payload))
         # debug log of the received response
-        _logger.debug("received response: [{}]".format(header + payload_len + payload + checksum))
+        _logger.debug("received response: [{}]".format(header + bytes([payload_len]) + payload + bytes([checksum])))
         _logger.debug("  header = {}".format(header))
-        _logger.debug("  payload length = {}".format(payload_len[0]))
+        _logger.debug("  payload length = {}".format(payload_len))
         _logger.debug("  payload = {}".format(payload))
-        _logger.debug("  checksum = {}".format(hex(checksum[0])))
+        _logger.debug("  checksum = {}".format(hex(checksum)))
         # extract the relevant data from the payload (without header '~' and trailer ';\r\n')
         m = re.match(r"^~([^;]*);\r\n$", payload.decode("ascii"))
         if not m:
@@ -967,6 +990,49 @@ class HtHeatpump:
         except Exception as e:
             _logger.error("query of parameter(s) failed: {!s}".format(e))
             raise
+        return values
+
+    def fast_query(self, *args):
+        """ TODO doc
+        """
+        if not args:
+            args = (name for name, param in HtParams.items() if param.dp_type == "MP")
+        dp_dict = {}
+        for name in args:
+            if name not in HtParams:
+                raise KeyError("parameter definition for parameter {!r} not found".format(name))
+            param = HtParams[name]
+            if param.dp_type != "MP":
+                raise ValueError("invalid parameter {!r}; only parameters representing a 'MP' data point are allowed"
+                                 .format(name))
+            dp_dict.update({param.dp_number: name})
+        values = {}
+        if dp_dict:
+            # send MR request to the heat pump
+            cmd = MR_CMD.format(','.join(map(lambda i: str(i), dp_dict)))
+            self.send_request(cmd)
+            # ... and wait for the response
+            try:
+                resp = []
+                # read all requested data point (parameter) values
+                for _ in dp_dict:
+                    resp.append(self.read_response())  # e.g. "MA,11,46.0,16"
+                # extract data (MP data point number and value)
+                for r in resp:
+                    m = re.match(MR_RESP, r)
+                    if not m:
+                        raise IOError("invalid response for MR command [{}]".format(resp))
+                    dp_number, dp_value, unknown_val = m.group(1, 2, 3)
+                    dp_number = int(dp_number)
+                    if dp_number not in dp_dict:
+                        raise IOError("non requested data point value received [MP,{:d}]".format(dp_number))
+                    name = dp_dict[dp_number]
+                    val = HtParams[name].from_str(dp_value)
+                    _logger.debug("{!r} = {!s} ({})".format(name, val, unknown_val))
+                    values.update({name: val})
+            except Exception as e:
+                _logger.error("fast query of parameter(s) failed: {!s}".format(e))
+                raise
         return values
 
 
