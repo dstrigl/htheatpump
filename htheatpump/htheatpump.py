@@ -708,7 +708,6 @@ class HtHeatpump:
         """
         if not args:
             args = range(0, self.get_fault_list_size())
-        args = tuple(set(args))  # remove duplicates
         faults = []
         if args:
             # send AR request to the heat pump
@@ -815,8 +814,8 @@ class HtHeatpump:
                                                      .format(param.max_val, resp_max))
             # check 'VAL' against the limits and write a WARNING if necessary
             if resp_val is not None and not param.in_limits(resp_val):
-                _logger.warning("value {!r} is beyond the limits [{}, {}]"
-                                .format(resp_val, param.min_val, param.max_val))
+                _logger.warning("value {!r} of parameter {!r} is beyond the limits [{}, {}]"
+                                .format(resp_val, name, param.min_val, param.max_val))
         except Exception as e:
             if self._verify_param:  # interpret as error?
                 raise
@@ -960,7 +959,6 @@ class HtHeatpump:
         """
         if not args:
             args = HtParams.keys()
-        args = tuple(set(args))  # remove duplicates
         values = {}
         try:
             # query for each parameter in the given list
