@@ -61,7 +61,7 @@ class HtDataTypes(enum.Enum):
 
     @staticmethod
     def from_str(s):
-        """ Creates a corresponding enum representation for the passed string.
+        """ Create a corresponding enum representation for the passed string.
 
         :param s: The passed string.
         :type s: str
@@ -95,27 +95,48 @@ class HtParam:
     :type acl: str
     :param data_type: The data type, see :class:`htparams.HtDataTypes`.
     :type data_type: HtDataTypes
-    :param min: The minimal value (default :const:`None`, which means "doesn't matter").
-    :type min: int, float or None
-    :param max: The maximal value (default :const:`None`, which means "doesn't matter").
-    :type max: int, float or None
+    :param min_val: The minimal value (default :const:`None`, which means "doesn't matter").
+    :type min_val: bool, int, float or None
+    :param max_val: The maximal value (default :const:`None`, which means "doesn't matter").
+    :type max_val: bool, int, float or None
     """
 
-    def __init__(self, dp_type, dp_number, acl, data_type, min=None, max=None):
+    def __init__(self, dp_type, dp_number, acl, data_type, min_val=None, max_val=None):
         self.dp_type = dp_type
         self.dp_number = dp_number
         self.acl = acl
         self.data_type = data_type
-        self.min = min
-        self.max = max
+        self.min_val = min_val
+        self.max_val = max_val
 
     def cmd(self):
-        """ Returns the command string, based on the data point type and number of the parameter.
+        """ Return the command string, based on the data point type and number of the parameter.
 
         :returns: The command string.
         :rtype: ``str``
         """
         return "{},NR={:d}".format(self.dp_type, self.dp_number)
+
+    def set_limits(self, min_val=None, max_val=None):
+        """ TODO doc
+        Set the limits of the parameter.
+
+        :param min_val: The minimal value (default :const:`None`, which means "doesn't matter").
+        :type min_val: bool, int, float or None
+        :param max_val: The maximal value (default :const:`None`, which means "doesn't matter").
+        :type max_val: bool, int, float or None
+        """
+        ret = self.min_val != min_val or self.max_val != max_val
+        self.min_val = min_val
+        self.max_val = max_val
+        return ret
+
+    def in_limits(self, val):
+        """ TODO doc
+        """
+        assert val is not None, "'val' must not be None"
+        # check the passed value against the defined limits (if given; 'None' means "doesn't matter")
+        return (self.min_val is None or self.min_val <= val) and (self.max_val is None or val <= self.max_val)
 
     @staticmethod
     def _from_str(value, data_type):
@@ -135,20 +156,26 @@ class HtParam:
         if data_type == HtDataTypes.STRING:
             pass  # passed value should be already a string ;-)
         elif data_type == HtDataTypes.BOOL:
-            value = value.strip().lower()
-            # convert to bool (0 = False, 1 = True)
-            if value in ["0", "false", "no", "n"]:
+            value = value.strip()
+            # convert to bool ('0' = False, '1' = True)
+            if value == "0":
                 value = False
-            elif value in ["1", "true", "yes", "y"]:
+            elif value == "1":
                 value = True
             else:
                 raise ValueError("invalid representation for data type BOOL ({!r})".format(value))
         elif data_type == HtDataTypes.INT:
             value = int(value.strip())  # convert to integer
         elif data_type == HtDataTypes.FLOAT:
-            value = float(value.strip())  # convert to floating point number
+            tmp = float(value.strip())  # convert to floating point number
+            try:  # to be more strict, the passed string shouldn't look like an integer
+                int(value.strip())  # try to convert to integer -> should fail!
+            except Exception:
+                value = tmp
+            else:
+                raise ValueError("invalid representation for data type FLOAT ({!r})".format(value))
         else:
-            assert 0, "unsupported data type ({})".format(data_type)
+            assert 0, "unsupported data type ({!r})".format(data_type)
         return value
 
     def from_str(self, arg):
@@ -205,7 +232,7 @@ class HtParam:
             assert isinstance(value, (int, float))
             value = str(float(value))
         else:
-            assert 0, "unsupported data type ({})".format(data_type)
+            assert 0, "unsupported data type ({!r})".format(data_type)
         return value
 
     def to_str(self, arg):
@@ -281,7 +308,7 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
             print("{!r}: dp_type = {!r}, dp_number = {:d}, acl = {!r}, data_type = {!s}, min = {!s}, max = {!s}"
                   .format(name, param.dp_type, param.dp_number, param.acl,
                           param.data_type if param.data_type else "<unknown>",
-                          param.min, param.max))
+                          param.min_val, param.max_val))
 
     def _load_from_csv():
         """ Load all supported heat pump parameter definitions from the CSV file.
@@ -291,7 +318,7 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
 
                 { "Parameter name": HtParam(dp_type=..., dp_number=...,
                                             acl=..., data_type=...,
-                                            min=..., max=...),
+                                            min_val=..., max_val=...),
                   # ...
                 }
 
@@ -322,7 +349,7 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
                 # add the parameter definition to the dictionary
                 params.update({name: HtParam(dp_type=dp_type, dp_number=dp_number,
                                              acl=acl, data_type=data_type,
-                                             min=min_val, max=max_val)})
+                                             min_val=min_val, max_val=max_val)})
         return params
 
     # Dictionary of the supported Heliotherm heat pump parameters

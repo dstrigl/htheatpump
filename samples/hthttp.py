@@ -88,7 +88,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
         result = None
         try:
             hp.reconnect()
-            hp.login()
+            hp.login(False)  # update of parameter limits not needed here!
 
             if parsed_path.path.lower() in ("/datetime/sync", "/datetime/sync/"):
                 # synchronize the system time of the heat pump with the current time
@@ -188,7 +188,7 @@ class HtHttpDaemon(Daemon):
         try:
             hp = HtHeatpump(args.device, baudrate=args.baudrate)
             hp.open_connection()
-            hp.login()
+            hp.login(True)  # perform a parameter limit update here!
             rid = hp.get_serial_number()
             _logger.info("Connected successfully to heat pump with serial number: {:d}".format(rid))
             ver = hp.get_version()

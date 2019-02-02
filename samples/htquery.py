@@ -119,14 +119,13 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.WARNING)
-    # if not given, query for all "known" parameters
-    params = args.name if args.name else HtParams.keys()
 
     hp = HtHeatpump(args.device, baudrate=args.baudrate)
+    hp.verify_param = False
     start = timer()
     try:
         hp.open_connection()
-        hp.login()
+        hp.login(False)  # update of parameter limits not needed here!
 
         rid = hp.get_serial_number()
         if args.verbose:
@@ -136,22 +135,20 @@ def main():
             _logger.info("software version = {} ({:d})".format(ver[0], ver[1]))
 
         # query for the given parameter(s)
-        values = {}
-        for p in params:
-            val = hp.get_param(p)
-            if args.boolasint and HtParams[p].data_type == HtDataTypes.BOOL:
-                val = 1 if val else 0
-            values.update({p: val})
+        values = hp.query(*args.name)
+        for name, val in values.items():
+            if args.boolasint and HtParams[name].data_type == HtDataTypes.BOOL:
+                values[name] = 1 if val else 0
 
         # print the current value(s) of the retrieved parameter(s)
         if args.json:
             print(json.dumps(values, indent=4, sort_keys=True))
         else:
-            if len(params) > 1:
-                for p in sorted(params):
-                    print("{:{width}}: {}".format(p, values[p], width=len(max(params, key=len))))
-            elif len(params) == 1:
-                print(values[params[0]])
+            if len(values) > 1:
+                for name in sorted(values.keys()):
+                    print("{:{width}}: {}".format(name, values[name], width=len(max(values.keys(), key=len))))
+            elif len(values) == 1:
+                print(next(iter(values.values())))
 
     except Exception as ex:
         _logger.error(ex)
