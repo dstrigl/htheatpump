@@ -121,8 +121,6 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.WARNING)
-    # if not given, query for all "known" parameters representing a MP data point
-    names = args.name if args.name else (n for n, p in HtParams.items() if p.dp_type == "MP")
 
     hp = HtHeatpump(args.device, baudrate=args.baudrate)
     hp.verify_param = False
@@ -139,7 +137,7 @@ def main():
             _logger.info("software version = {} ({:d})".format(ver[0], ver[1]))
 
         # fast query for the given parameter(s)
-        values = hp.fast_query(names)
+        values = hp.fast_query(*args.name)
         for name, val in values.items():
             if args.boolasint and HtParams[name].data_type == HtDataTypes.BOOL:
                 values[name] = 1 if val else 0
@@ -148,11 +146,11 @@ def main():
         if args.json:
             print(json.dumps(values, indent=4, sort_keys=True))
         else:
-            if len(names) > 1:
-                for name in sorted(names):
-                    print("{:{width}}: {}".format(name, values[name], width=len(max(names, key=len))))
-            elif len(names) == 1:
-                print(values[names[0]])
+            if len(values) > 1:
+                for name in sorted(values.keys()):
+                    print("{:{width}}: {}".format(name, values[name], width=len(max(values.keys(), key=len))))
+            elif len(values) == 1:
+                print(next(iter(values.values())))
 
     except Exception as ex:
         _logger.error(ex)
