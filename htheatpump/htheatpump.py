@@ -94,7 +94,7 @@ RESPONSE_HEADER = {
     b"\x02\xfd\xe0\xd0\x01\x00":
         { "type": HtResponseTypes.ANSWER,
           # method to calculate the checksum of the response:
-          "checksum": lambda header, payload_len, payload: calc_checksum(header + bytes([payload_len - 1]) + payload),
+          "checksum": lambda header, payload_len, payload: calc_checksum(header + bytes([payload_len]) + payload),
           },
 }
 
@@ -421,7 +421,10 @@ class HtHeatpump:
             #   Otherwise, the checksum validation will always fail.
             #   Therefore, the payload length used for the checksum computation is the length of the payload
             #   without the two trailing characters '\r\n':
-            payload_len = len(payload) - 2
+            if header == b"\x02\xfd\xe0\xd0\x01\x00":  # !!! TODO !!!
+                payload_len = len(payload) - 1
+            else:
+                payload_len = len(payload) - 2
         else:
             # read the payload itself
             payload = self._ser.read(payload_len)
@@ -435,8 +438,8 @@ class HtHeatpump:
         # compute the checksum over header, payload length and the payload itself, depending on the header
         comp_checksum = RESPONSE_HEADER[header]["checksum"](header, payload_len, payload)
         if checksum != comp_checksum:
-            raise IOError("received response has an invalid checksum [{}({})] (header=[{}], payload=[{}])"
-                          .format(hex(checksum), hex(comp_checksum), header, payload))
+            raise IOError("received response has an invalid checksum [{}({})] (header=[{}], payload_len={:d}, payload=[{}])"
+                          .format(hex(checksum), hex(comp_checksum), header, payload_len, payload))
         # debug log of the received response
         _logger.debug("received response: [{}]".format(header + bytes([payload_len]) + payload + bytes([checksum])))
         _logger.debug("  header = {}".format(header))
@@ -448,8 +451,8 @@ class HtHeatpump:
         if not m:
             raise IOError("failed to extract response data from payload [{}]".format(payload))
         # if the response includes an error message throw an exception
-        if RESPONSE_HEADER[header]["type"] == HtResponseTypes.ERROR:
-            raise IOError(m.group(1))
+        #if RESPONSE_HEADER[header]["type"] == HtResponseTypes.ERROR:  # !!! TODO !!!
+        #    raise IOError(m.group(1))
         # otherwise return the extracted data
         return m.group(1)
 
