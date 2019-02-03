@@ -749,7 +749,7 @@ class HtHeatpump:
                 for i, r in enumerate(resp):
                     m = re.match(AR_RESP, r)
                     if not m:
-                        raise IOError("invalid response for AR command [{}]".format(resp))
+                        raise IOError("invalid response for AR command [{}]".format(r))
                     idx, err = [ int(g) for g in m.group(1, 2) ]  # fault list index, error code
                     year = 2000 + int(m.group(5))
                     tmp = [ int(g) for g in m.group(4, 3, 6, 7, 8) ]  # month, day, hour, min, sec
@@ -1024,7 +1024,7 @@ class HtHeatpump:
                 for r in resp:
                     m = re.match(MR_RESP, r)
                     if not m:
-                        raise IOError("invalid response for MR command [{}]".format(resp))
+                        raise IOError("invalid response for MR command [{}]".format(r))
                     dp_number, dp_value, unknown_val = m.group(1, 2, 3)
                     dp_number = int(dp_number)
                     if dp_number not in dp_dict:
