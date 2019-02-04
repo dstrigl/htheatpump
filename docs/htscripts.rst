@@ -198,3 +198,9 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/hthttp.py
     [2019-01-18 20:24:20,425][INFO    ] logout successfully
 
     $ python3 hthttp.py stop
+
+
+htfastquery
+-----------
+
+TODO

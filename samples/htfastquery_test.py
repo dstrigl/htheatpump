@@ -3,6 +3,7 @@ from htheatpump.htheatpump import HtHeatpump
 from htheatpump.htparams import HtParams
 import random
 import time
+from timeit import default_timer as timer
 import logging
 #_logger = logging.getLogger(__name__)
 
@@ -22,6 +23,18 @@ def main():
     print("software version = {} ({:d})".format(ver[0], ver[1]))
 
     names = [name for name in HtParams.keys() if HtParams[name].dp_type == "MP"]
+
+    start = timer()
+    values = hp.query(*names)
+    end = timer()
+    print("HtHeatpump.query({:d}) execution time: {:.2f} sec".format(len(names), end - start))
+
+    start = timer()
+    values = hp.fast_query(*names)
+    end = timer()
+    print("HtHeatpump.fast_query({:d}) execution time: {:.2f} sec".format(len(names), end - start))
+
+    sys.exit(0)
 
     while True:
         print("\n" + "-" * 100)

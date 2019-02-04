@@ -22,7 +22,6 @@
 
 from htheatpump.htparams import HtParams
 
-import enum
 import serial
 import time
 import re
@@ -33,17 +32,17 @@ import datetime
 #from timeit import default_timer as timer
 
 
-# --------------------------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------------------------------------- #
 # Logging
-# --------------------------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------------------------------------- #
 
 import logging
 _logger = logging.getLogger(__name__)
 
 
-# --------------------------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------------------------------------- #
 # Constants
-# --------------------------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------------------------------------- #
 
 _serial_timeout = 5
 """ Serial timeout value in seconds; normally no need to change it. """
@@ -52,87 +51,80 @@ _login_retries = 2
 """
 
 
-# --------------------------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------------------------------------- #
 # Protocol constants
-# --------------------------------------------------------------------------------------------- #
-
-@enum.unique
-class HtResponseTypes(enum.Enum):
-    UNKNOWN = 0
-    ANSWER  = 1
-    ERROR   = 2
-
+# ------------------------------------------------------------------------------------------------------------------- #
 
 REQUEST_HEADER = b"\x02\xfd\xd0\xe0\x00\x00"
 RESPONSE_HEADER_LEN = 6
-RESPONSE_HEADER = {
+RESPONSE_HEADER = {  # TODO doc/comments
     # normal response header with answer; checksum has to be computed!
     b"\x02\xfd\xe0\xd0\x00\x00":
-        { "type": HtResponseTypes.ANSWER,
+        { "payload_len": lambda payload_len: payload_len,
           # method to calculate the checksum of the response:
           "checksum": lambda header, payload_len, payload: calc_checksum(header + bytes([payload_len]) + payload),
           },
     # on HP08S10W-WEB, SW 3.0.20: checksum seems to be fixed 0x0, but why?
     b"\x02\xfd\xe0\xd0\x04\x00":
-        { "type": HtResponseTypes.ANSWER,
+        { "payload_len": lambda payload_len: payload_len,
           # method to calculate the checksum of the response:
           "checksum": lambda header, payload_len, payload: 0x00,
           },
     # on HP10S12W-WEB, SW 3.0.8: another response header with fixed checksum?!
     b"\x02\xfd\xe0\xd0\x08\x00":
-        { "type": HtResponseTypes.ANSWER,
+        { "payload_len": lambda payload_len: payload_len,
           # method to calculate the checksum of the response:
           "checksum": lambda header, payload_len, payload: 0x00,
           },
     # error response header; checksum has to be computed!
     b"\x02\xfd\xe0\xd0\x02\x00":
-        { "type": HtResponseTypes.ERROR,
+        { "payload_len": lambda payload_len: payload_len - 2,
           # method to calculate the checksum of the response:
           "checksum": lambda header, payload_len, payload: calc_checksum(header + bytes([payload_len]) + payload),
           },
     # response header for some 'MR' answers; checksum has to be computed a little bit different!
     b"\x02\xfd\xe0\xd0\x01\x00":
-        { "type": HtResponseTypes.ANSWER,
+        { "payload_len": lambda payload_len: payload_len - 1,
           # method to calculate the checksum of the response:
           "checksum": lambda header, payload_len, payload: calc_checksum(header + bytes([payload_len]) + payload),
           },
 }
 
-# special commands of the heat pump; the request and response of this commands differ from the
-#   normal parameter requests defined in htparams.py
-LOGIN_CMD    = r"LIN"                                                             # login command
+# special commands of the heat pump; the request and response of this commands differ from the normal
+#   parameter requests defined in htparams.py
+LOGIN_CMD    = r"LIN"                                                                                   # login command
 LOGIN_RESP   = r"^OK"
-LOGOUT_CMD   = r"LOUT"                                                           # logout command
+LOGOUT_CMD   = r"LOUT"                                                                                 # logout command
 LOGOUT_RESP  = r"^OK"
-RID_CMD      = r"RID"         # returns the manufacturer's serial number, e.g. "~RID,123456;\r\n"
+RID_CMD      = r"RID"                               # returns the manufacturer's serial number, e.g. "~RID,123456;\r\n"
 RID_RESP     = r"^RID,(\d+)$"
-VERSION_CMD  = r"SP,NR=9"                         # returns the software version of the heat pump
+VERSION_CMD  = r"SP,NR=9"                                               # returns the software version of the heat pump
 VERSION_RESP = r"^SP,NR=9,.*NAME=([^,]+).*VAL=([^,]+).*$"
-CLK_CMD      = (r"CLK",                      # get/set the current date and time of the heat pump
+CLK_CMD      = (r"CLK",                                            # get/set the current date and time of the heat pump
                 r"CLK,DA={:02d}.{:02d}.{:02d},TI={:02d}:{:02d}:{:02d},WD={:d}")
 CLK_RESP     = (r"^CLK"
-                r",DA=(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"  # date, e.g. '26.11.15'
-                r",TI=([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"               # time, e.g. '21:28:57'
-                r",WD=([1-7])$")                            # weekday 1-7 (Monday through Sunday)
-ALC_CMD      = r"ALC"                           # returns the last fault message of the heat pump
-ALC_RESP     = (r"^AA,(\d+),(\d+)"                          # fault list index and error code (?)
-                r",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"     # date, e.g. '14.09.14'
-                r"-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                  # time, e.g. '11:52:08'
-                r",(.*)$")                                   # error message, e.g. 'EQ_Spreizung'
-ALS_CMD      = r"ALS"                              # returns the fault list size of the heat pump
+                r",DA=(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"                        # date, e.g. '26.11.15'
+                r",TI=([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                                     # time, e.g. '21:28:57'
+                r",WD=([1-7])$")                                                  # weekday 1-7 (Monday through Sunday)
+ALC_CMD      = r"ALC"                                                 # returns the last fault message of the heat pump
+ALC_RESP     = (r"^AA,(\d+),(\d+)"                                                # fault list index and error code (?)
+                r",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"                           # date, e.g. '14.09.14'
+                r"-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                                        # time, e.g. '11:52:08'
+                r",(.*)$")                                                         # error message, e.g. 'EQ_Spreizung'
+ALS_CMD      = r"ALS"                                                    # returns the fault list size of the heat pump
 ALS_RESP     = r"^SUM=(\d+)$"
-AR_CMD       = r"AR,{}"                              # returns a specific entry of the fault list
-AR_RESP      = (r"^AA,(\d+),(\d+)"                          # fault list index and error code (?)
-                r",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"     # date, e.g. '14.09.14'
-                r"-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                  # time, e.g. '11:52:08'
-                r",(.*)$")                                   # error message, e.g. 'EQ_Spreizung'
-MR_CMD       = r"MR,{}"                             # fast query for several MP data point values
-MR_RESP      = r"^MA,(\d+),([^,]+),(\d+)$"          # MP number, value and ?; e.g. 'MA,0,-3.4,17'
+AR_CMD       = r"AR,{}"                                                    # returns a specific entry of the fault list
+AR_RESP      = (r"^AA,(\d+),(\d+)"                                                # fault list index and error code (?)
+                r",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"                           # date, e.g. '14.09.14'
+                r"-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                                        # time, e.g. '11:52:08'
+                r",(.*)$")                                                         # error message, e.g. 'EQ_Spreizung'
+MR_CMD       = r"MR,{}"                                                   # fast query for several MP data point values
+MR_RESP      = r"^MA,(\d+),([^,]+),(\d+)$"                     # MP data point number, value and ?; e.g. 'MA,0,-3.4,17'
 
 
-# --------------------------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------------------------------------- #
 # Helper functions
-# --------------------------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------------------------------------- #
 
 def calc_checksum(s):
     """ Function that calculates the checksum of a provided bytes array.
@@ -142,6 +134,7 @@ def calc_checksum(s):
     :returns: The computed checksum as ``int``.
     :rtype: ``int``
     """
+    assert isinstance(s, bytes)
     checksum = 0x0
     for i in range(0, len(s)):
         databyte = s[i]
@@ -158,7 +151,9 @@ def verify_checksum(s):
     :type s: bytes
     :returns: :const:`True` if valid, :const:`False` otherwise.
     :rtype: ``bool``
+    :raises TODO doc
     """
+    assert isinstance(s, bytes)
     if len(s) < 2:
         raise ValueError("the provided array of bytes needs to be at least 2 bytes long")
     return calc_checksum(s[:-1]) == s[-1]  # is the last byte of the array the correct checksum?
@@ -171,7 +166,9 @@ def add_checksum(s):
     :type s: bytes
     :returns: Byte array with the added checksum.
     :rtype: ``bytes``
+    :raises TODO doc
     """
+    assert isinstance(s, bytes)
     if len(s) < 1:
         raise ValueError("the provided array of bytes needs to be at least 1 byte long")
     return s + bytes([calc_checksum(s)])  # append the checksum at the end of the bytes array
@@ -184,16 +181,18 @@ def create_request(cmd):
     :type cmd: str
     :returns: The request string for the specified command as byte array.
     :rtype: ``bytes``
+    :raises TODO doc
     """
+    assert isinstance(cmd, str)
     if len(cmd) > 253:  # = 255 - 1 byte for header - 1 byte for trailer
         raise ValueError("command must be lesser than 254 characters")
     cmd = "~" + cmd + ";"  # add header '~' and trailer ';'
     return add_checksum(REQUEST_HEADER + bytes([len(cmd)]) + cmd.encode("ascii"))
 
 
-# --------------------------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------------------------------------- #
 # Exception classes
-# --------------------------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------------------------------------- #
 
 class ParamVerificationException(ValueError):
     """ Exception which represents a verification error during parameter access.
@@ -205,9 +204,9 @@ class ParamVerificationException(ValueError):
         ValueError.__init__(self, message)
 
 
-# --------------------------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------------------------------------- #
 # HtHeatpump class
-# --------------------------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------------------------------------- #
 
 class HtHeatpump:
     """ Object which encapsulates the communication with the Heliotherm heat pump.
@@ -386,7 +385,7 @@ class HtHeatpump:
             In this case we read until we will found the trailing ``b"\\r\\n"`` at the end of the payload
             to determine the payload of the message.
 
-            TODO doc for b"\x02\xfd\xe0\xd0\x01\x00" ... checksum( ... payload_len - 1 ... )
+            TODO doc for b"\x02\xfd\xe0\xd0\x01\x00" ...
         """
         if not self._ser:
             raise IOError("serial connection not open")
@@ -397,10 +396,10 @@ class HtHeatpump:
         elif header not in RESPONSE_HEADER:
             raise IOError("invalid or unknown response header [{}]".format(header))
         # read the length of the following payload
-        payload_len = self._ser.read(1)
-        if not payload_len:
+        payload_len_r = self._ser.read(1)
+        if not payload_len_r:
             raise IOError("data stream broken during reading payload length")
-        payload_len = payload_len[0]
+        payload_len = payload_len_r = payload_len_r[0]
         # We don't know why, but for some messages (e.g. for the error message "ERR,INVALID IDX") the
         # heat pump answers with a payload length of zero bytes. In order to also accept such responses
         # we read until we will found the trailing '\r\n' at the end of the payload. The payload length
@@ -408,7 +407,7 @@ class HtHeatpump:
         if payload_len == 0:
             _logger.info(
                 "received response with a payload length of zero; "
-                "try to read until the occurrence of '\\r\\n' (header=[{}])".format(header))
+                "try to read until the occurrence of '\\r\\n' [header={}]".format(header))
             payload = b""
             while payload[-2:] != b"\r\n":
                 tmp = self._ser.read(1)
@@ -421,39 +420,38 @@ class HtHeatpump:
             #   Otherwise, the checksum validation will always fail.
             #   Therefore, the payload length used for the checksum computation is the length of the payload
             #   without the two trailing characters '\r\n':
-            if header == b"\x02\xfd\xe0\xd0\x01\x00":  # !!! TODO !!!
-                payload_len = len(payload) - 1
-            else:
-                payload_len = len(payload) - 2
+            # TODO comment
+            payload_len = len(payload)
         else:
             # read the payload itself
             payload = self._ser.read(payload_len)
             if not payload or len(payload) < payload_len:
                 raise IOError("data stream broken during reading payload")
+        # correct the payload length depending on the received header
+        # TODO comment ^^^
+        payload_len = RESPONSE_HEADER[header]["payload_len"](payload_len)
         # read the checksum and verify the validity of the response
         checksum = self._ser.read(1)
         if not checksum:
             raise IOError("data stream broken during reading checksum")
         checksum = checksum[0]
-        # compute the checksum over header, payload length and the payload itself, depending on the header
+        # compute the checksum over header, payload length and the payload itself (depending on the header)
+        # TODO comment ^^^
         comp_checksum = RESPONSE_HEADER[header]["checksum"](header, payload_len, payload)
         if checksum != comp_checksum:
-            raise IOError("received response has an invalid checksum [{}({})] (header=[{}], payload_len={:d}, payload=[{}])"
-                          .format(hex(checksum), hex(comp_checksum), header, payload_len, payload))
+            raise IOError("invalid checksum [{}] of response "
+                          "[header={}, payload_len={:d}({:d}), payload={}, checksum={}]"
+                          .format(hex(checksum), header, payload_len, payload_len_r, payload, hex(comp_checksum)))
         # debug log of the received response
-        _logger.debug("received response: [{}]".format(header + bytes([payload_len]) + payload + bytes([checksum])))
+        _logger.debug("received response: {}".format(header + bytes([payload_len]) + payload + bytes([checksum])))
         _logger.debug("  header = {}".format(header))
-        _logger.debug("  payload length = {}".format(payload_len))
+        _logger.debug("  payload length = {:d}({:d})".format(payload_len, payload_len_r))
         _logger.debug("  payload = {}".format(payload))
         _logger.debug("  checksum = {}".format(hex(checksum)))
         # extract the relevant data from the payload (without header '~' and trailer ';\r\n')
         m = re.match(r"^~([^;]*);\r\n$", payload.decode("ascii"))
         if not m:
             raise IOError("failed to extract response data from payload [{}]".format(payload))
-        # if the response includes an error message throw an exception
-        #if RESPONSE_HEADER[header]["type"] == HtResponseTypes.ERROR:  # !!! TODO !!!
-        #    raise IOError(m.group(1))
-        # otherwise return the extracted data
         return m.group(1)
 
     def login(self, update_param_limits=True, max_retries=_login_retries):
@@ -757,7 +755,7 @@ class HtHeatpump:
                     msg = m.group(9).strip()
                     _logger.debug("(idx: {:03d}, err: {:05d})[{}]: {}".format(idx, err, dt.isoformat(), msg))
                     if idx != args[i]:
-                        raise IOError("fault list index doesn't match [{:d}, but should be {:d}]".format(idx, args[i]))
+                        raise IOError("fault list index doesn't match [{:d}, should be {:d}]".format(idx, args[i]))
                     # add the received fault list entry to the result list
                     faults.append({ "index"   : idx,  # fault list index
                                     "error"   : err,  # error code
@@ -804,7 +802,7 @@ class HtHeatpump:
             raise
 
     def _verify_param_resp(self, name, resp_name, resp_min=None, resp_max=None, resp_val=None):
-        """ TODO func rename?, doc
+        """ TODO doc
         Perform a verification of the parameter access response string and return the extracted parameter value.
         It checks whether the name, min and max value matches with the parameter definition in ``HtParams``.
 
@@ -861,7 +859,7 @@ class HtHeatpump:
             if HtParams[name].set_limits(resp_min, resp_max):
                 updated_params.append(name)
                 _logger.debug("updated param {!r}: MIN={}, MAX={}".format(name, resp_min, resp_max))
-        _logger.info("updated {} (of {}) parameter limits".format(len(updated_params), len(HtParams)))
+        _logger.info("updated {:d} (of {:d}) parameter limits".format(len(updated_params), len(HtParams)))
         return updated_params
 
     def get_param(self, name):
@@ -1000,6 +998,7 @@ class HtHeatpump:
         """
         if not args:
             args = (name for name, param in HtParams.items() if param.dp_type == "MP")
+        dp_list = []
         dp_dict = {}
         for name in args:
             if name not in HtParams:
@@ -1008,30 +1007,35 @@ class HtHeatpump:
             if param.dp_type != "MP":
                 raise ValueError("invalid parameter {!r}; only parameters representing a 'MP' data point are allowed"
                                  .format(name))
-            dp_dict.update({param.dp_number: name})
+            dp_list.append(param.dp_number)
+            dp_dict.update({param.dp_number: (name, param)})
         values = {}
-        if dp_dict:
+        if dp_list:
             # send MR request to the heat pump
-            cmd = MR_CMD.format(','.join(map(lambda i: str(i), dp_dict)))
+            cmd = MR_CMD.format(','.join(map(lambda i: str(i), dp_list)))
             self.send_request(cmd)
             # ... and wait for the response
             try:
                 resp = []
                 # read all requested data point (parameter) values
-                for _ in dp_dict:
+                for _ in dp_list:
                     resp.append(self.read_response())  # e.g. "MA,11,46.0,16"
-                # extract data (MP data point number and value)
+                # extract data (MP data point number, data point value and "unknown" value)
                 for r in resp:
                     m = re.match(MR_RESP, r)
                     if not m:
                         raise IOError("invalid response for MR command [{}]".format(r))
-                    dp_number, dp_value, unknown_val = m.group(1, 2, 3)
+                    dp_number, dp_value, unknown_val = m.group(1, 2, 3)  # MP data point number, value and ?
                     dp_number = int(dp_number)
                     if dp_number not in dp_dict:
                         raise IOError("non requested data point value received [MP,{:d}]".format(dp_number))
-                    name = dp_dict[dp_number]
-                    val = HtParams[name].from_str(dp_value)
+                    name, param = dp_dict[dp_number]
+                    val = param.from_str(dp_value)
                     _logger.debug("{!r} = {!s} ({})".format(name, val, unknown_val))
+                    # check the received value against the limits and write a WARNING if necessary
+                    if not param.in_limits(val):
+                        _logger.warning("value {!r} of parameter {!r} is beyond the limits [{}, {}]"
+                                        .format(val, name, param.min_val, param.max_val))
                     values.update({name: val})
             except Exception as e:
                 _logger.error("fast query of parameter(s) failed: {!s}".format(e))
@@ -1039,9 +1043,9 @@ class HtHeatpump:
         return values
 
 
-# --------------------------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------------------------------------- #
 # Main program
-# --------------------------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------------------------------------- #
 
 # Only for testing: request for parameter values and print it
 #def main():
@@ -1057,7 +1061,7 @@ class HtHeatpump:
 #        print("connected successfully to heat pump with serial number {:d}".format(rid))
 #        # query for the given parameter(s)
 #        start = timer()
-#        values = hp.query(names)
+#        values = hp.query(*names)
 #        end = timer()
 #    finally:
 #        hp.logout()  # try to logout for an ordinary cancellation (if possible)
@@ -1067,7 +1071,7 @@ class HtHeatpump:
 #            print("{:{width}}: {}".format(n, values[n], width=len(max(names, key=len))))
 #    elif len(names) == 1:
 #        print(values[names[0]])
-#        pprint.pprint(names)
+#    #pprint.pprint(names)
 #    print("query took {:.2f} sec".format(end - start))
 #
 #
@@ -1075,8 +1079,8 @@ class HtHeatpump:
 #    main()
 
 
-# --------------------------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------------------------------------- #
 # Exported symbols
-# --------------------------------------------------------------------------------------------- #
+# ------------------------------------------------------------------------------------------------------------------- #
 
 __all__ = ["ParamVerificationException", "HtHeatpump"]
