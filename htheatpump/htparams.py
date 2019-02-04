@@ -303,6 +303,10 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
         return cls._params.get(key, default)
 
     @classmethod
+    def of_type(cls, dp_type):
+        return {n: p for n, p in cls._params.items() if cls._params[n].dp_type == dp_type}
+
+    @classmethod
     def dump(cls):
         for name, param in HtParams.items():
             print("{!r}: dp_type = {!r}, dp_number = {:d}, acl = {!r}, data_type = {!s}, min = {!s}, max = {!s}"

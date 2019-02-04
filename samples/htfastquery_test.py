@@ -22,7 +22,7 @@ def main():
     ver = hp.get_version()
     print("software version = {} ({:d})".format(ver[0], ver[1]))
 
-    names = [name for name in HtParams.keys() if HtParams[name].dp_type == "MP"]
+    names = HtParams.of_type("MP").keys()
 
     start = timer()
     values = hp.query(*names)

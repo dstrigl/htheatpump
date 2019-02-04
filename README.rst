@@ -41,13 +41,13 @@ Features
 * query whether the heat pump is malfunctioning
 * query for several parameters of the heat pump
 * change parameter values of the heat pump
+* fast query of MP data points / parameters ("Web-Online")
 
 
 Todo
 ~~~~
 
 * check access right for writing parameters of the heat pump
-* check passed values for writing parameters against the defined limits
 * read and write the time programs of the heat pump
 * add some (more) examples
 * add some (more) unit tests

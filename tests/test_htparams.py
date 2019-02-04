@@ -17,7 +17,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" Tests for code in htheatpump.htparams. """
+""" Tests for code in `htheatpump.htparams`. """
 
 import pytest
 import re
@@ -133,6 +133,7 @@ def hthp(cmdopt_device, cmdopt_baudrate):
 @pytest.mark.run_if_connected
 def test_hthp_is_not_None(hthp):
     assert hthp is not None
+    assert hthp.is_open
     #assert 0
 
 

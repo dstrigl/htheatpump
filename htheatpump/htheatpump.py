@@ -600,7 +600,7 @@ class HtHeatpump:
             # create datetime object
             dt = datetime.datetime(year, *tmp)
             _logger.debug("datetime = {}, weekday = {:d}".format(dt.isoformat(), weekday))
-            return (dt, weekday)  # return the heat pump's date and time as a datetime object
+            return dt, weekday  # return the heat pump's date and time as a datetime object
         except Exception as e:
             _logger.error("query for date and time failed: {!s}".format(e))
             raise
@@ -642,7 +642,7 @@ class HtHeatpump:
             # create datetime object
             dt = datetime.datetime(year, *tmp)
             _logger.debug("datetime = {}, weekday = {:d}".format(dt.isoformat(), weekday))
-            return (dt, weekday)  # return the heat pump's date and time as a datetime object
+            return dt, weekday  # return the heat pump's date and time as a datetime object
         except Exception as e:
             _logger.error("set of date and time failed: {!s}".format(e))
             raise
@@ -712,8 +712,8 @@ class HtHeatpump:
     def get_fault_list(self, *args):
         """ Query for the fault list of the heat pump.
 
-        :param args: The list of entry numbers requested from the fault list;
-            if :const:`None` all entries are returned.
+        :param args: The list of index numbers to request from the fault list;
+            if :const:`None` all entries are requested.
         :returns: The requested entries of the fault list as ``list``, e.g.:
             ::
 
@@ -721,9 +721,9 @@ class HtHeatpump:
                     "error"   : 20,                     # error code
                     "datetime": datetime.datetime(...), # date and time of the entry
                     "message" : "EQ_Spreizung",         # error message
-                  },
+                    },
                   # ...
-                ]
+                  ]
 
         :rtype: ``list``
         :raises IOError:
@@ -970,7 +970,7 @@ class HtHeatpump:
                   "Stoerung": False,
                   "Temp. Aussen": 8.8,
                   # ...
-                }
+                  }
 
         :rtype: ``dict``
         :raises ValueError:
