@@ -119,22 +119,21 @@ class TestHtParam:
 
 @pytest.fixture(scope="class")
 def hthp(cmdopt_device, cmdopt_baudrate):
-    #hthp = HtHeatpump(device="/dev/ttyUSB0", baudrate=115200)
     hthp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
+    hthp.verify_param = False
     try:
         hthp.open_connection()
-        hthp.login()
         yield hthp  # provide the heat pump instance
     finally:
-        hthp.logout()  # try to logout for an ordinary cancellation (if possible)
         hthp.close_connection()
 
 
-@pytest.mark.run_if_connected
-def test_hthp_is_not_None(hthp):
-    assert hthp is not None
-    assert hthp.is_open
-    #assert 0
+@pytest.fixture()
+def reconnect(hthp):
+    hthp.reconnect()
+    hthp.login(update_param_limits=False)
+    yield
+    hthp.logout()
 
 
 class TestHtParams:
@@ -155,6 +154,7 @@ class TestHtParams:
         #assert 0
 
     @pytest.mark.run_if_connected
+    @pytest.mark.usefixtures("reconnect")
     @pytest.mark.parametrize("name, param", [(name, param) for name, param in HtParams.items()])
     def test_validate_param(self, hthp, name, param):
         hthp.send_request(param.cmd())

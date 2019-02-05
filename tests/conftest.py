@@ -35,7 +35,7 @@ def pytest_configure(config):
     loglevel = int(config.getoption("--loglevel"))
     logging.basicConfig(level=loglevel)
 
-    print("connected: {}".format("no" if not config.option.run_if_connected else "yes"))
+    print("connected: {}".format("NO" if not config.option.run_if_connected else "YES"))
     print("device: {}".format(config.getoption("--device")))
     print("baudrate: {:d}".format(int(config.getoption("--baudrate"))))
     print("loglevel: {:d}".format(loglevel))

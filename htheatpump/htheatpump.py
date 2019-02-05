@@ -476,7 +476,7 @@ class HtHeatpump:
                 resp = self.read_response()
                 m = re.match(LOGIN_RESP, resp)
                 if not m:
-                    raise IOError("invalid response for LOGIN command [{}]".format(resp))
+                    raise IOError("invalid response for LOGIN command [{!r}]".format(resp))
                 else:
                     success = True
             except Exception as e:
@@ -502,7 +502,7 @@ class HtHeatpump:
             resp = self.read_response()
             m = re.match(LOGOUT_RESP, resp)
             if not m:
-                raise IOError("invalid response for LOGOUT command [{}]".format(resp))
+                raise IOError("invalid response for LOGOUT command [{!r}]".format(resp))
             _logger.info("logout successfully")
         except Exception as e:
             # just a warning, because it's possible that we can continue without any further problems
@@ -525,7 +525,7 @@ class HtHeatpump:
             resp = self.read_response()  # e.g. "RID,123456"
             m = re.match(RID_RESP, resp)
             if not m:
-                raise IOError("invalid response for RID command [{}]".format(resp))
+                raise IOError("invalid response for RID command [{!r}]".format(resp))
             rid = int(m.group(1))
             _logger.debug("manufacturer's serial number = {:d}".format(rid))
             return rid  # return the received manufacturer's serial number as an int
@@ -562,7 +562,7 @@ class HtHeatpump:
             #   => software version = 3.0.20
             m = re.match(VERSION_RESP, resp)
             if not m:
-                raise IOError("invalid response for query of the software version [{}]".format(resp))
+                raise IOError("invalid response for query of the software version [{!r}]".format(resp))
             ver = ( m.group(1).strip(), int(m.group(2)) )
             _logger.debug("software version = {} ({:d})".format(ver[0], ver[1]))
             return ver
@@ -593,7 +593,7 @@ class HtHeatpump:
             resp = self.read_response()  # e.g. "CLK,DA=26.11.15,TI=21:28:57,WD=4"
             m = re.match(CLK_RESP, resp)
             if not m:
-                raise IOError("invalid response for CLK command [{}]".format(resp))
+                raise IOError("invalid response for CLK command [{!r}]".format(resp))
             year = 2000 + int(m.group(3))
             tmp = [ int(g) for g in m.group(2, 1, 4, 5, 6) ]  # month, day, hour, min, sec
             weekday = int(m.group(7))  # weekday 1-7 (Monday through Sunday)
@@ -635,7 +635,7 @@ class HtHeatpump:
             resp = self.read_response()  # e.g. "CLK,DA=26.11.15,TI=21:28:57,WD=4"
             m = re.match(CLK_RESP, resp)
             if not m:
-                raise IOError("invalid response for CLK command [{}]".format(resp))
+                raise IOError("invalid response for CLK command [{!r}]".format(resp))
             year = 2000 + int(m.group(3))
             tmp = [ int(g) for g in m.group(2, 1, 4, 5, 6) ]  # month, day, hour, min, sec
             weekday = int(m.group(7))  # weekday 1-7 (Monday through Sunday)
@@ -673,7 +673,7 @@ class HtHeatpump:
             resp = self.read_response()  # e.g. "AA,29,20,14.09.14-11:52:08,EQ_Spreizung"
             m = re.match(ALC_RESP, resp)
             if not m:
-                raise IOError("invalid response for ALC command [{}]".format(resp))
+                raise IOError("invalid response for ALC command [{!r}]".format(resp))
             idx, err = [ int(g) for g in m.group(1, 2) ]  # fault list index, error code (?)
             year = 2000 + int(m.group(5))
             tmp = [ int(g) for g in m.group(4, 3, 6, 7, 8) ]  # month, day, hour, min, sec
@@ -701,7 +701,7 @@ class HtHeatpump:
             resp = self.read_response()  # e.g. "SUM=2757"
             m = re.match(ALS_RESP, resp)
             if not m:
-                raise IOError("invalid response for ALS command [{}]".format(resp))
+                raise IOError("invalid response for ALS command [{!r}]".format(resp))
             size = int(m.group(1))
             _logger.debug("fault list size = {:d}".format(size))
             return size
@@ -747,7 +747,7 @@ class HtHeatpump:
                 for i, r in enumerate(resp):
                     m = re.match(AR_RESP, r)
                     if not m:
-                        raise IOError("invalid response for AR command [{}]".format(r))
+                        raise IOError("invalid response for AR command [{!r}]".format(r))
                     idx, err = [ int(g) for g in m.group(1, 2) ]  # fault list index, error code
                     year = 2000 + int(m.group(5))
                     tmp = [ int(g) for g in m.group(4, 3, 6, 7, 8) ]  # month, day, hour, min, sec
@@ -776,7 +776,7 @@ class HtHeatpump:
         # search for pattern "NAME=...", "VAL=...", "MAX=..." and "MIN=..." inside the response string
         m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(param.cmd()), resp)
         if not m:
-            raise IOError("invalid response for access of parameter {!r} [{}]".format(name, resp))
+            raise IOError("invalid response for access of parameter {!r} [{!r}]".format(name, resp))
         resp_name, resp_min, resp_max, resp_val = (g.strip() for g in m.group(1, 4, 3, 2))
         _logger.debug("{!r}: NAME={!r}, MIN={!r}, MAX={!r}, VAL={!r}"
                       .format(name, resp_name, resp_min, resp_max, resp_val))
@@ -897,7 +897,7 @@ class HtHeatpump:
             raise
 
     def set_param(self, name, val, ignore_limits=False):
-        """ TODO
+        """ TODO doc
         Set the value of a specific parameter of the heat pump.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
@@ -1024,7 +1024,7 @@ class HtHeatpump:
                 for r in resp:
                     m = re.match(MR_RESP, r)
                     if not m:
-                        raise IOError("invalid response for MR command [{}]".format(r))
+                        raise IOError("invalid response for MR command [{!r}]".format(r))
                     dp_number, dp_value, unknown_val = m.group(1, 2, 3)  # MP data point number, value and ?
                     dp_number = int(dp_number)
                     if dp_number not in dp_dict:
