@@ -26,15 +26,18 @@ def main():
 
     start = timer()
     values = hp.query(*names)
-    end = timer()
-    print("HtHeatpump.query({:d}) execution time: {:.2f} sec".format(len(names), end - start))
+    t_query = timer() - start
 
     start = timer()
     values = hp.fast_query(*names)
-    end = timer()
-    print("HtHeatpump.fast_query({:d}) execution time: {:.2f} sec".format(len(names), end - start))
+    t_fast_query = timer() - start
 
-    sys.exit(0)
+    print("\n" + "-" * 100)
+    print("HtHeatpump.query({:d})      execution time: {:.3f} sec".format(len(names), t_query))
+    print("HtHeatpump.fast_query({:d}) execution time: {:.3f} sec".format(len(names), t_fast_query))
+    print("-> {:.3f} x faster".format(t_query / t_fast_query))
+
+    #sys.exit(0)
 
     while True:
         print("\n" + "-" * 100)

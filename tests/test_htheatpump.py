@@ -141,11 +141,11 @@ class TestHtHeatpump:
             assert isinstance(msg, str), "'msg' must be of type str"
         #assert 0
 
-    @pytest.mark.run_if_connected
-    @pytest.mark.usefixtures("reconnect")
-    def test_get_fault_list_with_indices(self, hthp, indices):
-        pass  # TODO
-        #assert 0
+    #@pytest.mark.run_if_connected
+    #@pytest.mark.usefixtures("reconnect")
+    #def test_get_fault_list_with_indices(self, hthp, indices):
+    #    pass  # TODO
+    #    #assert 0
 
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
@@ -200,7 +200,7 @@ class TestHtHeatpump:
         #   # ...
         #   }
         assert isinstance(ret, dict), "'ret' must be of type dict"
-        assert len(ret) == len(set(names))
+        assert not names or len(ret) == len(set(names))
         for n, v in ret.items():
             assert n in HtParams
             assert not names or n in names
@@ -213,7 +213,7 @@ class TestHtHeatpump:
     def test_fast_query(self, hthp):
         ret = hthp.fast_query()
         assert isinstance(ret, dict), "'ret' must be of type dict"
-        assert len(ret) == len(HtParams)
+        assert len(ret) == len(HtParams.of_type("MP"))
         for n, v in ret.items():
             assert n in HtParams
             assert v is not None
@@ -227,7 +227,7 @@ class TestHtHeatpump:
     def test_fast_query_with_names(self, hthp, names):
         ret = hthp.fast_query(*names)
         assert isinstance(ret, dict), "'ret' must be of type dict"
-        assert len(ret) == len(set(names))
+        assert not names or len(ret) == len(set(names))
         for n, v in ret.items():
             assert n in HtParams
             assert not names or n in names
