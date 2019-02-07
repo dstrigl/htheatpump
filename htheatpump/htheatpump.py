@@ -56,37 +56,62 @@ _login_retries = 2
 # ------------------------------------------------------------------------------------------------------------------- #
 
 REQUEST_HEADER = b"\x02\xfd\xd0\xe0\x00\x00"
-RESPONSE_HEADER_LEN = 6
-RESPONSE_HEADER = {  # TODO doc/comments
-    # normal response header with answer; checksum has to be computed!
+RESPONSE_HEADER_LEN = 6  # response header length
+RESPONSE_HEADER = {
+    #
+    # NOTE:
+    # =====
+    # It seems like that there is some inconsistency in the way how the heat pump replies to requests.
+    # Depending on the received header (the first 6 bytes) we have to correct the payload length for
+    #   the checksum computation, so that the received checksum fits with the computed one.
+    # Additionally, for some replies the checksum seems to be totally ignored, because the received
+    #   checksum is always zero (0x0) regardless of the content.
+    # This behavior will be handled in the following lines (see also HtHeatpump.read_response):
+
+    # normal response header with answer
     b"\x02\xfd\xe0\xd0\x00\x00":
         { "payload_len": lambda payload_len: payload_len,
           # method to calculate the checksum of the response:
           "checksum": lambda header, payload_len, payload: calc_checksum(header + bytes([payload_len]) + payload),
           },
-    # on HP08S10W-WEB, SW 3.0.20: checksum seems to be fixed 0x0, but why?
+
+    # response header for some "MR" command (fast_query) answers, e.g. "TODO"
+    #   for this kind of answers the payload length must be corrected (for the checksum computation)
+    #     so that the received checksum fits with the computed one
+    #   observed on: HP08S10W-WEB, SW 3.0.20
+    b"\x02\xfd\xe0\xd0\x01\x00":
+        { "payload_len": lambda payload_len: payload_len - 1,  # payload length correction
+          # method to calculate the checksum of the response:
+          "checksum": lambda header, payload_len, payload: calc_checksum(header + bytes([payload_len]) + payload),
+          },
+
+    # response header with answer
+    #   for error messages (e.g. "ERR,INVALID IDX") and some "MR" command (fast_query) answers (e.g. "TODO")
+    #   for this kind of answers the payload length must be corrected (for the checksum computation)
+    #     so that the received checksum fits with the computed one
+    #   observed on: HP08S10W-WEB, SW 3.0.20
+    b"\x02\xfd\xe0\xd0\x02\x00":
+        { "payload_len": lambda payload_len: payload_len - 2,  # payload length correction
+          # method to calculate the checksum of the response:
+          "checksum": lambda header, payload_len, payload: calc_checksum(header + bytes([payload_len]) + payload),
+          },
+
+    # response header with answer
+    #   when receiving an answer from the heat pump with this header the checksum is always 0x0 (don't ask me why!)
+    #   observed on: HP08S10W-WEB, SW 3.0.20 for parameter requests ("SP"/"MP" commands)
     b"\x02\xfd\xe0\xd0\x04\x00":
         { "payload_len": lambda payload_len: payload_len,
-          # method to calculate the checksum of the response:
+          # we don't know why, but for this kind of responses the checksum is always 0x0:
           "checksum": lambda header, payload_len, payload: 0x00,
           },
-    # on HP10S12W-WEB, SW 3.0.8: another response header with fixed checksum?!
+
+    # response header with answer
+    #   when receiving an answer from the heat pump with this header the checksum is always 0x0 (don't ask me why!)
+    #   observed on: HP10S12W-WEB, SW 3.0.8 for parameter requests ("SP"/"MP" commands)
     b"\x02\xfd\xe0\xd0\x08\x00":
         { "payload_len": lambda payload_len: payload_len,
-          # method to calculate the checksum of the response:
+          # we don't know why, but for this kind of responses the checksum is always 0x0:
           "checksum": lambda header, payload_len, payload: 0x00,
-          },
-    # error response header; checksum has to be computed!
-    b"\x02\xfd\xe0\xd0\x02\x00":
-        { "payload_len": lambda payload_len: payload_len - 2,
-          # method to calculate the checksum of the response:
-          "checksum": lambda header, payload_len, payload: calc_checksum(header + bytes([payload_len]) + payload),
-          },
-    # response header for some 'MR' answers; checksum has to be computed a little bit different!
-    b"\x02\xfd\xe0\xd0\x01\x00":
-        { "payload_len": lambda payload_len: payload_len - 1,
-          # method to calculate the checksum of the response:
-          "checksum": lambda header, payload_len, payload: calc_checksum(header + bytes([payload_len]) + payload),
           },
 }
 
@@ -151,7 +176,8 @@ def verify_checksum(s):
     :type s: bytes
     :returns: :const:`True` if valid, :const:`False` otherwise.
     :rtype: ``bool``
-    :raises TODO doc
+    :raises ValueError:
+        Will be raised for an invalid byte array with length less than 2 bytes.
     """
     assert isinstance(s, bytes)
     if len(s) < 2:
@@ -166,7 +192,8 @@ def add_checksum(s):
     :type s: bytes
     :returns: Byte array with the added checksum.
     :rtype: ``bytes``
-    :raises TODO doc
+    :raises ValueError:
+        Will be raised for an invalid byte array with length less than 1 byte.
     """
     assert isinstance(s, bytes)
     if len(s) < 1:
@@ -181,7 +208,8 @@ def create_request(cmd):
     :type cmd: str
     :returns: The request string for the specified command as byte array.
     :rtype: ``bytes``
-    :raises TODO doc
+    :raises ValueError:
+        Will be raised for an invalid byte array with length greater than 253 byte.
     """
     assert isinstance(cmd, str)
     if len(cmd) > 253:  # = 255 - 1 byte for header - 1 byte for trailer
@@ -326,12 +354,13 @@ class HtHeatpump:
 
     @property
     def verify_param(self):
-        """ TODO doc
-        Property to get or set whether the parameter verification (of *name*, *min* and *max*) during
-        a :class:`get_param` or :class:`set_param` should be active or not. This is just for safety
-        to be sure that the parameter definitions in ``HtParams`` are correct!
+        """ Property to get or set whether the parameter verification (of *name*, *min* and *max*) during
+        a :class:`get_param` or :class:`set_param` should be active or not. If :const:`True` a failed
+        parameter verification will result in an :class:`ParamVerificationException` exception. If
+        :const:`False` only a warning message will be emitted. This is just for safety to be sure that
+        the parameter definitions in :class:`HtParams` are correct!
 
-        :param: Boolean value which indicates whether the verification should be active or not.
+        :param: Boolean value which indicates whether the parameter verification should be active or not.
         :returns: :const:`True` if the verification is active, :const:`False` otherwise.
         :rtype: ``bool``
         """
@@ -362,7 +391,7 @@ class HtHeatpump:
         :rtype: ``str``
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
-            (or unknown) response (e.g. broken data stream, invalid checksum).
+            (or unknown) response (e.g. broken data stream, unknown header, invalid checksum, ...).
 
         .. note::
 
@@ -372,7 +401,7 @@ class HtHeatpump:
             ``b"\\x02\\xfd\\xe0\\xd0\\x00\\x00"`` together with the payload and a computed checksum.
             But sometimes the heat pump replies with a different header (``b"\\x02\\xfd\\xe0\\xd0\\x04\\x00"``
             or ``b"\\x02\\xfd\\xe0\\xd0\\x08\\x00"``) together with the payload and a *fixed* value of
-            ``0x0`` for the checksum.
+            ``0x0`` for the checksum (regardless of the content).
 
             We have no idea about the reason for this behavior. But after analysing the communication between
             the `Heliotherm home control <http://homecontrol.heliotherm.com/>`_ Windows application and the
@@ -385,7 +414,9 @@ class HtHeatpump:
             In this case we read until we will found the trailing ``b"\\r\\n"`` at the end of the payload
             to determine the payload of the message.
 
-            TODO doc for b"\x02\xfd\xe0\xd0\x01\x00" ...
+            Additionally to the upper described facts, for some of the answers of the heat pump the payload length
+            must be corrected (for the checksum computation) so that the received checksum fits with the computed
+            one (e.g. for ``b"\\x02\\xfd\\xe0\\xd0\\x01\\x00"`` and ``b"\\x02\\xfd\\xe0\\xd0\\x02\\x00"``).
         """
         if not self._ser:
             raise IOError("serial connection not open")
@@ -402,7 +433,7 @@ class HtHeatpump:
         payload_len = payload_len_r = payload_len_r[0]
         # We don't know why, but for some messages (e.g. for the error message "ERR,INVALID IDX") the
         # heat pump answers with a payload length of zero bytes. In order to also accept such responses
-        # we read until we will found the trailing '\r\n' at the end of the payload. The payload length
+        # we read until we will found the trailing "\r\n" at the end of the payload. The payload length
         # itself will then be computed afterwards by counting the number of bytes of the payload.
         if payload_len == 0:
             _logger.info(
@@ -414,21 +445,15 @@ class HtHeatpump:
                 if not tmp:
                     raise IOError("data stream broken during reading payload ending with '\\r\\n'")
                 payload += tmp
-            # Sorry, but again another inconsistency in the protocol:
-            #   It seems that in this case (when the heat pump answers with payload length of zero) the trailing
-            #   '\r\n' is not counted for the payload length used for the checksum computation in the next step :-/
-            #   Otherwise, the checksum validation will always fail.
-            #   Therefore, the payload length used for the checksum computation is the length of the payload
-            #   without the two trailing characters '\r\n':
-            # TODO comment
+            # compute the payload length by counting the number of read bytes
             payload_len = len(payload)
         else:
             # read the payload itself
             payload = self._ser.read(payload_len)
             if not payload or len(payload) < payload_len:
                 raise IOError("data stream broken during reading payload")
-        # correct the payload length depending on the received header
-        # TODO comment ^^^
+        # depending on the received header correct the payload length for the checksum computation,
+        #   so that the received checksum fits with the computed one
         payload_len = RESPONSE_HEADER[header]["payload_len"](payload_len)
         # read the checksum and verify the validity of the response
         checksum = self._ser.read(1)
@@ -436,7 +461,6 @@ class HtHeatpump:
             raise IOError("data stream broken during reading checksum")
         checksum = checksum[0]
         # compute the checksum over header, payload length and the payload itself (depending on the header)
-        # TODO comment ^^^
         comp_checksum = RESPONSE_HEADER[header]["checksum"](header, payload_len, payload)
         if checksum != comp_checksum:
             raise IOError("invalid checksum [{}] of response "
@@ -455,9 +479,14 @@ class HtHeatpump:
         return m.group(1)
 
     def login(self, update_param_limits=True, max_retries=_login_retries):
-        """ TODO doc
-        Log in the heat pump.
+        """ Log in the heat pump. If ``update_param_limits`` is :const:`True` an update of the
+        parameter limits in :class:`HtParams` will be performed. This will be done by requesting
+        the current value together with their limits (MIN and MAX) for all “known” parameters
+        directly after a successful login.
 
+        :param update_param_limits: Determines whether an update of the parameter limits in
+            :class:`HtParams` should be done or not.
+        :type update_param_limits: bool
         :param max_retries: Maximal number of retries for a successful login. One regular try
             plus :const:`max_retries` retries.
         :type max_retries: int
@@ -712,8 +741,9 @@ class HtHeatpump:
     def get_fault_list(self, *args):
         """ Query for the fault list of the heat pump.
 
-        :param args: The list of index numbers to request from the fault list;
-            if :const:`None` all entries are requested.
+        :param args: The index number(s) to request from the fault list (optional).
+            If not specified all fault list entries are requested.
+        :type args: int
         :returns: The requested entries of the fault list as ``list``, e.g.:
             ::
 
@@ -804,7 +834,7 @@ class HtHeatpump:
     def _verify_param_resp(self, name, resp_name, resp_min=None, resp_max=None, resp_val=None):
         """ TODO doc
         Perform a verification of the parameter access response string and return the extracted parameter value.
-        It checks whether the name, min and max value matches with the parameter definition in ``HtParams``.
+        It checks whether the name, min and max value matches with the parameter definition in :class:`HtParams`.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
         :type name: str

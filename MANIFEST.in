@@ -15,8 +15,6 @@ include samples/htbackup.py
 include samples/daemon.py
 include samples/hthttp.py
 include samples/htfastquery.py
-include samples/htfastquery_test.py
-include samples/comp_checksum.py
 
 recursive-include tests *
 recursive-exclude * __pycache__

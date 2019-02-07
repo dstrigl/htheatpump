@@ -70,6 +70,12 @@ class TestHtHeatpump:
         assert m is not None, "invalid version string [{!r}]".format(ver_str)
         assert isinstance(ver_num, int), "'ver_num' must be of type int"
         assert ver_num > 0
+        hthp.send_request(r"SP,NR=9")
+        resp = hthp.read_response()
+        m = re.match(r"^SP,NR=9,.*NAME=([^,]+).*VAL=([^,]+).*$", resp)
+        assert m is not None, "invalid response for query of the software version [{!r}]".format(resp)
+        assert ver_str == m.group(1).strip()
+        assert ver_num == int(m.group(2))
         #assert 0
 
     @pytest.mark.run_if_connected
