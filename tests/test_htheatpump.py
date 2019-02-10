@@ -30,11 +30,8 @@ from htheatpump.htheatpump import HtHeatpump
 @pytest.fixture(scope="class")
 def hthp(cmdopt_device, cmdopt_baudrate):
     hthp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
-    hthp.verify_param = True
     try:
         hthp.open_connection()
-        hthp.login(update_param_limits=True)
-        hthp.logout()
         yield hthp  # provide the heat pump instance
     finally:
         hthp.close_connection()
@@ -43,7 +40,7 @@ def hthp(cmdopt_device, cmdopt_baudrate):
 @pytest.fixture()
 def reconnect(hthp):
     hthp.reconnect()
-    hthp.login(update_param_limits=False)
+    hthp.login()
     yield
     hthp.logout()
 
@@ -155,7 +152,7 @@ class TestHtHeatpump:
 
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
-    @pytest.mark.parametrize("name, param", [(name, param) for name, param in HtParams.items()])
+    @pytest.mark.parametrize("name, param", HtParams.items())
     def test_get_param(self, hthp, name, param):
         ret = hthp.get_param(name)
         assert ret is not None, "'ret' must not be None"
@@ -164,7 +161,7 @@ class TestHtHeatpump:
 
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
-    @pytest.mark.parametrize("name, param", [(name, param) for name, param in HtParams.items()])
+    @pytest.mark.parametrize("name, param", HtParams.items())
     def test_set_param(self, hthp, name, param):
         pass  # TODO
         #assert 0

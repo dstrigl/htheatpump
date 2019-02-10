@@ -38,7 +38,7 @@ from htheatpump.utils import Singleton
 # Constants
 # ------------------------------------------------------------------------------------------------------------------- #
 
-CSV_FILE = "htparams.csv"              # CSV file with the parameter definitions of the heat pump
+CSV_FILE = "htparams.csv"                                    # CSV file with the parameter definitions of the heat pump
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -108,6 +108,10 @@ class HtParam:
         self.data_type = data_type
         self.min_val = min_val
         self.max_val = max_val
+
+    def __repr__(self):
+        return "HtParam({},{:d},{!r},{}[{},{}])".format(self.dp_type, self.dp_number, self.acl,
+                                                        self.data_type, self.min_val, self.max_val)
 
     def cmd(self):
         """ Return the command string, based on the data point type and number of the parameter.

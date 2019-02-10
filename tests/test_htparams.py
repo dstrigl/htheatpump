@@ -120,7 +120,6 @@ class TestHtParam:
 @pytest.fixture(scope="class")
 def hthp(cmdopt_device, cmdopt_baudrate):
     hthp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
-    hthp.verify_param = False
     try:
         hthp.open_connection()
         yield hthp  # provide the heat pump instance
@@ -131,7 +130,7 @@ def hthp(cmdopt_device, cmdopt_baudrate):
 @pytest.fixture()
 def reconnect(hthp):
     hthp.reconnect()
-    hthp.login(update_param_limits=False)
+    hthp.login()
     yield
     hthp.logout()
 
@@ -155,7 +154,7 @@ class TestHtParams:
 
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
-    @pytest.mark.parametrize("name, param", [(name, param) for name, param in HtParams.items()])
+    @pytest.mark.parametrize("name, param", HtParams.items())
     def test_validate_param(self, hthp, name, param):
         hthp.send_request(param.cmd())
         resp = hthp.read_response()

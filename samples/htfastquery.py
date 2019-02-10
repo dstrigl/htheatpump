@@ -123,11 +123,10 @@ def main():
         logging.basicConfig(level=logging.WARNING)
 
     hp = HtHeatpump(args.device, baudrate=args.baudrate)
-    hp.verify_param = False
     start = timer()
     try:
         hp.open_connection()
-        hp.login(False)  # update of parameter limits not needed here!
+        hp.login()
 
         rid = hp.get_serial_number()
         if args.verbose:

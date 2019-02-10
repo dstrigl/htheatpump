@@ -12,10 +12,9 @@ import logging
 def main():
     logging.basicConfig(level=logging.INFO)
     hp = HtHeatpump("/dev/ttyUSB0", baudrate=115200)
-    hp.verify_param = False
     #try:
     hp.open_connection()
-    hp.login(False)  # update of parameter limits not needed here!
+    hp.login()
 
     rid = hp.get_serial_number()
     print("connected successfully to heat pump with serial number {:d}".format(rid))

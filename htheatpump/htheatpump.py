@@ -285,7 +285,7 @@ class HtHeatpump:
         self._ser_settings = { 'device': device }
         self._ser_settings.update(kwargs)
         self._ser = None
-        self._verify_param = True
+        self._verify_param = False
 
     def __del__(self):
         # close the connection if still established
@@ -478,7 +478,7 @@ class HtHeatpump:
             raise IOError("failed to extract response data from payload [{}]".format(payload))
         return m.group(1)
 
-    def login(self, update_param_limits=True, max_retries=_login_retries):
+    def login(self, update_param_limits=False, max_retries=_login_retries):
         """ Log in the heat pump. If ``update_param_limits`` is :const:`True` an update of the
         parameter limits in :class:`HtParams` will be performed. This will be done by requesting
         the current value together with their limits (MIN and MAX) for all “known” parameters

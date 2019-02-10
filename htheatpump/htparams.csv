@@ -43,7 +43,7 @@ HKR_Sollwert, MP, 57, r-, FLOAT, 0.0, 50.0
 
 #Softwareversion, SP, 9, r-, INT, None, None
 Verdichter_Status, SP, 10, r-, INT, 0, 11
-Verdichter laeuft seit, SP, 11, r-, INT, 10, 100000
+Verdichter laeuft seit, SP, 11, r-, INT, 0, 100000
 Betriebsart, SP, 13, r-, INT, 0, 7
 HKR Soll_Raum, SP, 69, r-, FLOAT, 10.0, 25.0
 HKR Aufheiztemp. (K), SP, 71, r-, INT, 1, 10
