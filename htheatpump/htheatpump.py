@@ -61,21 +61,22 @@ RESPONSE_HEADER = {
     #
     # NOTE:
     # =====
-    # It seems like that there is some inconsistency in the way how the heat pump replies to requests.
+    # It seems that there is some inconsistency in the way how the heat pump replies to requests.
     # Depending on the received header (the first 6 bytes) we have to correct the payload length for
     #   the checksum computation, so that the received checksum fits with the computed one.
     # Additionally, for some replies the checksum seems to be totally ignored, because the received
-    #   checksum is always zero (0x0) regardless of the content.
+    #   checksum is always zero (0x0), regardless of the content.
+    #
     # This behavior will be handled in the following lines (see also HtHeatpump.read_response):
 
     # normal response header with answer
     b"\x02\xfd\xe0\xd0\x00\x00":
-        { "payload_len": lambda payload_len: payload_len,
+        { "payload_len": lambda payload_len: payload_len,  # no payload length correction necessary
           # method to calculate the checksum of the response:
           "checksum": lambda header, payload_len, payload: calc_checksum(header + bytes([payload_len]) + payload),
           },
 
-    # response header for some "MR" command (fast_query) answers, e.g. "TODO"
+    # response header for some of the "MR" command (HtHeatpump.fast_query) answers
     #   for this kind of answers the payload length must be corrected (for the checksum computation)
     #     so that the received checksum fits with the computed one
     #   observed on: HP08S10W-WEB, SW 3.0.20
@@ -86,7 +87,7 @@ RESPONSE_HEADER = {
           },
 
     # response header with answer
-    #   for error messages (e.g. "ERR,INVALID IDX") and some "MR" command (fast_query) answers (e.g. "TODO")
+    #   for error messages (e.g. "ERR,INVALID IDX") and some "MR" command (HtHeatpump.fast_query) answers
     #   for this kind of answers the payload length must be corrected (for the checksum computation)
     #     so that the received checksum fits with the computed one
     #   observed on: HP08S10W-WEB, SW 3.0.20
@@ -100,7 +101,7 @@ RESPONSE_HEADER = {
     #   when receiving an answer from the heat pump with this header the checksum is always 0x0 (don't ask me why!)
     #   observed on: HP08S10W-WEB, SW 3.0.20 for parameter requests ("SP"/"MP" commands)
     b"\x02\xfd\xe0\xd0\x04\x00":
-        { "payload_len": lambda payload_len: payload_len,
+        { "payload_len": lambda payload_len: payload_len,  # no payload length correction necessary
           # we don't know why, but for this kind of responses the checksum is always 0x0:
           "checksum": lambda header, payload_len, payload: 0x00,
           },
@@ -109,14 +110,16 @@ RESPONSE_HEADER = {
     #   when receiving an answer from the heat pump with this header the checksum is always 0x0 (don't ask me why!)
     #   observed on: HP10S12W-WEB, SW 3.0.8 for parameter requests ("SP"/"MP" commands)
     b"\x02\xfd\xe0\xd0\x08\x00":
-        { "payload_len": lambda payload_len: payload_len,
+        { "payload_len": lambda payload_len: payload_len,  # no payload length correction necessary
           # we don't know why, but for this kind of responses the checksum is always 0x0:
           "checksum": lambda header, payload_len, payload: 0x00,
           },
 }
 
-# special commands of the heat pump; the request and response of this commands differ from the normal
-#   parameter requests defined in htparams.py
+
+# special commands of the heat pump:
+# ----------------------------------
+#
 LOGIN_CMD    = r"LIN"                                                                                   # login command
 LOGIN_RESP   = r"^OK"
 LOGOUT_CMD   = r"LOUT"                                                                                 # logout command
@@ -397,7 +400,7 @@ class HtHeatpump:
 
             **There is a little bit strange behavior how the heat pump sometimes replies on some requests:**
 
-            A response from the heat pump normally consists of the following header
+            A response from the heat pump normally consists of the following header (the first 6 bytes)
             ``b"\\x02\\xfd\\xe0\\xd0\\x00\\x00"`` together with the payload and a computed checksum.
             But sometimes the heat pump replies with a different header (``b"\\x02\\xfd\\xe0\\xd0\\x04\\x00"``
             or ``b"\\x02\\xfd\\xe0\\xd0\\x08\\x00"``) together with the payload and a *fixed* value of
@@ -485,10 +488,10 @@ class HtHeatpump:
         directly after a successful login.
 
         :param update_param_limits: Determines whether an update of the parameter limits in
-            :class:`HtParams` should be done or not.
+            :class:`HtParams` should be done or not. Default is :const:`False`.
         :type update_param_limits: bool
         :param max_retries: Maximal number of retries for a successful login. One regular try
-            plus :const:`max_retries` retries.
+            plus :const:`max_retries` retries. Default is 2.
         :type max_retries: int
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
@@ -798,7 +801,24 @@ class HtHeatpump:
         return faults
 
     def _extract_param_data(self, name, resp):
-        """ TODO doc
+        """ Extract the parameter data like parameter name, minimal value, maximal value and the
+        current value from the parameter access response.
+
+        :param name: The parameter name, e.g. :data:`"Betriebsart"`.
+        :type name: str
+        :param resp: The returned response message of the heat pump as ``str``.
+        :type resp: str
+        :returns: The extracted parameter data as a tuple with 4 elements. The first element inside
+            the returned tuple represents the parameter name as ``str``, the second and third element
+            the minimal and maximal value (as ``bool``, ``int`` or ``float``) and the last element
+            the current value (as ``bool``, ``int`` or ``float``) of the parameter. For example:
+            ::
+
+                ( TODO, TODO, TODO, TODO )
+
+        :rtype: ``tuple`` ( str, bool/int/float, bool/int/float, bool/int/float )
+        :raises IOError:
+            Will be raised for an incomplete/invalid response from the heat pump.
         """
         # get the corresponding definition for the given parameter
         assert name in HtParams, "parameter definition for parameter {!r} not found".format(name)

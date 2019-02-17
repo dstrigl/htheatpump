@@ -122,13 +122,16 @@ class HtParam:
         return "{},NR={:d}".format(self.dp_type, self.dp_number)
 
     def set_limits(self, min_val=None, max_val=None):
-        """ TODO doc
-        Set the limits of the parameter.
+        """ Set the limits of the parameter and return whether the passed limit values differed
+        from the old one.
 
         :param min_val: The minimal value (default :const:`None`, which means "doesn't matter").
         :type min_val: bool, int, float or None
         :param max_val: The maximal value (default :const:`None`, which means "doesn't matter").
         :type max_val: bool, int, float or None
+        :returns: :const:`True` if the passed min- and/or max-value differed from the old one,
+                    :const:`False` otherwise.
+        :rtype: ``bool``
         """
         ret = self.min_val != min_val or self.max_val != max_val
         self.min_val = min_val
@@ -136,7 +139,12 @@ class HtParam:
         return ret
 
     def in_limits(self, val):
-        """ TODO doc
+        """ Determine whether the passed value is in between the parameter limits or not.
+
+        :param val: The value to check against the parameter limits.
+        :type val: bool, int or float
+        :returns: :const:`True` if the passed value is in between the limits, :const:`False` otherwise.
+        :rtype: ``bool``
         """
         assert val is not None, "'val' must not be None"
         # check the passed value against the defined limits (if given; 'None' means "doesn't matter")
@@ -280,6 +288,49 @@ class HtParamsMeta(type):
 # Parameter dictionary class
 # ------------------------------------------------------------------------------------------------------------------- #
 
+def _load_from_csv():
+    """ Helper function to load all supported heat pump parameter definitions from the CSV file.
+
+    :returns: Dictionary of the supported heat pump parameters:
+        ::
+
+            { "Parameter name": HtParam(dp_type=..., dp_number=...,
+                                        acl=..., data_type=...,
+                                        min_val=..., max_val=...),
+              # ...
+              }
+
+    :rtype: ``dict``
+    """
+    # search for a user defined parameter CSV file in "~/.htheatpump"
+    filename = path.expanduser(path.join("~/.htheatpump", CSV_FILE))
+    if not path.exists(filename):
+        # ... and switch back to the default one if no one was found
+        filename = path.join(path.dirname(path.abspath(__file__)), CSV_FILE)
+    print("HTHEATPUMP: load parameter definitions from: {}".format(filename))
+    params = {}
+    with open(filename) as f:
+        reader = csv.reader(f, delimiter=',', skipinitialspace=True)
+        for row in reader:
+            # continue for empty rows or comments (starts with character '#')
+            if not row or row[0].startswith('#'):
+                continue
+            name, dp_type, dp_number, acl, data_type, min_val, max_val = row
+            # convert the data point number into an int
+            dp_number = int(dp_number)
+            # convert the given data type into the corresponding enum value
+            data_type = HtDataTypes.from_str(data_type)
+            # convert the minimal value to the expected data type
+            min_val = None if min_val == "None" else HtParam.from_str(min_val, data_type)
+            # convert the maximal value to the expected data type
+            max_val = None if max_val == "None" else HtParam.from_str(max_val, data_type)
+            # add the parameter definition to the dictionary
+            params.update({name: HtParam(dp_type=dp_type, dp_number=dp_number,
+                                         acl=acl, data_type=data_type,
+                                         min_val=min_val, max_val=max_val)})
+    return params
+
+
 class HtParams(Singleton, metaclass=HtParamsMeta):
     """ Dictionary of the supported Heliotherm heat pump parameters. [*]_
 
@@ -317,48 +368,6 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
                   .format(name, param.dp_type, param.dp_number, param.acl,
                           param.data_type if param.data_type else "<unknown>",
                           param.min_val, param.max_val))
-
-    def _load_from_csv():
-        """ Load all supported heat pump parameter definitions from the CSV file.
-
-        :returns: Dictionary of the supported heat pump parameters:
-            ::
-
-                { "Parameter name": HtParam(dp_type=..., dp_number=...,
-                                            acl=..., data_type=...,
-                                            min_val=..., max_val=...),
-                  # ...
-                }
-
-        :rtype: ``dict``
-        """
-        # search for a user defined parameter CSV file in "~/.htheatpump"
-        filename = path.expanduser(path.join("~/.htheatpump", CSV_FILE))
-        if not path.exists(filename):
-            # ... and switch back to the default one if no one was found
-            filename = path.join(path.dirname(path.abspath(__file__)), CSV_FILE)
-        print("HTHEATPUMP: load parameter definitions from: {}".format(filename))
-        params = {}
-        with open(filename) as f:
-            reader = csv.reader(f, delimiter=',', skipinitialspace=True)
-            for row in reader:
-                # continue for empty rows or comments (starts with character '#')
-                if not row or row[0].startswith('#'):
-                    continue
-                name, dp_type, dp_number, acl, data_type, min_val, max_val = row
-                # convert the data point number into an int
-                dp_number = int(dp_number)
-                # convert the given data type into the corresponding enum value
-                data_type = HtDataTypes.from_str(data_type)
-                # convert the minimal value to the expected data type
-                min_val = None if min_val == "None" else HtParam.from_str(min_val, data_type)
-                # convert the maximal value to the expected data type
-                max_val = None if max_val == "None" else HtParam.from_str(max_val, data_type)
-                # add the parameter definition to the dictionary
-                params.update({name: HtParam(dp_type=dp_type, dp_number=dp_number,
-                                             acl=acl, data_type=data_type,
-                                             min_val=min_val, max_val=max_val)})
-        return params
 
     # Dictionary of the supported Heliotherm heat pump parameters
     _params = _load_from_csv()
