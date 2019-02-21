@@ -23,13 +23,17 @@ def main():
 
     names = HtParams.of_type("MP").keys()
 
-    start = timer()
-    values = hp.query(*names)
-    t_query = timer() - start
-
-    start = timer()
-    values = hp.fast_query(*names)
-    t_fast_query = timer() - start
+    t_query = t_fast_query = 0.0
+    for i in range(10):
+        start = timer()
+        values = hp.query(*names)
+        t_query += (timer() - start)
+        start = timer()
+        values = hp.fast_query(*names)
+        t_fast_query += (timer() - start)
+    i += 1
+    t_query = t_query / i
+    t_fast_query = t_fast_query / i
 
     print("\n" + "-" * 100)
     print("HtHeatpump.query({:d})      execution time: {:.3f} sec".format(len(names), t_query))

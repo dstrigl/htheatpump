@@ -17,21 +17,21 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" TODO doc
-Command line tool to fast query for parameters of the Heliotherm heat pump.
+""" Command line tool to query for parameters of the Heliotherm heat pump the fast way.
+    Note: Only parameters representing a "MP" data point are supported!
 
     Example:
 
     .. code-block:: shell
 
-       $ python3 htquery.py --device /dev/ttyUSB1 "Temp. Aussen" "Stoerung"
-       Stoerung    : False
-       Temp. Aussen: 5.0
+       $ python3 htfastquery.py --device /dev/ttyUSB1 "TODO" "TODO"
+       TODO: TODO
+       TODO: TODO
 
-       $ python3 htquery.py --json "Temp. Aussen" "Stoerung"
+       $ python3 htfastquery.py --json "TODO" "TODO"
        {
-           "Stoerung": false,
-           "Temp. Aussen": 3.2
+           "TODO": TODO,
+           "TODO": TODO
        }
 """
 
@@ -49,14 +49,15 @@ _logger = logging.getLogger(__name__)
 # Main program
 def main():
     parser = argparse.ArgumentParser(
-        description = textwrap.dedent('''TODO doc\
-            Command line tool to fast query for parameters of the Heliotherm heat pump.
+        description = textwrap.dedent('''\
+            Command line tool to query for parameters of the Heliotherm heat pump the fast way.
+            Note: Only parameters representing a "MP" data point are supported!
 
             Example:
 
-              $ python3 %(prog)s --device /dev/ttyUSB1 "Temp. Aussen" "Stoerung"
-              Stoerung    : False
-              Temp. Aussen: 5.0
+              $ python3 %(prog)s --device /dev/ttyUSB1 "TODO" "TODO"
+              TODO: TODO
+              TODO: TODO
             '''),
         formatter_class = argparse.RawDescriptionHelpFormatter,
         epilog = textwrap.dedent('''\

@@ -203,4 +203,28 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/hthttp.py
 htfastquery
 -----------
 
-TODO
+Command line tool to query for parameters of the Heliotherm heat pump the fast way.
+
+.. note::
+
+    Only parameters representing a "MP" data point are supported!
+
+If the ``-j``, ``--json`` option is used, the output will be in JSON format.
+
+Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htfastquery.py
+
+**Example:**
+
+.. code-block:: shell
+
+    $ python3 htfastquery.py --device /dev/ttyUSB1 "TODO" "TODO"
+    TODO: TODO
+    TODO: TODO
+
+.. code-block:: shell
+
+    $ python3 htfastquery.py --json "TODO" "TODO"
+    {
+        "TODO": TODO,
+        "TODO": TODO
+    }

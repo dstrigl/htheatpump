@@ -67,7 +67,7 @@ RESPONSE_HEADER = {
     # Additionally, for some replies the checksum seems to be totally ignored, because the received
     #   checksum is always zero (0x0), regardless of the content.
     #
-    # This behavior will be handled in the following lines (see also HtHeatpump.read_response):
+    # This behavior will be handled in the following lines. See also function HtHeatpump.read_response().
 
     # normal response header with answer
     b"\x02\xfd\xe0\xd0\x00\x00":
@@ -595,7 +595,7 @@ class HtHeatpump:
             m = re.match(VERSION_RESP, resp)
             if not m:
                 raise IOError("invalid response for query of the software version [{!r}]".format(resp))
-            ver = ( m.group(1).strip(), int(m.group(2)) )
+            ver = (m.group(1).strip(), int(m.group(2)))
             _logger.debug("software version = {} ({:d})".format(ver[0], ver[1]))
             return ver
         except Exception as e:
@@ -669,7 +669,7 @@ class HtHeatpump:
             if not m:
                 raise IOError("invalid response for CLK command [{!r}]".format(resp))
             year = 2000 + int(m.group(3))
-            tmp = [ int(g) for g in m.group(2, 1, 4, 5, 6) ]  # month, day, hour, min, sec
+            tmp = [int(g) for g in m.group(2, 1, 4, 5, 6)]  # month, day, hour, min, sec
             weekday = int(m.group(7))  # weekday 1-7 (Monday through Sunday)
             # create datetime object
             dt = datetime.datetime(year, *tmp)
@@ -706,9 +706,9 @@ class HtHeatpump:
             m = re.match(ALC_RESP, resp)
             if not m:
                 raise IOError("invalid response for ALC command [{!r}]".format(resp))
-            idx, err = [ int(g) for g in m.group(1, 2) ]  # fault list index, error code (?)
+            idx, err = [int(g) for g in m.group(1, 2)]  # fault list index, error code (?)
             year = 2000 + int(m.group(5))
-            tmp = [ int(g) for g in m.group(4, 3, 6, 7, 8) ]  # month, day, hour, min, sec
+            tmp = [int(g) for g in m.group(4, 3, 6, 7, 8)]  # month, day, hour, min, sec
             dt = datetime.datetime(year, *tmp)  # create datetime object
             msg = m.group(9).strip()
             _logger.debug("(idx: {:d}, err: {:d})[{}]: {}".format(idx, err, dt.isoformat(), msg))
@@ -781,9 +781,9 @@ class HtHeatpump:
                     m = re.match(AR_RESP, r)
                     if not m:
                         raise IOError("invalid response for AR command [{!r}]".format(r))
-                    idx, err = [ int(g) for g in m.group(1, 2) ]  # fault list index, error code
+                    idx, err = [int(g) for g in m.group(1, 2)]  # fault list index, error code
                     year = 2000 + int(m.group(5))
-                    tmp = [ int(g) for g in m.group(4, 3, 6, 7, 8) ]  # month, day, hour, min, sec
+                    tmp = [int(g) for g in m.group(4, 3, 6, 7, 8)]  # month, day, hour, min, sec
                     dt = datetime.datetime(year, *tmp)  # create datetime object from extracted data
                     msg = m.group(9).strip()
                     _logger.debug("(idx: {:03d}, err: {:05d})[{}]: {}".format(idx, err, dt.isoformat(), msg))
@@ -802,7 +802,7 @@ class HtHeatpump:
 
     def _extract_param_data(self, name, resp):
         """ Extract the parameter data like parameter name, minimal value, maximal value and the
-        current value from the parameter access response.
+        current value from the parameter access response string.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
         :type name: str
@@ -814,7 +814,7 @@ class HtHeatpump:
             the current value (as ``bool``, ``int`` or ``float``) of the parameter. For example:
             ::
 
-                ( TODO, TODO, TODO, TODO )
+                ( TODO, TODO, TODO, TODO )  # TODO
 
         :rtype: ``tuple`` ( str, bool/int/float, bool/int/float, bool/int/float )
         :raises IOError:
@@ -830,13 +830,27 @@ class HtHeatpump:
         resp_name, resp_min, resp_max, resp_val = (g.strip() for g in m.group(1, 4, 3, 2))
         _logger.debug("{!r}: NAME={!r}, MIN={!r}, MAX={!r}, VAL={!r}"
                       .format(name, resp_name, resp_min, resp_max, resp_val))
-        resp_min = param.from_str(resp_min)  # convert MIN to the corresponding data type (FLOAT, INT, ...)
-        resp_max = param.from_str(resp_max)  # convert MAX to the corresponding data type (FLOAT, INT, ...)
-        resp_val = param.from_str(resp_val)  # convert VAL to the corresponding data type (FLOAT, INT, ...)
+        resp_min = param.from_str(resp_min)  # convert MIN to the corresponding data type (BOOL, INT, FLOAT)
+        resp_max = param.from_str(resp_max)  # convert MAX to the corresponding data type (BOOL, INT, FLOAT)
+        resp_val = param.from_str(resp_val)  # convert VAL to the corresponding data type (BOOL, INT, FLOAT)
         return resp_name, resp_min, resp_max, resp_val  # return (name, min, max, value)
 
     def _get_param(self, name):
-        """ TODO doc
+        """ Read the data (NAME, MIN, MAX, VAL) of a specific parameter of the heat pump.
+
+        :param name: The parameter name, e.g. :data:`"Betriebsart"`.
+        :type name: str
+        :returns: The extracted parameter data as a tuple with 4 elements. The first element inside
+            the returned tuple represents the parameter name as ``str``, the second and third element
+            the minimal and maximal value (as ``bool``, ``int`` or ``float``) and the last element
+            the current value (as ``bool``, ``int`` or ``float``) of the parameter. For example:
+            ::
+
+                ( TODO, TODO, TODO, TODO )  # TODO
+
+        :rtype: ``tuple`` ( str, bool/int/float, bool/int/float, bool/int/float )
+        :raises IOError:
+            Will be raised for an incomplete/invalid response from the heat pump.
         """
         # get the corresponding definition for the requested parameter
         assert name in HtParams, "parameter definition for parameter {!r} not found".format(name)
@@ -852,20 +866,28 @@ class HtHeatpump:
             raise
 
     def _verify_param_resp(self, name, resp_name, resp_min=None, resp_max=None, resp_val=None):
-        """ TODO doc
-        Perform a verification of the parameter access response string and return the extracted parameter value.
-        It checks whether the name, min and max value matches with the parameter definition in :class:`HtParams`.
+        """ Perform a verification of the parameter access response data (NAME, MIN, MAX, VAL). Check
+        whether the name, min and max value matches with the parameter definition in :class:`HtParams`
+        and warn if the current value is beyond the limits.
 
-        :param name: The parameter name, e.g. :data:`"Betriebsart"`.
-        :type name: str
-        :param param: The corresponding parameter definition.
-        :type param: htparams.HtParam
-        :param resp: The received response string of the heat pump.
-        :type resp: str
-
-        :returns: Returned value of the parameter.
-        :rtype: ``str``, ``bool``, ``int`` or ``float``
-        :raises TODO
+        :param resp_name: The parameter name (NAME=...) in the response message.
+        :type resp_name: str
+        :param resp_min: The minimal value (MIN=...) of the parameter in the response message. If :const:`None`
+            no verification will be performed for this argument.
+        :type resp_min: None/bool/int/float
+        :param resp_max: The maximal value (MAX=...) of the parameter in the response message. If :const:`None`
+            no verification will be performed for this argument.
+        :type resp_max: None/bool/int/float
+        :param resp_val: The current value (VAL=...) of the parameter in the response message. If :const:`None`
+            no verification will be performed for this argument.
+        :type resp_val: None/str/bool/int/float
+        :returns: The passed current value of the parameter. If :const:`None` no verification will be performed
+            for this argument.
+        :rtype: ``None``, ``str``, ``bool``, ``int`` or ``float``
+        :raises ParamVerificationException:
+            Will be raised if the parameter verification fails and the property :class:`verify_param`
+            is set to :const:`True`. If property :class:`verify_param` is set to :const:`False` only
+            a warning message will be emitted.
         """
         # get the corresponding definition for the given parameter
         assert name in HtParams, "parameter definition for parameter {!r} not found".format(name)
@@ -898,7 +920,15 @@ class HtHeatpump:
         return resp_val
 
     def update_param_limits(self):
-        """ TODO doc
+        """ Perform an update of the parameter limits in :class:`HtParams` by requesting the limit values
+        of all "known" parameters directly from the heat pump.
+
+        :returns: The list of updated (changed) parameters.
+        :rtype: ``list``
+        :raises ParamVerificationException:
+            Will be raised if the verification of the parameter name fails and the property :class:`verify_param`
+            is set to :const:`True`. If property :class:`verify_param` is set to :const:`False` only a warning
+            message will be emitted.
         """
         updated_params = []  # stores the name of updated parameters
         for name in HtParams.keys():
@@ -947,13 +977,15 @@ class HtHeatpump:
             raise
 
     def set_param(self, name, val, ignore_limits=False):
-        """ TODO doc
-        Set the value of a specific parameter of the heat pump.
+        """ Set the value of a specific parameter of the heat pump. If ``ignore_limits`` is :const:`False`
+        and the passed value is beyond the parameter limits a :class:`ValueError` will be raised.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
         :type name: str
         :param val: The value to set.
         :type val: str, bool, int or float
+        :param ignore_limits: Indicates if the parameter limits should be ignored or not.
+        :type ignore_limits: bool
         :returns: Returned value of the parameter set request.
             In case of success this value should be the same as the one
             passed to the function.
@@ -962,6 +994,9 @@ class HtHeatpump:
         :rtype: ``str``, ``bool``, ``int`` or ``float``
         :raises KeyError:
             Will be raised when the parameter definition for the passed parameter is not found.
+        :raises ValueError:
+            Will be raised if the passed value is beyond the parameter limits and argument ``ignore_limits``
+            is set to :const:`False`.
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
@@ -1008,11 +1043,11 @@ class HtHeatpump:
         return self.get_param("Stoerung")
 
     def query(self, *args):
-        """ TODO doc
-        Return a dict of the requested parameters with their retrieved values from the heat pump.
+        """ Query for the current values of parameters from the heat pump.
 
-        :param names: List of parameter names to request from the heat pump.
-        :type names: list
+        :param args: The parameter name(s) to request from the heat pump.
+            If not specified all "known" parameters are requested.
+        :type args: str
         :returns: A dict of the requested parameters with their values, e.g.:
             ::
 
@@ -1023,13 +1058,11 @@ class HtHeatpump:
                   }
 
         :rtype: ``dict``
-        :raises ValueError:
-            Will be raised when parameter are out of range, e.g. baudrate, bytesize.
-        :raises SerialException:
-            In case the device can not be found or can not be configured.
+        :raises KeyError:
+            Will be raised when the parameter definition for a passed parameter is not found.
         :raises IOError:
-            Will be raised when the login failed or received an incomplete/invalid
-            response (e.g. broken data stream, invalid checksum) for the requests.
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum).
         """
         if not args:
             args = HtParams.keys()
@@ -1044,7 +1077,32 @@ class HtHeatpump:
         return values
 
     def fast_query(self, *args):
-        """ TODO doc
+        """ Query for the current values of parameters from the heat pump the fast way.
+
+        .. note::
+
+            Only available for parameters representing a "MP" data point!
+
+        :param args: The parameter name(s) to request from the heat pump.
+            If not specified all "known" parameters representing a "MP" data point are requested.
+        :type args: str
+        :returns: A dict of the requested parameters with their values, e.g.:
+            ::
+
+                { "TODO": TODO,
+                  "TODO": TODO,
+                  "TODO": TODO,
+                  # ...
+                  }
+
+        :rtype: ``dict``
+        :raises KeyError:
+            Will be raised when the parameter definition for a passed parameter is not found.
+        :raises ValueError:
+            Will be raised when a passed parameter doesn't represent a "MP" data point.
+        :raises IOError:
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum).
         """
         if not args:
             args = (name for name, param in HtParams.items() if param.dp_type == "MP")
