@@ -8,7 +8,7 @@ History
 * extended sample script :file:`htfaultlist.py` by the possibility to write a JSON/CSV file
 * added new sample scripts :file:`hthttp.py` and :file:`htfastquery.py`
 * fixed some formatting (flake8) errors
-* some improvement for the reconnect in the :meth:`~HtHeatpump.login()` method of :class:`HtHeatpump`
+* some improvement for the reconnect in the :meth:`~HtHeatpump.login()` method of class :class:`HtHeatpump`
 * changed return type of :meth:`HtHeatpump.get_fault_list()` from :obj:`dict` to :obj:`list`
 * added support for Python 3.6
 * added support for a user specific parameter definition file under :file:`~/.htheatpump/htparams.csv`
