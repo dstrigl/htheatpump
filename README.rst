@@ -69,7 +69,7 @@ Tested with [*]_
 Installing
 ----------
 
-You can install or upgrade ``htheatpump`` with:
+You can install or upgrade :mod:`htheatpump` with:
 
 .. code-block:: console
 
@@ -87,7 +87,7 @@ Or you can install from source with:
 Getting started
 ---------------
 
-To use ``htheatpump`` in a project take a look on the following example. After establishing a connection
+To use :mod:`htheatpump` in a project take a look on the following example. After establishing a connection
 with the Heliotherm heat pump one can interact with it by different functions like reading or writing
 parameters.
 
@@ -107,14 +107,14 @@ parameters.
         hp.logout()  # try to logout for an ordinary cancellation (if possible)
         hp.close_connection()
 
-A full list of supported functions can be found in the ``htheatpump`` documentation at
+A full list of supported functions can be found in the :mod:`htheatpump` documentation at
 `readthedocs.io <https://htheatpump.readthedocs.io/en/latest/?badge=latest>`_.
 
 
 Logging
 ~~~~~~~
 
-This library uses the ``logging`` module. To set up logging to standard output, put
+This library uses the :mod:`logging` module. To set up logging to standard output, put
 
 .. code:: python
 

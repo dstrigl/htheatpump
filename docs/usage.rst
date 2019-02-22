@@ -23,6 +23,4 @@ An overview about the available parameters can be found here: :ref:`htparams`
         hp.close_connection()
 
 
-Some more examples showing how to use the ``htheatpump`` module can be found in the :ref:`htscripts`.
-
-
+Some more examples showing how to use the :mod:`htheatpump` module can be found in the :ref:`htscripts`.

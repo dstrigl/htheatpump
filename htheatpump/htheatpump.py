@@ -285,7 +285,7 @@ class HtHeatpump:
 
     def __init__(self, device, **kwargs):
         # store the serial settings for later connection establishment
-        self._ser_settings = { 'device': device }
+        self._ser_settings = {'device': device}
         self._ser_settings.update(kwargs)
         self._ser = None
         self._verify_param = False
@@ -350,7 +350,7 @@ class HtHeatpump:
     def is_open(self):
         """ Return the state of the serial port, whether it’s open or not.
 
-        :returns: The state of the serial port as ``bool``.
+        :returns: The state of the serial port as :obj:`bool`.
         :rtype: ``bool``
         """
         return self._ser and self._ser.is_open
@@ -358,10 +358,10 @@ class HtHeatpump:
     @property
     def verify_param(self):
         """ Property to get or set whether the parameter verification (of *name*, *min* and *max*) during
-        a :class:`get_param` or :class:`set_param` should be active or not. If :const:`True` a failed
-        parameter verification will result in an :class:`ParamVerificationException` exception. If
-        :const:`False` only a warning message will be emitted. This is just for safety to be sure that
-        the parameter definitions in :class:`HtParams` are correct!
+        a :meth:`~HtHeatpump.get_param` or :meth:`~HtHeatpump.set_param` should be active or not.
+        If :const:`True` a failed parameter verification will result in an :exc:`ParamVerificationException`
+        exception. If :const:`False` only a warning message will be emitted. This is just for safety to be sure
+        that the parameter definitions in :class:`HtParams` are correct!
 
         :param: Boolean value which indicates whether the parameter verification should be active or not.
         :returns: :const:`True` if the verification is active, :const:`False` otherwise.
@@ -390,7 +390,7 @@ class HtHeatpump:
     def read_response(self):
         """ Read the response message from the heat pump.
 
-        :returns: The returned response message of the heat pump as ``str``.
+        :returns: The returned response message of the heat pump as :obj:`str`.
         :rtype: ``str``
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
@@ -544,7 +544,7 @@ class HtHeatpump:
     def get_serial_number(self):
         """ Query for the manufacturer's serial number of the heat pump.
 
-        :returns: The manufacturer's serial number of the heat pump as ``int`` (e.g. :data:`123456`).
+        :returns: The manufacturer's serial number of the heat pump as :obj:`int` (e.g. :data:`123456`).
         :rtype: ``int``
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
@@ -572,7 +572,7 @@ class HtHeatpump:
             The first element inside the returned tuple represents the software
             version as a readable string in a common version number format
             (e.g. :data:`"3.0.20"`). The second element (probably) contains a numerical
-            representation as ``int`` of the software version returned by the heat pump.
+            representation as :obj:`int` of the software version returned by the heat pump.
             For example:
             ::
 
@@ -608,7 +608,7 @@ class HtHeatpump:
         :returns: The current date and time of the heat pump as a tuple with 2 elements, where
             the first element is of type :class:`datetime.datetime` which represents the current
             date and time while the second element is the corresponding weekday in form of an
-            ``int`` between 1 and 7, inclusive (Monday through Sunday). For example:
+            :obj:`int` between 1 and 7, inclusive (Monday through Sunday). For example:
             ::
 
                 ( datetime.datetime(...), 2 )  # 2 = Tuesday
@@ -644,7 +644,7 @@ class HtHeatpump:
             of the host will be used.
         :type dt: datetime.datetime
         :returns: A 2-elements tuple composed of a :class:`datetime.datetime` which represents
-            the sent date and time and an ``int`` between 1 and 7, inclusive, for the corresponding
+            the sent date and time and an :obj:`int` between 1 and 7, inclusive, for the corresponding
             weekday (Monday through Sunday).
         :rtype: ``tuple`` ( datetime.datetime, int )
         :raises TypeError:
@@ -684,9 +684,9 @@ class HtHeatpump:
 
         :returns:
             The last fault message of the heat pump as a tuple with 4 elements.
-            The first element of the returned tuple represents the index as ``int`` of
+            The first element of the returned tuple represents the index as :obj:`int` of
             the message inside the fault list. The second element is (probably) the
-            the error code as ``int`` defined by Heliotherm. The last two elements of the
+            the error code as :obj:`int` defined by Heliotherm. The last two elements of the
             tuple are the date and time when the error occurred (as :class:`datetime.datetime`)
             and the error message string itself. For example:
             ::
@@ -720,7 +720,7 @@ class HtHeatpump:
     def get_fault_list_size(self):
         """ Query for the fault list size of the heat pump.
 
-        :returns: The size of the fault list as ``int``.
+        :returns: The size of the fault list as :obj:`int`.
         :rtype: ``int``
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
@@ -747,7 +747,7 @@ class HtHeatpump:
         :param args: The index number(s) to request from the fault list (optional).
             If not specified all fault list entries are requested.
         :type args: int
-        :returns: The requested entries of the fault list as ``list``, e.g.:
+        :returns: The requested entries of the fault list as :obj:`list`, e.g.:
             ::
 
                 [ { "index"   : 29,                     # fault list index
@@ -806,15 +806,15 @@ class HtHeatpump:
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
         :type name: str
-        :param resp: The returned response message of the heat pump as ``str``.
+        :param resp: The returned response message of the heat pump as :obj:`str`.
         :type resp: str
         :returns: The extracted parameter data as a tuple with 4 elements. The first element inside
-            the returned tuple represents the parameter name as ``str``, the second and third element
-            the minimal and maximal value (as ``bool``, ``int`` or ``float``) and the last element
-            the current value (as ``bool``, ``int`` or ``float``) of the parameter. For example:
+            the returned tuple represents the parameter name as :obj:`str`, the second and third element
+            the minimal and maximal value (as :obj:`bool`, :obj:`int` or :obj:`float`) and the last element
+            the current value (as :obj:`bool`, :obj:`int` or :obj:`float`) of the parameter. For example:
             ::
 
-                ( TODO, TODO, TODO, TODO )  # TODO
+                ( "Temp. EQ_Eintritt", -20.0, 30.0, 19.8 )  # name, min, max, val
 
         :rtype: ``tuple`` ( str, bool/int/float, bool/int/float, bool/int/float )
         :raises IOError:
@@ -841,12 +841,12 @@ class HtHeatpump:
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
         :type name: str
         :returns: The extracted parameter data as a tuple with 4 elements. The first element inside
-            the returned tuple represents the parameter name as ``str``, the second and third element
-            the minimal and maximal value (as ``bool``, ``int`` or ``float``) and the last element
-            the current value (as ``bool``, ``int`` or ``float``) of the parameter. For example:
+            the returned tuple represents the parameter name as :obj:`str`, the second and third element
+            the minimal and maximal value (as :obj:`bool`, :obj:`int` or :obj:`float`) and the last element
+            the current value (as :obj:`bool`, :obj:`int` or :obj:`float`) of the parameter. For example:
             ::
 
-                ( TODO, TODO, TODO, TODO )  # TODO
+                ( "Temp. EQ_Austritt", -20.0, 30.0, 15.1 )  # name, min, max, val
 
         :rtype: ``tuple`` ( str, bool/int/float, bool/int/float, bool/int/float )
         :raises IOError:
@@ -885,8 +885,8 @@ class HtHeatpump:
             for this argument.
         :rtype: ``None``, ``str``, ``bool``, ``int`` or ``float``
         :raises ParamVerificationException:
-            Will be raised if the parameter verification fails and the property :class:`verify_param`
-            is set to :const:`True`. If property :class:`verify_param` is set to :const:`False` only
+            Will be raised if the parameter verification fails and the property :attr:`~HtHeatpump.verify_param`
+            is set to :const:`True`. If property :attr:`~HtHeatpump.verify_param` is set to :const:`False` only
             a warning message will be emitted.
         """
         # get the corresponding definition for the given parameter
@@ -926,9 +926,9 @@ class HtHeatpump:
         :returns: The list of updated (changed) parameters.
         :rtype: ``list``
         :raises ParamVerificationException:
-            Will be raised if the verification of the parameter name fails and the property :class:`verify_param`
-            is set to :const:`True`. If property :class:`verify_param` is set to :const:`False` only a warning
-            message will be emitted.
+            Will be raised if the parameter verification fails and the property :attr:`~HtHeatpump.verify_param`
+            is set to :const:`True`. If property :attr:`~HtHeatpump.verify_param` is set to :const:`False` only
+            a warning message will be emitted.
         """
         updated_params = []  # stores the name of updated parameters
         for name in HtParams.keys():
@@ -949,7 +949,7 @@ class HtHeatpump:
         :type name: str
         :returns: Returned value of the requested parameter.
             The type of the returned value is defined by the csv-table
-            of supported heat pump parameters in ``htparams.csv``.
+            of supported heat pump parameters in :file:`htparams.csv`.
         :rtype: ``str``, ``bool``, ``int`` or ``float``
         :raises KeyError:
             Will be raised when the parameter definition for the passed parameter is not found.
@@ -978,7 +978,7 @@ class HtHeatpump:
 
     def set_param(self, name, val, ignore_limits=False):
         """ Set the value of a specific parameter of the heat pump. If ``ignore_limits`` is :const:`False`
-        and the passed value is beyond the parameter limits a :class:`ValueError` will be raised.
+        and the passed value is beyond the parameter limits a :exc:`ValueError` will be raised.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
         :type name: str
@@ -1089,9 +1089,10 @@ class HtHeatpump:
         :returns: A dict of the requested parameters with their values, e.g.:
             ::
 
-                { "TODO": TODO,
-                  "TODO": TODO,
-                  "TODO": TODO,
+                { "EQ Pumpe (Ventilator)": False,
+                  "FWS Stroemungsschalter": False,
+                  "Frischwasserpumpe": 0,
+                  "HKR_Sollwert": 26.8,
                   # ...
                   }
 

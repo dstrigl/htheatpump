@@ -24,14 +24,14 @@
 
     .. code-block:: shell
 
-       $ python3 htfastquery.py --device /dev/ttyUSB1 "TODO" "TODO"
-       TODO: TODO
-       TODO: TODO
+       $ python3 htfastquery.py --device /dev/ttyUSB1 "Temp. Vorlauf" "Temp. Ruecklauf"
+       Temp. Ruecklauf [MP,04]: 25.2
+       Temp. Vorlauf   [MP,03]: 25.3
 
-       $ python3 htfastquery.py --json "TODO" "TODO"
+       $ python3 htfastquery.py --json "Temp. Vorlauf" "Temp. Ruecklauf"
        {
-           "TODO": TODO,
-           "TODO": TODO
+           "Temp. Ruecklauf": 25.2,
+           "Temp. Vorlauf": 25.3
        }
 """
 
@@ -55,9 +55,9 @@ def main():
 
             Example:
 
-              $ python3 %(prog)s --device /dev/ttyUSB1 "TODO" "TODO"
-              TODO: TODO
-              TODO: TODO
+              $ python3 %(prog)s --device /dev/ttyUSB1 "Temp. Vorlauf" "Temp. Ruecklauf"
+              Temp. Ruecklauf [MP,04]: 25.2
+              Temp. Vorlauf   [MP,03]: 25.3
             '''),
         formatter_class = argparse.RawDescriptionHelpFormatter,
         epilog = textwrap.dedent('''\

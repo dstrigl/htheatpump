@@ -217,14 +217,14 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htfastquery.py
 
 .. code-block:: shell
 
-    $ python3 htfastquery.py --device /dev/ttyUSB1 "TODO" "TODO"
-    TODO: TODO
-    TODO: TODO
+    $ python3 htfastquery.py --device /dev/ttyUSB1 "Temp. Vorlauf" "Temp. Ruecklauf"
+    Temp. Ruecklauf [MP,04]: 25.2
+    Temp. Vorlauf   [MP,03]: 25.3
 
 .. code-block:: shell
 
-    $ python3 htfastquery.py --json "TODO" "TODO"
+    $ python3 htfastquery.py --json "Temp. Vorlauf" "Temp. Ruecklauf"
     {
-        "TODO": TODO,
-        "TODO": TODO
+        "Temp. Ruecklauf": 25.2,
+        "Temp. Vorlauf": 25.3
     }

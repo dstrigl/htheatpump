@@ -27,6 +27,58 @@ from htheatpump.htparams import HtParams
 from htheatpump.htheatpump import HtHeatpump
 
 
+@pytest.mark.parametrize("s, checksum", [(b"", 0x0)])  # TODO add some more samples
+def test_calc_checksum(s, checksum):
+    from htheatpump.htheatpump import calc_checksum
+    assert calc_checksum(s) == checksum
+    #assert 0
+
+
+@pytest.mark.parametrize("s", [b"", b"\x01"])
+def test_verify_checksum_raises_ValueError(s):
+    from htheatpump.htheatpump import verify_checksum
+    with pytest.raises(ValueError):
+        verify_checksum(s)
+    #assert 0
+
+
+@pytest.mark.parametrize("s, result", [(b"\x00\x00", True)])  # TODO add some more samples
+def test_verify_checksum(s, result):
+    from htheatpump.htheatpump import verify_checksum
+    assert verify_checksum(s) == result
+    #assert 0
+
+
+@pytest.mark.parametrize("s", [b""])
+def test_add_checksum_raises_ValueError(s):
+    from htheatpump.htheatpump import add_checksum
+    with pytest.raises(ValueError):
+        add_checksum(s)
+    #assert 0
+
+
+@pytest.mark.parametrize("s, result", [(b"\x00", b"\x00\x00")])  # TODO add some more samples
+def test_add_checksum(s, result):
+    from htheatpump.htheatpump import add_checksum
+    assert add_checksum(s) == result
+    #assert 0
+
+
+@pytest.mark.parametrize("cmd", ["?" * 254])
+def test_create_request_raises_ValueError(cmd):
+    from htheatpump.htheatpump import create_request
+    with pytest.raises(ValueError):
+        create_request(cmd)
+    #assert 0
+
+
+@pytest.mark.parametrize("cmd, result", [("", b"\x02\xfd\xd0\xe0\x00\x00\x02~;\x98")])  # TODO add some more samples
+def test_create_request(cmd, result):
+    from htheatpump.htheatpump import create_request
+    assert create_request(cmd) == result
+    #assert 0
+
+
 @pytest.fixture(scope="class")
 def hthp(cmdopt_device, cmdopt_baudrate):
     hthp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
