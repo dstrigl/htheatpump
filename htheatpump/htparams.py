@@ -272,7 +272,7 @@ class HtParam:
             return HtParam._to_str(self, arg)
 
 
-class HtParamsMeta(type):
+class HtParamsMeta(type):  # pragma: no cover
 
     def __contains__(cls, item):
         return item in cls._params

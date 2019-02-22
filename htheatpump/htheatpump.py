@@ -225,7 +225,7 @@ def create_request(cmd):
 # Exception classes
 # ------------------------------------------------------------------------------------------------------------------- #
 
-class ParamVerificationException(ValueError):
+class ParamVerificationException(ValueError):  # pragma: no cover
     """ Exception which represents a verification error during parameter access.
 
     :param message: A detailed message describing the parameter verification failure.
