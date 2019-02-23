@@ -1,7 +1,7 @@
 History
 =======
 
-1.1.0 (2019-??-??)
+1.1.0 (2019-02-23)
 ------------------
 
 * added some more heat pump parameters (data points) in :file:`htparams.csv`
