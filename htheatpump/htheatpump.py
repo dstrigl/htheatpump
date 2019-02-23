@@ -361,7 +361,7 @@ class HtHeatpump:
         a :meth:`~HtHeatpump.get_param` or :meth:`~HtHeatpump.set_param` should be active or not.
         If :const:`True` a failed parameter verification will result in an :exc:`ParamVerificationException`
         exception. If :const:`False` only a warning message will be emitted. This is just for safety to be sure
-        that the parameter definitions in :class:`HtParams` are correct!
+        that the parameter definitions in :class:`~htheatpump.htparams.HtParams` are correct!
 
         :param: Boolean value which indicates whether the parameter verification should be active or not.
         :returns: :const:`True` if the verification is active, :const:`False` otherwise.
@@ -483,12 +483,12 @@ class HtHeatpump:
 
     def login(self, update_param_limits=False, max_retries=_login_retries):
         """ Log in the heat pump. If ``update_param_limits`` is :const:`True` an update of the
-        parameter limits in :class:`HtParams` will be performed. This will be done by requesting
-        the current value together with their limits (MIN and MAX) for all “known” parameters
-        directly after a successful login.
+        parameter limits in :class:`~htheatpump.htparams.HtParams` will be performed. This will
+        be done by requesting the current value together with their limits (MIN and MAX) for all
+        “known” parameters directly after a successful login.
 
         :param update_param_limits: Determines whether an update of the parameter limits in
-            :class:`HtParams` should be done or not. Default is :const:`False`.
+            :class:`~htheatpump.htparams.HtParams` should be done or not. Default is :const:`False`.
         :type update_param_limits: bool
         :param max_retries: Maximal number of retries for a successful login. One regular try
             plus :const:`max_retries` retries. Default is 2.
@@ -866,8 +866,8 @@ class HtHeatpump:
             raise
 
     def _verify_param_resp(self, name, resp_name, resp_min=None, resp_max=None, resp_val=None):
-        """ Perform a verification of the parameter access response data (NAME, MIN, MAX, VAL). Check
-        whether the name, min and max value matches with the parameter definition in :class:`HtParams`
+        """ Perform a verification of the parameter access response data (NAME, MIN, MAX, VAL). Check whether
+        the name, min and max value matches with the parameter definition in :class:`~htheatpump.htparams.HtParams`
         and warn if the current value is beyond the limits.
 
         :param resp_name: The parameter name (NAME=...) in the response message.
@@ -920,8 +920,8 @@ class HtHeatpump:
         return resp_val
 
     def update_param_limits(self):
-        """ Perform an update of the parameter limits in :class:`HtParams` by requesting the limit values
-        of all "known" parameters directly from the heat pump.
+        """ Perform an update of the parameter limits in :class:`~htheatpump.htparams.HtParams` by requesting
+        the limit values of all "known" parameters directly from the heat pump.
 
         :returns: The list of updated (changed) parameters.
         :rtype: ``list``
