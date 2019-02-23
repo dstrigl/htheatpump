@@ -87,13 +87,13 @@ class HtDataTypes(enum.Enum):
 class HtParam:
     """ Representation of a specific heat pump parameter.
 
-    :param dp_type: The data point type (:const:`"MP"`, :const:`"SP"`).
+    :param dp_type: The data point type (:data:`"MP"`, :data:`"SP"`).
     :type dp_type: str
     :param dp_number: The data point number.
     :type dp_number: int
-    :param acl: The access rights (:const:`'r'` = read, :const:`'w'` = write).
+    :param acl: The access rights (:data:`'r'` = read, :data:`'w'` = write).
     :type acl: str
-    :param data_type: The data type, see :class:`htparams.HtDataTypes`.
+    :param data_type: The data type, see :class:`HtDataTypes`.
     :type data_type: HtDataTypes
     :param min_val: The minimal value (default :const:`None`, which means "doesn't matter").
     :type min_val: bool, int, float or None
@@ -156,7 +156,7 @@ class HtParam:
 
         :param value: The passed value (in form of a string).
         :type value: str
-        :param data_type: The expected data type, see :class:`htparams.HtDataTypes`.
+        :param data_type: The expected data type, see :class:`HtDataTypes`.
         :type data_type: HtDataTypes
         :returns: The passed value which data type matches the expected one.
         :rtype: ``str``, ``bool``, ``int`` or ``float``
@@ -223,7 +223,7 @@ class HtParam:
 
         :param value: The passed value.
         :type value: str, bool, int or float
-        :param data_type: The data type of the passed value, see :class:`htparams.HtDataTypes`.
+        :param data_type: The data type of the passed value, see :class:`HtDataTypes`.
         :type data_type: HtDataTypes
         :returns: The string representation of the passed value.
         :rtype: ``str``
@@ -337,8 +337,8 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
     .. note::
 
         The supported parameters and their definitions are loaded from the CSV file
-        ``htparams.csv`` in this package, but the user can create his own user specific
-        CSV file under ``~/.htheatpump/htparams.csv``.
+        :file:`htparams.csv` in this package, but the user can create his own user specific
+        CSV file under :file:`~/.htheatpump/htparams.csv`.
 
     .. [*] Most of the supported heat pump parameters were found by "sniffing" the
            serial communication of the Heliotherm home control Windows application
