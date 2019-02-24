@@ -116,6 +116,17 @@ class TestHtParam:
         assert m is not None, "non valid command string for parameter {!r} [{!r}]".format(name, cmd)
         #assert 0
 
+    @pytest.mark.parametrize("name, param", HtParams.items())
+    def test_set_limits(self, name, param):
+        assert not param.set_limits(param.min_val, param.max_val)
+        #assert 0
+
+    @pytest.mark.parametrize("name, param", HtParams.items())
+    def test_in_limits(self, name, param):
+        assert param.in_limits(param.min_val)
+        assert param.in_limits(param.max_val)
+        #assert 0
+
 
 @pytest.fixture(scope="class")
 def hthp(cmdopt_device, cmdopt_baudrate):

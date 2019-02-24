@@ -133,7 +133,7 @@ class HtParam:
                     :const:`False` otherwise.
         :rtype: ``bool``
         """
-        ret = self.min_val != min_val or self.max_val != max_val
+        ret = (self.min_val != min_val) or (self.max_val != max_val)
         self.min_val = min_val
         self.max_val = max_val
         return ret
