@@ -37,8 +37,8 @@ and "help wanted" is open to whoever wants to implement it.
 Write Documentation
 ~~~~~~~~~~~~~~~~~~~
 
-:mod:`htheatpump` could always use more documentation, whether as part of the
-official :mod:`htheatpump` docs, in docstrings, or even on the web in blog posts,
+``htheatpump`` could always use more documentation, whether as part of the
+official ``htheatpump`` docs, in docstrings, or even on the web in blog posts,
 articles, and such.
 
 Submit Feedback
@@ -56,14 +56,14 @@ If you are proposing a feature:
 Get Started!
 ------------
 
-Ready to contribute? Here's how to set up :mod:`htheatpump` for local development.
+Ready to contribute? Here's how to set up ``htheatpump`` for local development.
 
-1. Fork the :mod:`htheatpump` repository on GitHub.
+1. Fork the ``htheatpump`` repository on GitHub.
 2. Clone your fork locally::
 
     $ git clone git@github.com:your_name_here/htheatpump.git
 
-3. Install your local copy into a virtualenv [1]_. Assuming you have :mod:`virtualenvwrapper` installed, this is how you
+3. Install your local copy into a virtualenv [1]_. Assuming you have ``virtualenvwrapper`` installed, this is how you
    set up your fork for local development under Python 3.5::
 
     $ mkvirtualenv hthp-py35 -p python3.5
@@ -80,8 +80,8 @@ Ready to contribute? Here's how to set up :mod:`htheatpump` for local developmen
 
    Now you can make your changes locally.
 
-6. When you're done making changes, check that your changes pass :mod:`flake8` and the *tests* (using :file:`setup.py`
-   or :mod:`pytest`), including testing other Python versions with :mod:`tox`::
+6. When you're done making changes, check that your changes pass ``flake8`` and the *tests* (using ``setup.py``
+   or ``pytest``), including testing other Python versions with ``tox``::
 
     $ flake8 htheatpump tests samples setup.py
     $ python setup.py test OR pytest
