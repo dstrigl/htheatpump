@@ -482,7 +482,7 @@ class HtHeatpump:
         return m.group(1)
 
     def login(self, update_param_limits=False, max_retries=_login_retries):
-        """ Log in the heat pump. If ``update_param_limits`` is :const:`True` an update of the
+        """ Log in the heat pump. If :attr:`update_param_limits` is :const:`True` an update of the
         parameter limits in :class:`~htheatpump.htparams.HtParams` will be performed. This will
         be done by requesting the current value together with their limits (MIN and MAX) for all
         “known” parameters directly after a successful login.
@@ -648,7 +648,7 @@ class HtHeatpump:
             weekday (Monday through Sunday).
         :rtype: ``tuple`` ( datetime.datetime, int )
         :raises TypeError:
-            Raised for an invalid type of argument ``dt``. Must be :const:`None` or
+            Raised for an invalid type of argument :attr:`dt`. Must be :const:`None` or
             of type :class:`datetime.datetime`.
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
@@ -977,7 +977,7 @@ class HtHeatpump:
             raise
 
     def set_param(self, name, val, ignore_limits=False):
-        """ Set the value of a specific parameter of the heat pump. If ``ignore_limits`` is :const:`False`
+        """ Set the value of a specific parameter of the heat pump. If :attr:`ignore_limits` is :const:`False`
         and the passed value is beyond the parameter limits a :exc:`ValueError` will be raised.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
@@ -990,12 +990,12 @@ class HtHeatpump:
             In case of success this value should be the same as the one
             passed to the function.
             The type of the returned value is defined by the csv-table
-            of supported heat pump parameters in ``htparams.csv``.
+            of supported heat pump parameters in :file:`htparams.csv`.
         :rtype: ``str``, ``bool``, ``int`` or ``float``
         :raises KeyError:
             Will be raised when the parameter definition for the passed parameter is not found.
         :raises ValueError:
-            Will be raised if the passed value is beyond the parameter limits and argument ``ignore_limits``
+            Will be raised if the passed value is beyond the parameter limits and argument :attr:`ignore_limits`
             is set to :const:`False`.
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
