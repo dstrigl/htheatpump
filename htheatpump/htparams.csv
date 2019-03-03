@@ -41,6 +41,11 @@ HKR_Sollwert, MP, 57, r-, FLOAT, 0.0, 50.0
 #WMZ_Leistung (kW):, MP, 89, r-, FLOAT, 0.0, 141006544.0
 #flow_m, MP, 98, r-, FLOAT, 0.0, 100.0
 
+Liegenschaft, SP, 3, r-, INT, 0, 2147483647
+WP_System, SP, 4, r-, INT, 1, 2
+WW Type, SP, 5, r-, INT, 0, 4
+FWS Type, SP, 6, r-, BOOL, 0, 1
+Puffer Type, SP, 7, r-, BOOL, 0, 1
 #Softwareversion, SP, 9, r-, INT, None, None
 Verdichter_Status, SP, 10, r-, INT, 0, 11
 Verdichter laeuft seit, SP, 11, r-, INT, 0, 100000
