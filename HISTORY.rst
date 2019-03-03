@@ -4,7 +4,8 @@ History
 1.x.x (2019-xx-xx)
 ------------------
 
-* TODO
+* added some more heat pump parameters (data points) in ``htparams.csv``
+* ...
 
 1.1.0 (2019-02-23)
 ------------------
