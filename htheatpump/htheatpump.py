@@ -956,6 +956,10 @@ class HtHeatpump:
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
+        :raises ParamVerificationException:
+            Will be raised if the parameter verification fails and the property :attr:`~HtHeatpump.verify_param`
+            is set to :const:`True`. If property :attr:`~HtHeatpump.verify_param` is set to :const:`False` only
+            a warning message will be emitted.
 
         For example, the following call
         ::
@@ -1000,6 +1004,10 @@ class HtHeatpump:
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
+        :raises ParamVerificationException:
+            Will be raised if the parameter verification fails and the property :attr:`~HtHeatpump.verify_param`
+            is set to :const:`True`. If property :attr:`~HtHeatpump.verify_param` is set to :const:`False` only
+            a warning message will be emitted.
 
         For example, the following call
         ::
