@@ -1021,7 +1021,7 @@ class HtHeatpump:
         if name not in HtParams:
             raise KeyError("parameter definition for parameter {!r} not found".format(name))
         param = HtParams[name]
-        # check the passed value against the defined limits
+        # check the passed value against the defined limits (if desired)
         if not ignore_limits and not param.in_limits(val):
             raise ValueError("value {!r} is beyond the limits [{}, {}]".format(val, param.min_val, param.max_val))
         # send command to the heat pump
