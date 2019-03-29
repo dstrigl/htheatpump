@@ -4,8 +4,9 @@ History
 1.x.x (2019-xx-xx)
 ------------------
 
+* added support for Python 3.7
+* dropped support for Python 3.4
 * added some more heat pump parameters (data points) in ``htparams.csv``
-* ...
 
 1.1.0 (2019-02-23)
 ------------------
