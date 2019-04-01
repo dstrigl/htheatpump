@@ -17,8 +17,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" This module is responsible for the communication with the Heliotherm heat pump.
-"""
+""" This module is responsible for the communication with the Heliotherm heat pump. """
 
 from htheatpump.htparams import HtParams
 
@@ -26,6 +25,7 @@ import serial
 import time
 import re
 import datetime
+import enum
 
 #import sys
 #import pprint
@@ -47,8 +47,33 @@ _logger = logging.getLogger(__name__)
 _serial_timeout = 5
 """ Serial timeout value in seconds; normally no need to change it. """
 _login_retries = 2
-""" Maximum number of retries for a login attempt; 1 regular try + :const:`_login_retries` retries.
-"""
+""" Maximum number of retries for a login attempt; 1 regular try + :const:`_login_retries` retries. """
+
+
+@enum.unique
+class VerifyAction(enum.Enum):
+    """ Possible actions for the parameter verification:
+
+    * ``NONE``  No verification, shortcut for ``{}``.
+    * ``NAME``  Verification of the parameter name.
+    * ``MIN``   Verification of the minimal value of the parameter.
+    * ``MAX``   Verification of the maximal value of the parameter.
+    * ``VALUE`` Verification of the current parameter value.
+    * ``ALL``   All of the above actions, shortcut for ``{NAME, MIN, MAX, VALUE}``.
+
+    The above enum entries can be used to specify the steps which should be performed
+    during a parameter verification, e.g.::
+
+        hp = HtHeatpump("/dev/ttyUSB0", baudrate=9600)
+        hp.verify_param_action = {VerifyAction.NAME, VerifyAction.MAX}
+        temp = hp.get_param("Temp. Aussen")
+    """
+    NONE = {}
+    NAME = 1
+    MIN = 2
+    MAX = 3
+    VALUE = 4
+    ALL = {NAME, MIN, MAX, VALUE}
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -225,7 +250,7 @@ def create_request(cmd):
 # Exception classes
 # ------------------------------------------------------------------------------------------------------------------- #
 
-class ParamVerificationException(ValueError):  # pragma: no cover
+class VerificationException(ValueError):  # pragma: no cover
     """ Exception which represents a verification error during parameter access.
 
     :param message: A detailed message describing the parameter verification failure.
@@ -258,6 +283,10 @@ class HtHeatpump:
     :type rtscts: bool
     :param dsrdtr: Hardware flow control (DSR/DTR) enabled (optional).
     :type dsrdtr: bool
+    :param verify_param_action: Parameter verification actions (optional).
+    :type verify_param_action: set
+    :param verify_param_error: Interpretation of parameter verification failure as error enabled (optional).
+    :type verify_param_error: bool
 
     Example::
 
@@ -274,21 +303,17 @@ class HtHeatpump:
             hp.close_connection()
     """
 
-    #_ser_settings = None
-    #""" The serial device settings (device, baudrate, bytesize, parity, stopbits, xonxoff, rtscts, dsrdtr)
-    #    as ``dict``.
-    #"""
-
-    #_ser = None
-    #""" The object which does the serial talking.
-    #"""
-
     def __init__(self, device, **kwargs):
         # store the serial settings for later connection establishment
-        self._ser_settings = {'device': device}
+        self._ser_settings = {"device": device}
+        assert isinstance(device, str)
         self._ser_settings.update(kwargs)
         self._ser = None
-        self._verify_param = False
+        # default values for the parameter verification
+        self._verify_param_action = kwargs.get("verify_param_action", {VerifyAction.NAME})
+        assert isinstance(self._verify_param_action, set)
+        self._verify_param_error = kwargs.get("verify_param_error", False)
+        assert isinstance(self._verify_param_error, bool)
 
     def __del__(self):
         # close the connection if still established
@@ -307,14 +332,14 @@ class HtHeatpump:
         """
         if self._ser:
             raise IOError("serial connection already open")
-        device = self._ser_settings.get('device', '/dev/ttyUSB0')
-        baudrate = self._ser_settings.get('baudrate', 115200)
-        bytesize = self._ser_settings.get('bytesize', serial.EIGHTBITS)
-        parity = self._ser_settings.get('parity', serial.PARITY_NONE)
-        stopbits = self._ser_settings.get('stopbits', serial.STOPBITS_ONE)
-        xonxoff = self._ser_settings.get('xonxoff', True)
-        rtscts = self._ser_settings.get('rtscts', False)
-        dsrdtr = self._ser_settings.get('dsrdtr', False)
+        device = self._ser_settings.get("device", "/dev/ttyUSB0")
+        baudrate = self._ser_settings.get("baudrate", 115200)
+        bytesize = self._ser_settings.get("bytesize", serial.EIGHTBITS)
+        parity = self._ser_settings.get("parity", serial.PARITY_NONE)
+        stopbits = self._ser_settings.get("stopbits", serial.STOPBITS_ONE)
+        xonxoff = self._ser_settings.get("xonxoff", True)
+        rtscts = self._ser_settings.get("rtscts", False)
+        dsrdtr = self._ser_settings.get("dsrdtr", False)
         # open the serial connection (must fit with the settings on the heat pump!)
         self._ser = serial.Serial(device,
                                   baudrate=baudrate,
@@ -356,22 +381,41 @@ class HtHeatpump:
         return self._ser and self._ser.is_open
 
     @property
-    def verify_param(self):
-        """ Property to get or set whether the parameter verification (of *name*, *min* and *max*) during
-        a :meth:`~HtHeatpump.get_param` or :meth:`~HtHeatpump.set_param` should be active or not.
-        If :const:`True` a failed parameter verification will result in an :exc:`ParamVerificationException`
-        exception. If :const:`False` only a warning message will be emitted. This is just for safety to be sure
-        that the parameter definitions in :class:`~htheatpump.htparams.HtParams` are correct!
+    def verify_param_action(self):
+        """ Property to specify the actions which should be performed during the parameter verification.
 
-        :param: Boolean value which indicates whether the parameter verification should be active or not.
-        :returns: :const:`True` if the verification is active, :const:`False` otherwise.
+        The possible actions for the parameter verification can be found in the enum :class:`~VerifyAction`.
+        The default includes just a verification of the parameter name.
+
+        :param: A set of :class:`~VerifyAction` enum values, which specify the actions which should be performed
+            during the parameter verification, e.g. ``{VerifyAction.NAME}``.
+        :returns: The set of :class:`~VerifyAction` enum values, which specify the parameter verification actions.
+        :rtype: ``set``
+        """
+        return self._verify_param_action
+
+    @verify_param_action.setter
+    def verify_param_action(self, val):
+        assert isinstance(val, set)
+        self._verify_param_action = val
+
+    @property
+    def verify_param_error(self):
+        """ Property to get or set whether a parameter verification failure should result in an error or not.
+
+        If :const:`True` a failed parameter verification will result in an :exc:`VerificationException` exception.
+        If :const:`False` (default) only a warning message will be emitted.
+
+        :param: Boolean value which indicates whether a parameter verification failure should result in an error or not.
+        :returns: :const:`True` if a verification failure should result in an error, :const:`False` otherwise.
         :rtype: ``bool``
         """
-        return self._verify_param
+        return self._verify_param_error
 
-    @verify_param.setter
-    def verify_param(self, val):
-        self._verify_param = val
+    @verify_param_error.setter
+    def verify_param_error(self, val):
+        assert isinstance(val, bool)
+        self._verify_param_error = val
 
     def send_request(self, cmd):
         """ Send a request to the heat pump.
@@ -884,38 +928,40 @@ class HtHeatpump:
         :returns: The passed current value of the parameter. If :const:`None` no verification will be performed
             for this argument.
         :rtype: ``None``, ``str``, ``bool``, ``int`` or ``float``
-        :raises ParamVerificationException:
-            Will be raised if the parameter verification fails and the property :attr:`~HtHeatpump.verify_param`
-            is set to :const:`True`. If property :attr:`~HtHeatpump.verify_param` is set to :const:`False` only
-            a warning message will be emitted.
+        :raises VerificationException:
+            Will be raised if the parameter verification fails and the property :attr:`~HtHeatpump.verify_param_error`
+            is set to :const:`True`. If property :attr:`~HtHeatpump.verify_param_error` is set to :const:`False` only
+            a warning message will be emitted. The performed verification steps are defined by the property
+            :attr:`~HtHeatpump.verify_param_action`.
         """
         # get the corresponding definition for the given parameter
         assert name in HtParams, "parameter definition for parameter {!r} not found".format(name)
         param = HtParams[name]
         try:
             # verify 'NAME'
-            if resp_name != name:
-                raise ParamVerificationException("parameter name doesn't match with {!r} [{!r}]"
-                                                 .format(name, resp_name))
+            if (VerifyAction.NAME in self._verify_param_action) and (resp_name != name):
+                raise VerificationException("parameter name doesn't match with {!r} [{!r}]"
+                                            .format(name, resp_name))
             # verify 'MIN' (None for min value means "doesn't matter")
-            if resp_min is not None and param.min_val is not None:
+            if (VerifyAction.MIN in self._verify_param_action) and (resp_min is not None and param.min_val is not None):
                 if resp_min != param.min_val:
-                    raise ParamVerificationException("parameter min value doesn't match with {!r} [{!r}]"
-                                                     .format(param.min_val, resp_min))
+                    raise VerificationException("parameter min value doesn't match with {!r} [{!r}]"
+                                                .format(param.min_val, resp_min))
 
             # verify 'MAX' (None for max value means "doesn't matter")
-            if resp_max is not None and param.max_val is not None:
+            if (VerifyAction.MAX in self._verify_param_action) and (resp_max is not None and param.max_val is not None):
                 if resp_max != param.max_val:
-                    raise ParamVerificationException("parameter max value doesn't match with {!r} [{!r}]"
-                                                     .format(param.max_val, resp_max))
+                    raise VerificationException("parameter max value doesn't match with {!r} [{!r}]"
+                                                .format(param.max_val, resp_max))
             # check 'VAL' against the limits and write a WARNING if necessary
-            if resp_val is not None and not param.in_limits(resp_val):
+            if (VerifyAction.VALUE in self._verify_param_action)\
+                    and (resp_val is not None and not param.in_limits(resp_val)):
                 _logger.warning("value {!r} of parameter {!r} is beyond the limits [{}, {}]"
                                 .format(resp_val, name, param.min_val, param.max_val))
         except Exception as e:
-            if self._verify_param:  # interpret as error?
+            if self._verify_param_error:  # interpret as error?
                 raise
-            else:  # or only as a warning?
+            else:  # ... or only as a warning?
                 _logger.warning("response verification of param {!r} failed: {!s}".format(name, e))
         return resp_val
 
@@ -925,10 +971,11 @@ class HtHeatpump:
 
         :returns: The list of updated (changed) parameters.
         :rtype: ``list``
-        :raises ParamVerificationException:
-            Will be raised if the parameter verification fails and the property :attr:`~HtHeatpump.verify_param`
-            is set to :const:`True`. If property :attr:`~HtHeatpump.verify_param` is set to :const:`False` only
-            a warning message will be emitted.
+        :raises VerificationException:
+            Will be raised if the parameter verification fails and the property :attr:`~HtHeatpump.verify_param_error`
+            is set to :const:`True`. If property :attr:`~HtHeatpump.verify_param_error` is set to :const:`False` only
+            a warning message will be emitted. The performed verification steps are defined by the property
+            :attr:`~HtHeatpump.verify_param_action`.
         """
         updated_params = []  # stores the name of updated parameters
         for name in HtParams.keys():
@@ -956,10 +1003,11 @@ class HtHeatpump:
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
-        :raises ParamVerificationException:
-            Will be raised if the parameter verification fails and the property :attr:`~HtHeatpump.verify_param`
-            is set to :const:`True`. If property :attr:`~HtHeatpump.verify_param` is set to :const:`False` only
-            a warning message will be emitted.
+        :raises VerificationException:
+            Will be raised if the parameter verification fails and the property :attr:`~HtHeatpump.verify_param_error`
+            is set to :const:`True`. If property :attr:`~HtHeatpump.verify_param_error` is set to :const:`False` only
+            a warning message will be emitted. The performed verification steps are defined by the property
+            :attr:`~HtHeatpump.verify_param_action`.
 
         For example, the following call
         ::
@@ -1004,10 +1052,11 @@ class HtHeatpump:
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
-        :raises ParamVerificationException:
-            Will be raised if the parameter verification fails and the property :attr:`~HtHeatpump.verify_param`
-            is set to :const:`True`. If property :attr:`~HtHeatpump.verify_param` is set to :const:`False` only
-            a warning message will be emitted.
+        :raises VerificationException:
+            Will be raised if the parameter verification fails and the property :attr:`~HtHeatpump.verify_param_error`
+            is set to :const:`True`. If property :attr:`~HtHeatpump.verify_param_error` is set to :const:`False` only
+            a warning message will be emitted. The performed verification steps are defined by the property
+            :attr:`~HtHeatpump.verify_param_action`.
 
         For example, the following call
         ::
@@ -1071,6 +1120,11 @@ class HtHeatpump:
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
+        :raises VerificationException:
+            Will be raised if the parameter verification fails and the property :attr:`~HtHeatpump.verify_param_error`
+            is set to :const:`True`. If property :attr:`~HtHeatpump.verify_param_error` is set to :const:`False` only
+            a warning message will be emitted. The performed verification steps are defined by the property
+            :attr:`~HtHeatpump.verify_param_action`.
         """
         if not args:
             args = HtParams.keys()
@@ -1200,4 +1254,4 @@ class HtHeatpump:
 # Exported symbols
 # ------------------------------------------------------------------------------------------------------------------- #
 
-__all__ = ["ParamVerificationException", "HtHeatpump"]
+__all__ = ["VerifyAction", "VerificationException", "HtHeatpump"]

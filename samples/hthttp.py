@@ -108,7 +108,8 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                 for e in hp.get_fault_list():
                     e.update({"datetime": e["datetime"].isoformat()})  # convert datetime dict entry to string
                     result.append(e)
-                    _logger.debug("#{:03d} [{}]: {:05d}, {}".format(e["index"], e["datetime"], e["error"], e["message"]))
+                    _logger.debug("#{:03d} [{}]: {:05d}, {}".format(
+                        e["index"], e["datetime"], e["error"], e["message"]))
 
             elif parsed_path.path.lower() == "/":
                 qsl = urlparse.parse_qsl(parsed_path.query, keep_blank_values=True)

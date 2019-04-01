@@ -4,6 +4,9 @@ History
 1.x.x (2019-xx-xx)
 ------------------
 
+* splitted up property ``HtHeatpump.verify_param`` to
+  ``HtHeatpump.verify_param_action`` and ``HtHeatpump.verify_param_error``
+* renamed exception ``ParamVerificationException`` to ``VerificationException``
 * added support for Python 3.7
 * dropped support for Python 3.4
 * added some more heat pump parameters (data points) in ``htparams.csv``
