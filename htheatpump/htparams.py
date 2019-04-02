@@ -30,6 +30,7 @@
 import enum
 import csv
 from os import path
+from typing import Union, Dict, Optional, Any
 
 from htheatpump.utils import Singleton
 
@@ -60,7 +61,7 @@ class HtDataTypes(enum.Enum):
     FLOAT  = 4
 
     @staticmethod
-    def from_str(s):
+    def from_str(s: str) -> "HtDataTypes":
         """ Create a corresponding enum representation for the passed string.
 
         :param s: The passed string.
@@ -78,8 +79,6 @@ class HtDataTypes(enum.Enum):
             return HtDataTypes.INT
         elif s == "FLOAT":
             return HtDataTypes.FLOAT
-        elif s == "None":
-            return None
         else:
             raise ValueError("no corresponding enum representation ({!r})".format(s))
 
@@ -101,7 +100,9 @@ class HtParam:
     :type max_val: bool, int, float or None
     """
 
-    def __init__(self, dp_type, dp_number, acl, data_type, min_val=None, max_val=None):
+    def __init__(self, dp_type: str, dp_number: int, acl: str, data_type: HtDataTypes,
+                 min_val: Union[bool, int, float, None] = None,
+                 max_val: Union[bool, int, float, None] = None) -> None:
         self.dp_type = dp_type
         self.dp_number = dp_number
         self.acl = acl
@@ -109,11 +110,11 @@ class HtParam:
         self.min_val = min_val
         self.max_val = max_val
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "HtParam({},{:d},{!r},{}[{},{}])".format(self.dp_type, self.dp_number, self.acl,
                                                         self.data_type, self.min_val, self.max_val)
 
-    def cmd(self):
+    def cmd(self) -> str:
         """ Return the command string, based on the data point type and number of the parameter.
 
         :returns: The command string.
@@ -121,7 +122,8 @@ class HtParam:
         """
         return "{},NR={:d}".format(self.dp_type, self.dp_number)
 
-    def set_limits(self, min_val=None, max_val=None):
+    def set_limits(self, min_val: Union[bool, int, float, None] = None,
+                   max_val: Union[bool, int, float, None] = None) -> bool:
         """ Set the limits of the parameter and return whether the passed limit values differed
         from the old one.
 
@@ -138,7 +140,7 @@ class HtParam:
         self.max_val = max_val
         return ret
 
-    def in_limits(self, val):
+    def in_limits(self, val: Union[bool, int, float]) -> bool:
         """ Determine whether the passed value is in between the parameter limits or not.
 
         :param val: The value to check against the parameter limits.
@@ -151,7 +153,7 @@ class HtParam:
         return (self.min_val is None or self.min_val <= val) and (self.max_val is None or val <= self.max_val)
 
     @staticmethod
-    def _from_str(value, data_type):
+    def _from_str(value: str, data_type: HtDataTypes) -> Union[str, bool, int, float]:
         """ Convert the passed value (in form of a string) to the expected data type.
 
         :param value: The passed value (in form of a string).
@@ -166,31 +168,31 @@ class HtParam:
         assert isinstance(value, str)
         assert isinstance(data_type, HtDataTypes)
         if data_type == HtDataTypes.STRING:
-            pass  # passed value should be already a string ;-)
+            return value  # passed value should be already a string ;-)
         elif data_type == HtDataTypes.BOOL:
             value = value.strip()
             # convert to bool ('0' = False, '1' = True)
             if value == "0":
-                value = False
+                return False
             elif value == "1":
-                value = True
+                return True
             else:
                 raise ValueError("invalid representation for data type BOOL ({!r})".format(value))
         elif data_type == HtDataTypes.INT:
-            value = int(value.strip())  # convert to integer
+            return int(value.strip())  # convert to integer
         elif data_type == HtDataTypes.FLOAT:
-            tmp = float(value.strip())  # convert to floating point number
+            value = value.strip()
+            ret = float(value)  # convert to floating point number
             try:  # to be more strict, the passed string shouldn't look like an integer!
-                int(value.strip())  # try to convert to integer -> should fail!
+                int(value)  # try to convert to integer -> should fail!
             except Exception:
-                value = tmp
+                return ret
             else:
                 raise ValueError("invalid representation for data type FLOAT ({!r})".format(value))
         else:
             assert 0, "unsupported data type ({!r})".format(data_type)
-        return value
 
-    def from_str(self, arg):
+    def from_str(self: Union["HtParam", str], arg: Union[str, HtDataTypes]) -> Union[str, bool, int, float]:
         """ Convert the passed value (in form of a string) to the expected data type.
 
         This method can be called as a *static method*, e.g.::
@@ -218,7 +220,7 @@ class HtParam:
             return HtParam._from_str(self, arg)
 
     @staticmethod
-    def _to_str(value, data_type):
+    def _to_str(value: Union[str, bool, int, float], data_type: HtDataTypes) -> str:
         """ Convert the passed value to a string.
 
         :param value: The passed value.
@@ -247,7 +249,7 @@ class HtParam:
             assert 0, "unsupported data type ({!r})".format(data_type)
         return value
 
-    def to_str(self, arg):
+    def to_str(self: Union["HtParam", str, bool, int, float], arg: Union[str, bool, int, float, HtDataTypes]) -> str:
         """ Convert the passed value to a string.
 
         This method can be called as a *static method*, e.g.::
@@ -288,7 +290,7 @@ class HtParamsMeta(type):  # pragma: no cover
 # Parameter dictionary class
 # ------------------------------------------------------------------------------------------------------------------- #
 
-def _load_from_csv():
+def _load_from_csv() -> Dict[str, HtParam]:
     """ Helper function to load all supported heat pump parameter definitions from the CSV file.
 
     :returns: Dictionary of the supported heat pump parameters:
@@ -315,7 +317,7 @@ def _load_from_csv():
             # continue for empty rows or comments (starts with character '#')
             if not row or row[0].startswith('#'):
                 continue
-            name, dp_type, dp_number, acl, data_type, min_val, max_val = row
+            name, dp_type, dp_number, acl, data_type, min_val, max_val = row  # type: Any, Any, Any, Any, Any, Any, Any
             # convert the data point number into an int
             dp_number = int(dp_number)
             # convert the given data type into the corresponding enum value
@@ -346,23 +348,26 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
     """
 
     @classmethod
-    def keys(cls):
+    def keys(cls):  # -> TODO type
         return cls._params.keys()
 
     @classmethod
-    def items(cls):
+    def items(cls):  # -> TODO type
         return cls._params.items()
 
     @classmethod
-    def get(cls, key, default=None):
+    def get(cls, key: str, default: Optional[HtParam] = None) -> Union[HtParam, None]:
+        assert isinstance(key, str), "'key' must be of type str"
+        assert isinstance(default, str), "'default' must be of type HtParam or None"
         return cls._params.get(key, default)
 
     @classmethod
-    def of_type(cls, dp_type):
+    def of_type(cls, dp_type: str) -> Dict[str, HtParam]:
+        assert isinstance(dp_type, str), "'dp_type' must be of type str"
         return {n: p for n, p in cls._params.items() if cls._params[n].dp_type == dp_type}
 
     @classmethod
-    def dump(cls):
+    def dump(cls) -> None:
         for name, param in HtParams.items():
             print("{!r}: dp_type = {!r}, dp_number = {:d}, acl = {!r}, data_type = {!s}, min = {!s}, max = {!s}"
                   .format(name, param.dp_type, param.dp_number, param.acl,
@@ -380,8 +385,8 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
 # Only for testing: print all supported heat pump parameters
 #def main():
 #    HtParams.dump()
-
-
+#
+#
 #if __name__ == "__main__":
 #    main()
 

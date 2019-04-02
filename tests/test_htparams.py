@@ -28,7 +28,7 @@ from htheatpump.htheatpump import HtHeatpump
 class TestHtDataTypes:
     @pytest.mark.parametrize("str", [
         # -- should raise a 'ValueError':
-        "none", "NONE",
+        "none", "NONE", "None",
         "string", "String",
         "bool", "Bool", "boolean", "Boolean", "BOOLEAN",
         "int", "Int", "integer", "Integer", "INTEGER",
@@ -42,7 +42,6 @@ class TestHtDataTypes:
         #assert 0
 
     def test_from_str(self):
-        assert HtDataTypes.from_str("None") is None
         assert HtDataTypes.from_str("STRING") == HtDataTypes.STRING
         assert HtDataTypes.from_str("BOOL") == HtDataTypes.BOOL
         assert HtDataTypes.from_str("INT") == HtDataTypes.INT
