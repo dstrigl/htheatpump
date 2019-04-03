@@ -19,8 +19,8 @@
 
 """ This module is responsible for the communication with the Heliotherm heat pump. """
 
-from htheatpump.htparams import HtParams
-from typing import Optional, List, Dict, Union, Set, Tuple, Any
+from htheatpump.htparams import HtParams, HtParamValueType
+from typing import Optional, List, Dict, Set, Tuple, Any
 
 import serial
 import time
@@ -321,7 +321,7 @@ class HtHeatpump:
         self._verify_param_error = kwargs.get("verify_param_error", False)
         assert isinstance(self._verify_param_error, bool)
 
-    def __del__(self):
+    def __del__(self) -> None:
         # close the connection if still established
         if self._ser and self._ser.is_open:
             self._ser.close()
@@ -792,7 +792,7 @@ class HtHeatpump:
             _logger.error("query for fault list size failed: {!s}".format(e))
             raise
 
-    def get_fault_list(self, *args: int) -> List[Dict[str, object]]:  # TODO -> List[Dict[...]]
+    def get_fault_list(self, *args: int) -> List[Dict[str, object]]:  # TODO -> List[Dict[str, ?]]
         """ Query for the fault list of the heat pump.
 
         :param args: The index number(s) to request from the fault list (optional).
@@ -852,10 +852,8 @@ class HtHeatpump:
                 raise
         return faults
 
-    def _extract_param_data(self, name: str, resp: str) -> Tuple[str,
-                                                                 Union[bool, int, float],
-                                                                 Union[bool, int, float],
-                                                                 Union[bool, int, float]]:
+    def _extract_param_data(self, name: str, resp: str) -> Tuple[str, HtParamValueType, HtParamValueType,
+                                                                 HtParamValueType]:
         """ Extract the parameter data like parameter name, minimal value, maximal value and the
         current value from the parameter access response string.
 
@@ -890,10 +888,7 @@ class HtHeatpump:
         resp_val = param.from_str(resp_val)  # convert VAL to the corresponding data type (BOOL, INT, FLOAT)
         return resp_name, resp_min, resp_max, resp_val  # return (name, min, max, value)
 
-    def _get_param(self, name: str) -> Tuple[str,
-                                             Union[bool, int, float],
-                                             Union[bool, int, float],
-                                             Union[bool, int, float]]:
+    def _get_param(self, name: str) -> Tuple[str, HtParamValueType, HtParamValueType, HtParamValueType]:
         """ Read the data (NAME, MIN, MAX, VAL) of a specific parameter of the heat pump.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
@@ -924,9 +919,9 @@ class HtHeatpump:
             raise
 
     def _verify_param_resp(self, name: str, resp_name: str,
-                           resp_min: Union[bool, int, float, None] = None,
-                           resp_max: Union[bool, int, float, None] = None,
-                           resp_val: Union[bool, int, float, None] = None) -> Union[bool, int, float, None]:
+                           resp_min: Optional[HtParamValueType] = None,
+                           resp_max: Optional[HtParamValueType] = None,
+                           resp_val: Optional[HtParamValueType] = None) -> Optional[HtParamValueType]:
         """ Perform a verification of the parameter access response data (NAME, MIN, MAX, VAL). Check whether
         the name, min and max value matches with the parameter definition in :class:`~htheatpump.htparams.HtParams`
         and warn if the current value is beyond the limits.
@@ -941,10 +936,10 @@ class HtHeatpump:
         :type resp_max: bool/int/float/None
         :param resp_val: The current value (VAL=...) of the parameter in the response message. If :const:`None`
             no verification will be performed for this argument.
-        :type resp_val: str/bool/int/float/None
+        :type resp_val: bool/int/float/None
         :returns: The passed current value of the parameter. If :const:`None` no verification will be performed
             for this argument.
-        :rtype: ``str``, ``bool``, ``int``, ``float`` or ``None``
+        :rtype: ``bool``, ``int``, ``float`` or ``None``
         :raises VerificationException:
             Will be raised if the parameter verification fails and the property :attr:`~HtHeatpump.verify_param_error`
             is set to :const:`True`. If property :attr:`~HtHeatpump.verify_param_error` is set to :const:`False` only
@@ -1006,7 +1001,7 @@ class HtHeatpump:
         _logger.info("updated {:d} (of {:d}) parameter limits".format(len(updated_params), len(HtParams)))
         return updated_params
 
-    def get_param(self, name: str) -> Union[bool, int, float, None]:  # TODO -> Union[..., None]
+    def get_param(self, name: str) -> HtParamValueType:
         """ Query for a specific parameter of the heat pump.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
@@ -1014,7 +1009,7 @@ class HtHeatpump:
         :returns: Returned value of the requested parameter.
             The type of the returned value is defined by the csv-table
             of supported heat pump parameters in :file:`htparams.csv`.
-        :rtype: ``str``, ``bool``, ``int`` or ``float``
+        :rtype: ``bool``, ``int`` or ``float``
         :raises KeyError:
             Will be raised when the parameter definition for the passed parameter is not found.
         :raises IOError:
@@ -1040,19 +1035,19 @@ class HtHeatpump:
             resp = self._get_param(name)
             val = self._verify_param_resp(name, *resp)
             _logger.debug("{!r} = {!s}".format(name, val))
-            return val
+            return val  # type: ignore
         except Exception as e:
             _logger.error("get parameter {!r} failed: {!s}".format(name, e))
             raise
 
-    def set_param(self, name: str, val: Union[bool, int, float, None], ignore_limits: bool = False):  # TODO -> Union[..., None]
+    def set_param(self, name: str, val: HtParamValueType, ignore_limits: bool = False) -> HtParamValueType:
         """ Set the value of a specific parameter of the heat pump. If :attr:`ignore_limits` is :const:`False`
         and the passed value is beyond the parameter limits a :exc:`ValueError` will be raised.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
         :type name: str
         :param val: The value to set.
-        :type val: str, bool, int or float
+        :type val: bool, int or float
         :param ignore_limits: Indicates if the parameter limits should be ignored or not.
         :type ignore_limits: bool
         :returns: Returned value of the parameter set request.
@@ -1060,7 +1055,7 @@ class HtHeatpump:
             passed to the function.
             The type of the returned value is defined by the csv-table
             of supported heat pump parameters in :file:`htparams.csv`.
-        :rtype: ``str``, ``bool``, ``int`` or ``float``
+        :rtype: ``bool``, ``int`` or ``float``
         :raises KeyError:
             Will be raised when the parameter definition for the passed parameter is not found.
         :raises ValueError:
@@ -1097,9 +1092,9 @@ class HtHeatpump:
         try:
             resp = self.read_response()
             data = self._extract_param_data(name, resp)
-            val = self._verify_param_resp(name, *data)
-            _logger.debug("{!r} = {!s}".format(name, val))
-            return val
+            ret = self._verify_param_resp(name, *data)
+            _logger.debug("{!r} = {!s}".format(name, ret))
+            return ret  # type: ignore
         except Exception as e:
             _logger.error("set parameter {!r} failed: {!s}".format(name, e))
             raise
@@ -1116,7 +1111,7 @@ class HtHeatpump:
         """
         return self.get_param("Stoerung")  # type: ignore
 
-    def query(self, *args: str) -> Dict[str, Union[bool, int, float, None]]:
+    def query(self, *args: str) -> Dict[str, HtParamValueType]:
         """ Query for the current values of parameters from the heat pump.
 
         :param args: The parameter name(s) to request from the heat pump.
@@ -1155,7 +1150,7 @@ class HtHeatpump:
             raise
         return values
 
-    def fast_query(self, *args: str) -> Dict[str, Union[bool, int, float, None]]:
+    def fast_query(self, *args: str) -> Dict[str, HtParamValueType]:
         """ Query for the current values of parameters from the heat pump the fast way.
 
         .. note::

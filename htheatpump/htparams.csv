@@ -1,4 +1,4 @@
-# name, data point type (MP;SP), data point number, acl (r-;-w;rw), dtype (STRING;BOOL;INT;FLOAT), min, max
+# name, data point type (MP;SP), data point number, acl (r-;-w;rw), dtype (BOOL;INT;FLOAT), min, max
 
 Temp. Aussen, MP, 0, r-, FLOAT, -20.0, 40.0
 Temp. Aussen verzoegert, MP, 1, r-, FLOAT, -20.0, 40.0
