@@ -1294,7 +1294,7 @@ class HtHeatpump:
             except Exception as e:
                 _logger.error("query for time program properties failed: {!s}".format(e))
                 raise
-        return prog_props
+        return prog_props if len(prog_props) > 1 else prog_props[0]  # next(iter(your_list or []), None) TODO
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
