@@ -55,7 +55,7 @@ _login_retries = 2   # type: int
 class VerifyAction(enum.Enum):
     """ Possible actions for the parameter verification:
 
-    * ``NONE``  No verification, shortcut for ``{}``.
+    * ``NONE``  No verification, shortcut for ``{}`` (empty set).
     * ``NAME``  Verification of the parameter name.
     * ``MIN``   Verification of the minimal value of the parameter.
     * ``MAX``   Verification of the maximal value of the parameter.
@@ -67,12 +67,14 @@ class VerifyAction(enum.Enum):
 
         hp = HtHeatpump("...", verify_param_action = {VerifyAction.NAME, VerifyAction.MAX})
         temp = hp.get_param("Temp. Aussen")
+        ...
 
     or::
 
         hp = HtHeatpump("/dev/ttyUSB0", baudrate=9600)
         hp.verify_param_action = {VerifyAction.NAME, VerifyAction.MAX}
         temp = hp.get_param("Temp. Aussen")
+        ...
     """
     NONE = set()  # type: Set
     NAME = 1
@@ -339,13 +341,21 @@ class HtHeatpump:
         if self._ser:
             raise IOError("serial connection already open")
         device = self._ser_settings.get("device", "/dev/ttyUSB0")
+        assert isinstance(device, str)
         baudrate = self._ser_settings.get("baudrate", 115200)
+        assert isinstance(baudrate, int)
         bytesize = self._ser_settings.get("bytesize", serial.EIGHTBITS)
+        assert isinstance(bytesize, int)
         parity = self._ser_settings.get("parity", serial.PARITY_NONE)
+        assert isinstance(bytesize, str)
         stopbits = self._ser_settings.get("stopbits", serial.STOPBITS_ONE)
+        assert isinstance(stopbits, (int, float))
         xonxoff = self._ser_settings.get("xonxoff", True)
+        assert isinstance(xonxoff, bool)
         rtscts = self._ser_settings.get("rtscts", False)
+        assert isinstance(rtscts, bool)
         dsrdtr = self._ser_settings.get("dsrdtr", False)
+        assert isinstance(dsrdtr, bool)
         # open the serial connection (must fit with the settings on the heat pump!)
         self._ser = serial.Serial(device,
                                   baudrate=baudrate,

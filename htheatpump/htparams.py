@@ -36,12 +36,12 @@ from htheatpump.utils import Singleton
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
-# Constants
+# Constants and type aliases
 # ------------------------------------------------------------------------------------------------------------------- #
 
 CSV_FILE = "htparams.csv"                                    # CSV file with the parameter definitions of the heat pump
 
-HtParamValueType = Union[bool, int, float]                  # a parameter value can be of type 'bool', 'int' or 'float'
+HtParamValueType = Union[bool, int, float]        # a heat pump parameter value can be of type 'bool', 'int' or 'float'
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -56,9 +56,9 @@ class HtDataTypes(enum.Enum):
     * ``INT``    The value of the parameter is given as **integer**.
     * ``FLOAT``  The value of the parameter is given as **floating point number**.
     """
-    BOOL   = 1
-    INT    = 2
-    FLOAT  = 3
+    BOOL = 1
+    INT = 2
+    FLOAT = 3
 
     @staticmethod
     def from_str(s: str) -> "HtDataTypes":
@@ -286,7 +286,7 @@ class HtParamsMeta(type):  # pragma: no cover
 # Parameter dictionary class
 # ------------------------------------------------------------------------------------------------------------------- #
 
-def _load_from_csv() -> Dict[str, HtParam]:
+def _load_params_from_csv() -> Dict[str, HtParam]:
     """ Helper function to load all supported heat pump parameter definitions from the CSV file.
 
     :returns: Dictionary of the supported heat pump parameters:
@@ -371,7 +371,7 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
                           param.min_val, param.max_val))
 
     # Dictionary of the supported Heliotherm heat pump parameters
-    _params = _load_from_csv()
+    _params = _load_params_from_csv()  # type: Dict[str, HtParam]
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
