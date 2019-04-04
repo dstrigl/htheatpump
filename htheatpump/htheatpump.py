@@ -157,8 +157,8 @@ LOGIN_CMD    = r"LIN"                                                           
 LOGIN_RESP   = r"^OK"
 LOGOUT_CMD   = r"LOUT"                                                                                 # logout command
 LOGOUT_RESP  = r"^OK"
-RID_CMD      = r"RID"                               # returns the manufacturer's serial number, e.g. "~RID,123456;\r\n"
-RID_RESP     = r"^RID,(\d+)$"
+RID_CMD      = r"RID"                                                      # query for the manufacturer's serial number
+RID_RESP     = r"^RID,(\d+)$"                                                                 # e.g. '~RID,123456;\r\n'
 VERSION_CMD  = r"SP,NR=9"                                               # returns the software version of the heat pump
 VERSION_RESP = r"^SP,NR=9,.*NAME=([^,]+).*VAL=([^,]+).*$"
 CLK_CMD      = (r"CLK",                                            # get/set the current date and time of the heat pump
@@ -167,20 +167,24 @@ CLK_RESP     = (r"^CLK"
                 r",DA=(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"                        # date, e.g. '26.11.15'
                 r",TI=([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                                     # time, e.g. '21:28:57'
                 r",WD=([1-7])$")                                                  # weekday 1-7 (Monday through Sunday)
-ALC_CMD      = r"ALC"                                                 # returns the last fault message of the heat pump
+ALC_CMD      = r"ALC"                                               # query for the last fault message of the heat pump
 ALC_RESP     = (r"^AA,(\d+),(\d+)"                                                # fault list index and error code (?)
                 r",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"                           # date, e.g. '14.09.14'
                 r"-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                                        # time, e.g. '11:52:08'
                 r",(.*)$")                                                         # error message, e.g. 'EQ_Spreizung'
-ALS_CMD      = r"ALS"                                                    # returns the fault list size of the heat pump
-ALS_RESP     = r"^SUM=(\d+)$"
-AR_CMD       = r"AR,{}"                                                    # returns a specific entry of the fault list
+ALS_CMD      = r"ALS"                                                  # query for the fault list size of the heat pump
+ALS_RESP     = r"^SUM=(\d+)$"                                                                         # e.g. 'SUM=2757'
+AR_CMD       = r"AR,{}"                                                  # query for specific entries of the fault list
 AR_RESP      = (r"^AA,(\d+),(\d+)"                                                # fault list index and error code (?)
                 r",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"                           # date, e.g. '14.09.14'
                 r"-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                                        # time, e.g. '11:52:08'
                 r",(.*)$")                                                         # error message, e.g. 'EQ_Spreizung'
 MR_CMD       = r"MR,{}"                                                   # fast query for several MP data point values
 MR_RESP      = r"^MA,(\d+),([^,]+),(\d+)$"                     # MP data point number, value and ?; e.g. 'MA,0,-3.4,17'
+PRL_CMD      = r"PRL"                                          # query for the number of time programs on the heat pump
+PRL_RESP     = r"^SUM=(\d+)$"                                                                            # e.g. 'SUM=5'
+PRI_CMD      = r"PRI{:d}"                        # query for the properties of a specific time program on the heat pump
+PRI_RESP     = r"^PRI{:d},*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$"
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -1235,6 +1239,63 @@ class HtHeatpump:
                 _logger.error("fast query of parameter(s) failed: {!s}".format(e))
                 raise
         return values
+
+    def get_number_of_time_programs(self) -> int:
+        """ Query for the number of different time programs on the heat pump.
+
+        :returns: The number of time programs on the heat pump as :obj:`int`.
+        :rtype: ``int``
+        :raises IOError:
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum).
+        """
+        # send PRL request to the heat pump
+        self.send_request(PRL_CMD)
+        # ... and wait for the response
+        try:
+            resp = self.read_response()  # e.g. "SUM=5"
+            m = re.match(PRL_RESP, resp)
+            if not m:
+                raise IOError("invalid response for PRL command [{!r}]".format(resp))
+            nbr = int(m.group(1))
+            _logger.debug("number of time programs = {:d}".format(nbr))
+            return nbr
+        except Exception as e:
+            _logger.error("query for number of time programs failed: {!s}".format(e))
+            raise
+
+    def get_time_program_props(self, *args: int) -> List[Dict[str, object]]:  # TODO -> List[Dict[str, ?]]:
+        """ TODO doc
+        """
+        if not args:
+            args = range(0, self.get_number_of_time_programs())  # type: ignore
+        prog_props = []
+        for idx in args:
+            # send PRI request to the heat pump
+            cmd = PRI_CMD.format(idx)
+            self.send_request(cmd)
+            # ... and wait for the response
+            try:
+                resp = self.read_response()  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
+                m = re.match(PRI_RESP.format(idx), resp)
+                if not m:
+                    raise IOError("invalid response for PRI{:d} command [{!r}]".format(idx, resp))
+                # extract data (NAME, EAD, NOS, STE and NOD)
+                name = m.group(1)
+                ead, nos, ste, nod = [int(g) for g in m.group(2, 3, 4, 5)]
+                _logger.debug("idx={:d}: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
+                    idx, name, ead, nos, ste, nod))
+                prog_props.append({"index": idx,   # index of the time program
+                                   "name" : name,  # name of the time program
+                                   "ead"  : ead,   # entries-a-day (?)
+                                   "nos"  : nos,   # number-of-states (?)
+                                   "ste"  : ste,   # step-size [in minutes] (?)
+                                   "nod"  : nod,   # number-of-days (?)
+                                   })
+            except Exception as e:
+                _logger.error("query for time program properties failed: {!s}".format(e))
+                raise
+        return prog_props
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
