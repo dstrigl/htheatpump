@@ -30,15 +30,18 @@
 import enum
 import csv
 from os import path
+from typing import Union, Dict, Optional, Any
 
 from htheatpump.utils import Singleton
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
-# Constants
+# Constants and type aliases
 # ------------------------------------------------------------------------------------------------------------------- #
 
 CSV_FILE = "htparams.csv"                                    # CSV file with the parameter definitions of the heat pump
+
+HtParamValueType = Union[bool, int, float]        # a heat pump parameter value can be of type 'bool', 'int' or 'float'
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -49,18 +52,16 @@ CSV_FILE = "htparams.csv"                                    # CSV file with the
 class HtDataTypes(enum.Enum):
     """ Supported data types of the Heliotherm heat pump:
 
-    * ``STRING`` The value of the parameter is given in **text form**.
-    * ``BOOL``   The value of the parameter is given as **boolean** (e.g. on/off, yes/no).
+    * ``BOOL``   The value of the parameter is given as **boolean** (e.g. on/off, yes/no, enabled/disabled).
     * ``INT``    The value of the parameter is given as **integer**.
     * ``FLOAT``  The value of the parameter is given as **floating point number**.
     """
-    STRING = 1
-    BOOL   = 2
-    INT    = 3
-    FLOAT  = 4
+    BOOL = 1
+    INT = 2
+    FLOAT = 3
 
     @staticmethod
-    def from_str(s):
+    def from_str(s: str) -> "HtDataTypes":
         """ Create a corresponding enum representation for the passed string.
 
         :param s: The passed string.
@@ -70,16 +71,12 @@ class HtDataTypes(enum.Enum):
         :raises ValueError:
             Will be raised if the passed string does not have a corresponding enum representation.
         """
-        if s == "STRING":
-            return HtDataTypes.STRING
-        elif s == "BOOL":
+        if s == "BOOL":
             return HtDataTypes.BOOL
         elif s == "INT":
             return HtDataTypes.INT
         elif s == "FLOAT":
             return HtDataTypes.FLOAT
-        elif s == "None":
-            return None
         else:
             raise ValueError("no corresponding enum representation ({!r})".format(s))
 
@@ -101,7 +98,8 @@ class HtParam:
     :type max_val: bool, int, float or None
     """
 
-    def __init__(self, dp_type, dp_number, acl, data_type, min_val=None, max_val=None):
+    def __init__(self, dp_type: str, dp_number: int, acl: str, data_type: HtDataTypes,
+                 min_val: Optional[HtParamValueType] = None, max_val: Optional[HtParamValueType] = None) -> None:
         self.dp_type = dp_type
         self.dp_number = dp_number
         self.acl = acl
@@ -109,11 +107,11 @@ class HtParam:
         self.min_val = min_val
         self.max_val = max_val
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "HtParam({},{:d},{!r},{}[{},{}])".format(self.dp_type, self.dp_number, self.acl,
                                                         self.data_type, self.min_val, self.max_val)
 
-    def cmd(self):
+    def cmd(self) -> str:
         """ Return the command string, based on the data point type and number of the parameter.
 
         :returns: The command string.
@@ -121,7 +119,8 @@ class HtParam:
         """
         return "{},NR={:d}".format(self.dp_type, self.dp_number)
 
-    def set_limits(self, min_val=None, max_val=None):
+    def set_limits(self, min_val: Optional[HtParamValueType] = None,
+                   max_val: Optional[HtParamValueType] = None) -> bool:
         """ Set the limits of the parameter and return whether the passed limit values differed
         from the old one.
 
@@ -138,7 +137,7 @@ class HtParam:
         self.max_val = max_val
         return ret
 
-    def in_limits(self, val):
+    def in_limits(self, val: HtParamValueType) -> bool:
         """ Determine whether the passed value is in between the parameter limits or not.
 
         :param val: The value to check against the parameter limits.
@@ -151,7 +150,7 @@ class HtParam:
         return (self.min_val is None or self.min_val <= val) and (self.max_val is None or val <= self.max_val)
 
     @staticmethod
-    def _from_str(value, data_type):
+    def _from_str(value: str, data_type: HtDataTypes) -> HtParamValueType:
         """ Convert the passed value (in form of a string) to the expected data type.
 
         :param value: The passed value (in form of a string).
@@ -159,38 +158,36 @@ class HtParam:
         :param data_type: The expected data type, see :class:`HtDataTypes`.
         :type data_type: HtDataTypes
         :returns: The passed value which data type matches the expected one.
-        :rtype: ``str``, ``bool``, ``int`` or ``float``
+        :rtype: ``bool``, ``int`` or ``float``
         :raises ValueError:
             Will be raised if the passed value could not be converted to the expected data type.
         """
         assert isinstance(value, str)
         assert isinstance(data_type, HtDataTypes)
-        if data_type == HtDataTypes.STRING:
-            pass  # passed value should be already a string ;-)
-        elif data_type == HtDataTypes.BOOL:
+        if data_type == HtDataTypes.BOOL:
             value = value.strip()
             # convert to bool ('0' = False, '1' = True)
             if value == "0":
-                value = False
+                return False
             elif value == "1":
-                value = True
+                return True
             else:
                 raise ValueError("invalid representation for data type BOOL ({!r})".format(value))
         elif data_type == HtDataTypes.INT:
-            value = int(value.strip())  # convert to integer
+            return int(value.strip())  # convert to integer
         elif data_type == HtDataTypes.FLOAT:
-            tmp = float(value.strip())  # convert to floating point number
+            value = value.strip()
+            ret = float(value)  # convert to floating point number
             try:  # to be more strict, the passed string shouldn't look like an integer!
-                int(value.strip())  # try to convert to integer -> should fail!
+                int(value)  # try to convert to integer -> should fail!
             except Exception:
-                value = tmp
+                return ret
             else:
                 raise ValueError("invalid representation for data type FLOAT ({!r})".format(value))
         else:
             assert 0, "unsupported data type ({!r})".format(data_type)
-        return value
 
-    def from_str(self, arg):
+    def from_str(self: Union["HtParam", str], arg: Union[str, HtDataTypes]) -> HtParamValueType:
         """ Convert the passed value (in form of a string) to the expected data type.
 
         This method can be called as a *static method*, e.g.::
@@ -206,6 +203,8 @@ class HtParam:
         type don't have to be specified. It will be automatically determined from the
         :class:`HtParam` instance.
 
+        :returns: The passed value which data type matches the expected one.
+        :rtype: ``bool``, ``int`` or ``float``
         :raises ValueError:
             Will be raised if the passed value could not be converted to the expected data type.
         """
@@ -218,36 +217,32 @@ class HtParam:
             return HtParam._from_str(self, arg)
 
     @staticmethod
-    def _to_str(value, data_type):
+    def _to_str(value: HtParamValueType, data_type: HtDataTypes) -> str:
         """ Convert the passed value to a string.
 
         :param value: The passed value.
-        :type value: str, bool, int or float
+        :type value: bool, int or float
         :param data_type: The data type of the passed value, see :class:`HtDataTypes`.
         :type data_type: HtDataTypes
         :returns: The string representation of the passed value.
         :rtype: ``str``
         """
-        assert isinstance(value, (str, bool, int, float))
+        assert isinstance(value, (bool, int, float))
         assert isinstance(data_type, HtDataTypes)
-        if data_type == HtDataTypes.STRING:
-            assert isinstance(value, str)
-            pass  # passed value should be already a string ;-)
-        elif data_type == HtDataTypes.BOOL:
+        if data_type == HtDataTypes.BOOL:
             assert isinstance(value, bool)
             # convert to "0" for False and "1" for True
-            value = "1" if value is True else "0"
+            return "1" if value is True else "0"
         elif data_type == HtDataTypes.INT:
             assert isinstance(value, int)
-            value = str(value)
+            return str(value)
         elif data_type == HtDataTypes.FLOAT:
             assert isinstance(value, (int, float))
-            value = str(float(value))
+            return str(float(value))
         else:
             assert 0, "unsupported data type ({!r})".format(data_type)
-        return value
 
-    def to_str(self, arg):
+    def to_str(self: Union["HtParam", HtParamValueType], arg: Union[HtParamValueType, HtDataTypes]) -> str:
         """ Convert the passed value to a string.
 
         This method can be called as a *static method*, e.g.::
@@ -262,12 +257,15 @@ class HtParam:
         If the method is called as a member method of :class:`HtParam`, the data type of the
         passed value don't have to be specified. It will be automatically determined from the
         :class:`HtParam` instance.
+
+        :returns: The string representation of the passed value.
+        :rtype: ``str``
         """
         if isinstance(self, HtParam):  # called as a member method of HtParam
-            assert isinstance(arg, (str, bool, int, float))
+            assert isinstance(arg, (bool, int, float))
             return HtParam._to_str(arg, self.data_type)
         else:  # called as a static method of HtParam
-            assert isinstance(self, (str, bool, int, float))
+            assert isinstance(self, (bool, int, float))
             assert isinstance(arg, HtDataTypes)
             return HtParam._to_str(self, arg)
 
@@ -288,7 +286,7 @@ class HtParamsMeta(type):  # pragma: no cover
 # Parameter dictionary class
 # ------------------------------------------------------------------------------------------------------------------- #
 
-def _load_from_csv():
+def _load_params_from_csv() -> Dict[str, HtParam]:
     """ Helper function to load all supported heat pump parameter definitions from the CSV file.
 
     :returns: Dictionary of the supported heat pump parameters:
@@ -315,7 +313,7 @@ def _load_from_csv():
             # continue for empty rows or comments (starts with character '#')
             if not row or row[0].startswith('#'):
                 continue
-            name, dp_type, dp_number, acl, data_type, min_val, max_val = row
+            name, dp_type, dp_number, acl, data_type, min_val, max_val = row  # type: Any, Any, Any, Any, Any, Any, Any
             # convert the data point number into an int
             dp_number = int(dp_number)
             # convert the given data type into the corresponding enum value
@@ -346,23 +344,26 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
     """
 
     @classmethod
-    def keys(cls):
+    def keys(cls):  # TODO -> type
         return cls._params.keys()
 
     @classmethod
-    def items(cls):
+    def items(cls):  # TODO -> type
         return cls._params.items()
 
     @classmethod
-    def get(cls, key, default=None):
+    def get(cls, key: str, default: Optional[HtParam] = None) -> Optional[HtParam]:
+        assert isinstance(key, str), "'key' must be of type str"
+        assert isinstance(default, str), "'default' must be of type HtParam or None"
         return cls._params.get(key, default)
 
     @classmethod
-    def of_type(cls, dp_type):
+    def of_type(cls, dp_type: str) -> Dict[str, HtParam]:
+        assert isinstance(dp_type, str), "'dp_type' must be of type str"
         return {n: p for n, p in cls._params.items() if cls._params[n].dp_type == dp_type}
 
     @classmethod
-    def dump(cls):
+    def dump(cls) -> None:
         for name, param in HtParams.items():
             print("{!r}: dp_type = {!r}, dp_number = {:d}, acl = {!r}, data_type = {!s}, min = {!s}, max = {!s}"
                   .format(name, param.dp_type, param.dp_number, param.acl,
@@ -370,7 +371,7 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
                           param.min_val, param.max_val))
 
     # Dictionary of the supported Heliotherm heat pump parameters
-    _params = _load_from_csv()
+    _params = _load_params_from_csv()  # type: Dict[str, HtParam]
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -380,8 +381,8 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
 # Only for testing: print all supported heat pump parameters
 #def main():
 #    HtParams.dump()
-
-
+#
+#
 #if __name__ == "__main__":
 #    main()
 
@@ -390,4 +391,4 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
 # Exported symbols
 # ------------------------------------------------------------------------------------------------------------------- #
 
-__all__ = ["HtDataTypes", "HtParam", "HtParams"]
+__all__ = ["HtDataTypes", "HtParamValueType", "HtParam", "HtParams"]

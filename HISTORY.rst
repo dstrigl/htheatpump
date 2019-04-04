@@ -4,6 +4,7 @@ History
 1.x.x (2019-xx-xx)
 ------------------
 
+* added type annotations and hints for static type checking (using ``mypy``)
 * splitted up property ``HtHeatpump.verify_param`` to
   ``HtHeatpump.verify_param_action`` and ``HtHeatpump.verify_param_error``
 * renamed exception ``ParamVerificationException`` to ``VerificationException``

@@ -19,7 +19,8 @@
 
 """ This module is responsible for the communication with the Heliotherm heat pump. """
 
-from htheatpump.htparams import HtParams
+from htheatpump.htparams import HtParams, HtParamValueType
+from typing import Optional, List, Dict, Set, Tuple, Any
 
 import serial
 import time
@@ -44,9 +45,9 @@ _logger = logging.getLogger(__name__)
 # Constants
 # ------------------------------------------------------------------------------------------------------------------- #
 
-_serial_timeout = 5
+_serial_timeout = 5  # type: int
 """ Serial timeout value in seconds; normally no need to change it. """
-_login_retries = 2
+_login_retries = 2   # type: int
 """ Maximum number of retries for a login attempt; 1 regular try + :const:`_login_retries` retries. """
 
 
@@ -54,7 +55,7 @@ _login_retries = 2
 class VerifyAction(enum.Enum):
     """ Possible actions for the parameter verification:
 
-    * ``NONE``  No verification, shortcut for ``{}``.
+    * ``NONE``  No verification, shortcut for ``{}`` (empty set).
     * ``NAME``  Verification of the parameter name.
     * ``MIN``   Verification of the minimal value of the parameter.
     * ``MAX``   Verification of the maximal value of the parameter.
@@ -64,11 +65,18 @@ class VerifyAction(enum.Enum):
     The above enum entries can be used to specify the steps which should be performed
     during a parameter verification, e.g.::
 
+        hp = HtHeatpump("...", verify_param_action = {VerifyAction.NAME, VerifyAction.MAX})
+        temp = hp.get_param("Temp. Aussen")
+        ...
+
+    or::
+
         hp = HtHeatpump("/dev/ttyUSB0", baudrate=9600)
         hp.verify_param_action = {VerifyAction.NAME, VerifyAction.MAX}
         temp = hp.get_param("Temp. Aussen")
+        ...
     """
-    NONE = {}
+    NONE = set()  # type: Set
     NAME = 1
     MIN = 2
     MAX = 3
@@ -179,7 +187,7 @@ MR_RESP      = r"^MA,(\d+),([^,]+),(\d+)$"                     # MP data point n
 # Helper functions
 # ------------------------------------------------------------------------------------------------------------------- #
 
-def calc_checksum(s):
+def calc_checksum(s: bytes) -> int:
     """ Function that calculates the checksum of a provided bytes array.
 
     :param s: Byte array from which the checksum should be computed.
@@ -197,7 +205,7 @@ def calc_checksum(s):
     return checksum
 
 
-def verify_checksum(s):
+def verify_checksum(s: bytes) -> bool:
     """ Verify if the provided bytes array is terminated with a valid checksum.
 
     :param s: The byte array including the checksum.
@@ -213,7 +221,7 @@ def verify_checksum(s):
     return calc_checksum(s[:-1]) == s[-1]  # is the last byte of the array the correct checksum?
 
 
-def add_checksum(s):
+def add_checksum(s: bytes) -> bytes:
     """ Add a checksum at the end of the provided bytes array.
 
     :param s: The provided byte array.
@@ -229,7 +237,7 @@ def add_checksum(s):
     return s + bytes([calc_checksum(s)])  # append the checksum at the end of the bytes array
 
 
-def create_request(cmd):
+def create_request(cmd: str) -> bytes:
     """ Create a specified request command for the heat pump.
 
     :param cmd: The command string.
@@ -256,7 +264,7 @@ class VerificationException(ValueError):  # pragma: no cover
     :param message: A detailed message describing the parameter verification failure.
     :type message: str
     """
-    def __init__(self, message):
+    def __init__(self, message: str) -> None:
         ValueError.__init__(self, message)
 
 
@@ -303,7 +311,7 @@ class HtHeatpump:
             hp.close_connection()
     """
 
-    def __init__(self, device, **kwargs):
+    def __init__(self, device: str, **kwargs) -> None:
         # store the serial settings for later connection establishment
         self._ser_settings = {"device": device}
         assert isinstance(device, str)
@@ -315,12 +323,12 @@ class HtHeatpump:
         self._verify_param_error = kwargs.get("verify_param_error", False)
         assert isinstance(self._verify_param_error, bool)
 
-    def __del__(self):
+    def __del__(self) -> None:
         # close the connection if still established
         if self._ser and self._ser.is_open:
             self._ser.close()
 
-    def open_connection(self):
+    def open_connection(self) -> None:
         """ Open the serial connection with the defined settings.
 
         :raises IOError:
@@ -333,13 +341,21 @@ class HtHeatpump:
         if self._ser:
             raise IOError("serial connection already open")
         device = self._ser_settings.get("device", "/dev/ttyUSB0")
+        assert isinstance(device, str)
         baudrate = self._ser_settings.get("baudrate", 115200)
+        assert isinstance(baudrate, int)
         bytesize = self._ser_settings.get("bytesize", serial.EIGHTBITS)
+        assert isinstance(bytesize, int)
         parity = self._ser_settings.get("parity", serial.PARITY_NONE)
+        assert isinstance(bytesize, str)
         stopbits = self._ser_settings.get("stopbits", serial.STOPBITS_ONE)
+        assert isinstance(stopbits, (int, float))
         xonxoff = self._ser_settings.get("xonxoff", True)
+        assert isinstance(xonxoff, bool)
         rtscts = self._ser_settings.get("rtscts", False)
+        assert isinstance(rtscts, bool)
         dsrdtr = self._ser_settings.get("dsrdtr", False)
+        assert isinstance(dsrdtr, bool)
         # open the serial connection (must fit with the settings on the heat pump!)
         self._ser = serial.Serial(device,
                                   baudrate=baudrate,
@@ -352,7 +368,7 @@ class HtHeatpump:
                                   timeout=_serial_timeout)
         _logger.info(self._ser)  # log serial connection properties
 
-    def reconnect(self):
+    def reconnect(self) -> None:
         """ Perform a reconnect of the serial connection. Flush the output and
             input buffer, close the serial connection and open it again.
         """
@@ -362,7 +378,7 @@ class HtHeatpump:
             self.close_connection()
             self.open_connection()
 
-    def close_connection(self):
+    def close_connection(self) -> None:
         """ Close the serial connection.
         """
         if self._ser and self._ser.is_open:
@@ -372,16 +388,16 @@ class HtHeatpump:
             time.sleep(0.1)
 
     @property
-    def is_open(self):
+    def is_open(self) -> bool:
         """ Return the state of the serial port, whether it’s open or not.
 
         :returns: The state of the serial port as :obj:`bool`.
         :rtype: ``bool``
         """
-        return self._ser and self._ser.is_open
+        return self._ser is not None and self._ser.is_open
 
     @property
-    def verify_param_action(self):
+    def verify_param_action(self) -> Set[VerifyAction]:
         """ Property to specify the actions which should be performed during the parameter verification.
 
         The possible actions for the parameter verification can be found in the enum :class:`~VerifyAction`.
@@ -395,12 +411,12 @@ class HtHeatpump:
         return self._verify_param_action
 
     @verify_param_action.setter
-    def verify_param_action(self, val):
+    def verify_param_action(self, val: Set[VerifyAction]):
         assert isinstance(val, set)
         self._verify_param_action = val
 
     @property
-    def verify_param_error(self):
+    def verify_param_error(self) -> bool:
         """ Property to get or set whether a parameter verification failure should result in an error or not.
 
         If :const:`True` a failed parameter verification will result in an :exc:`VerificationException` exception.
@@ -413,11 +429,11 @@ class HtHeatpump:
         return self._verify_param_error
 
     @verify_param_error.setter
-    def verify_param_error(self, val):
+    def verify_param_error(self, val: bool):
         assert isinstance(val, bool)
         self._verify_param_error = val
 
-    def send_request(self, cmd):
+    def send_request(self, cmd: str) -> None:
         """ Send a request to the heat pump.
 
         :param cmd: Command to send to the heat pump.
@@ -431,7 +447,7 @@ class HtHeatpump:
         _logger.debug("send request: [{}]".format(req))
         self._ser.write(req)
 
-    def read_response(self):
+    def read_response(self) -> str:
         """ Read the response message from the heat pump.
 
         :returns: The returned response message of the heat pump as :obj:`str`.
@@ -525,7 +541,7 @@ class HtHeatpump:
             raise IOError("failed to extract response data from payload [{}]".format(payload))
         return m.group(1)
 
-    def login(self, update_param_limits=False, max_retries=_login_retries):
+    def login(self, update_param_limits: bool = False, max_retries: int = _login_retries) -> None:
         """ Log in the heat pump. If :attr:`update_param_limits` is :const:`True` an update of the
         parameter limits in :class:`~htheatpump.htparams.HtParams` will be performed. This will
         be done by requesting the current value together with their limits (MIN and MAX) for all
@@ -568,7 +584,7 @@ class HtHeatpump:
         if update_param_limits:
             self.update_param_limits()
 
-    def logout(self):
+    def logout(self) -> None:
         """ Log out from the heat pump session.
         """
         try:
@@ -585,7 +601,7 @@ class HtHeatpump:
             _logger.warning("logout failed: {!s}".format(e))
             # raise  # logout() should not fail!
 
-    def get_serial_number(self):
+    def get_serial_number(self) -> int:
         """ Query for the manufacturer's serial number of the heat pump.
 
         :returns: The manufacturer's serial number of the heat pump as :obj:`int` (e.g. :data:`123456`).
@@ -609,7 +625,7 @@ class HtHeatpump:
             _logger.error("query for manufacturer's serial number failed: {!s}".format(e))
             raise
 
-    def get_version(self):
+    def get_version(self) -> Tuple[str, int]:
         """ Query for the software version of the heat pump.
 
         :returns: The software version of the heat pump as a tuple with 2 elements.
@@ -646,7 +662,7 @@ class HtHeatpump:
             _logger.error("query for software version failed: {!s}".format(e))
             raise
 
-    def get_date_time(self):
+    def get_date_time(self) -> Tuple[datetime.datetime, int]:
         """ Read the current date and time of the heat pump.
 
         :returns: The current date and time of the heat pump as a tuple with 2 elements, where
@@ -671,17 +687,17 @@ class HtHeatpump:
             if not m:
                 raise IOError("invalid response for CLK command [{!r}]".format(resp))
             year = 2000 + int(m.group(3))
-            tmp = [ int(g) for g in m.group(2, 1, 4, 5, 6) ]  # month, day, hour, min, sec
+            month, day, hour, minute, second = [int(g) for g in m.group(2, 1, 4, 5, 6)]
             weekday = int(m.group(7))  # weekday 1-7 (Monday through Sunday)
-            # create datetime object
-            dt = datetime.datetime(year, *tmp)
+            # create datetime object from extracted data
+            dt = datetime.datetime(year, month, day, hour, minute, second)
             _logger.debug("datetime = {}, weekday = {:d}".format(dt.isoformat(), weekday))
             return dt, weekday  # return the heat pump's date and time as a datetime object
         except Exception as e:
             _logger.error("query for date and time failed: {!s}".format(e))
             raise
 
-    def set_date_time(self, dt=None):
+    def set_date_time(self, dt: Optional[datetime.datetime] = None) -> Tuple[datetime.datetime, int]:
         """ Set the current date and time of the heat pump.
 
         :param dt: The date and time to set. If :const:`None` current date and time
@@ -713,17 +729,17 @@ class HtHeatpump:
             if not m:
                 raise IOError("invalid response for CLK command [{!r}]".format(resp))
             year = 2000 + int(m.group(3))
-            tmp = [int(g) for g in m.group(2, 1, 4, 5, 6)]  # month, day, hour, min, sec
+            month, day, hour, minute, second = [int(g) for g in m.group(2, 1, 4, 5, 6)]
             weekday = int(m.group(7))  # weekday 1-7 (Monday through Sunday)
-            # create datetime object
-            dt = datetime.datetime(year, *tmp)
+            # create datetime object from extracted data
+            dt = datetime.datetime(year, month, day, hour, minute, second)
             _logger.debug("datetime = {}, weekday = {:d}".format(dt.isoformat(), weekday))
             return dt, weekday  # return the heat pump's date and time as a datetime object
         except Exception as e:
             _logger.error("set of date and time failed: {!s}".format(e))
             raise
 
-    def get_last_fault(self):
+    def get_last_fault(self) -> Tuple[int, int, datetime.datetime, str]:
         """ Query for the last fault message of the heat pump.
 
         :returns:
@@ -752,8 +768,9 @@ class HtHeatpump:
                 raise IOError("invalid response for ALC command [{!r}]".format(resp))
             idx, err = [int(g) for g in m.group(1, 2)]  # fault list index, error code (?)
             year = 2000 + int(m.group(5))
-            tmp = [int(g) for g in m.group(4, 3, 6, 7, 8)]  # month, day, hour, min, sec
-            dt = datetime.datetime(year, *tmp)  # create datetime object
+            month, day, hour, minute, second = [int(g) for g in m.group(4, 3, 6, 7, 8)]
+            # create datetime object from extracted data
+            dt = datetime.datetime(year, month, day, hour, minute, second)
             msg = m.group(9).strip()
             _logger.debug("(idx: {:d}, err: {:d})[{}]: {}".format(idx, err, dt.isoformat(), msg))
             return idx, err, dt, msg
@@ -761,7 +778,7 @@ class HtHeatpump:
             _logger.error("query for last fault message failed: {!s}".format(e))
             raise
 
-    def get_fault_list_size(self):
+    def get_fault_list_size(self) -> int:
         """ Query for the fault list size of the heat pump.
 
         :returns: The size of the fault list as :obj:`int`.
@@ -785,7 +802,7 @@ class HtHeatpump:
             _logger.error("query for fault list size failed: {!s}".format(e))
             raise
 
-    def get_fault_list(self, *args):
+    def get_fault_list(self, *args: int) -> List[Dict[str, object]]:  # TODO -> List[Dict[str, ?]]
         """ Query for the fault list of the heat pump.
 
         :param args: The index number(s) to request from the fault list (optional).
@@ -808,7 +825,7 @@ class HtHeatpump:
             response (e.g. broken data stream, invalid checksum).
         """
         if not args:
-            args = range(0, self.get_fault_list_size())
+            args = range(0, self.get_fault_list_size())  # type: ignore
         faults = []
         if args:
             # send AR request to the heat pump
@@ -827,8 +844,9 @@ class HtHeatpump:
                         raise IOError("invalid response for AR command [{!r}]".format(r))
                     idx, err = [int(g) for g in m.group(1, 2)]  # fault list index, error code
                     year = 2000 + int(m.group(5))
-                    tmp = [int(g) for g in m.group(4, 3, 6, 7, 8)]  # month, day, hour, min, sec
-                    dt = datetime.datetime(year, *tmp)  # create datetime object from extracted data
+                    month, day, hour, minute, second = [int(g) for g in m.group(4, 3, 6, 7, 8)]
+                    # create datetime object from extracted data
+                    dt = datetime.datetime(year, month, day, hour, minute, second)
                     msg = m.group(9).strip()
                     _logger.debug("(idx: {:03d}, err: {:05d})[{}]: {}".format(idx, err, dt.isoformat(), msg))
                     if idx != args[i]:
@@ -844,7 +862,8 @@ class HtHeatpump:
                 raise
         return faults
 
-    def _extract_param_data(self, name, resp):
+    def _extract_param_data(self, name: str, resp: str) -> Tuple[str, HtParamValueType, HtParamValueType,
+                                                                 HtParamValueType]:
         """ Extract the parameter data like parameter name, minimal value, maximal value and the
         current value from the parameter access response string.
 
@@ -866,12 +885,12 @@ class HtHeatpump:
         """
         # get the corresponding definition for the given parameter
         assert name in HtParams, "parameter definition for parameter {!r} not found".format(name)
-        param = HtParams[name]
+        param = HtParams[name]  # type: ignore
         # search for pattern "NAME=...", "VAL=...", "MAX=..." and "MIN=..." inside the response string
         m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(param.cmd()), resp)
         if not m:
             raise IOError("invalid response for access of parameter {!r} [{!r}]".format(name, resp))
-        resp_name, resp_min, resp_max, resp_val = (g.strip() for g in m.group(1, 4, 3, 2))
+        resp_name, resp_min, resp_max, resp_val = (g.strip() for g in m.group(1, 4, 3, 2))  # type: str, Any, Any, Any
         _logger.debug("{!r}: NAME={!r}, MIN={!r}, MAX={!r}, VAL={!r}"
                       .format(name, resp_name, resp_min, resp_max, resp_val))
         resp_min = param.from_str(resp_min)  # convert MIN to the corresponding data type (BOOL, INT, FLOAT)
@@ -879,7 +898,7 @@ class HtHeatpump:
         resp_val = param.from_str(resp_val)  # convert VAL to the corresponding data type (BOOL, INT, FLOAT)
         return resp_name, resp_min, resp_max, resp_val  # return (name, min, max, value)
 
-    def _get_param(self, name):
+    def _get_param(self, name: str) -> Tuple[str, HtParamValueType, HtParamValueType, HtParamValueType]:
         """ Read the data (NAME, MIN, MAX, VAL) of a specific parameter of the heat pump.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
@@ -898,7 +917,7 @@ class HtHeatpump:
         """
         # get the corresponding definition for the requested parameter
         assert name in HtParams, "parameter definition for parameter {!r} not found".format(name)
-        param = HtParams[name]
+        param = HtParams[name]  # type: ignore
         # send command to the heat pump
         self.send_request(param.cmd())
         # ... and wait for the response
@@ -909,7 +928,10 @@ class HtHeatpump:
             _logger.error("query of parameter {!r} failed: {!s}".format(name, e))
             raise
 
-    def _verify_param_resp(self, name, resp_name, resp_min=None, resp_max=None, resp_val=None):
+    def _verify_param_resp(self, name: str, resp_name: str,
+                           resp_min: Optional[HtParamValueType] = None,
+                           resp_max: Optional[HtParamValueType] = None,
+                           resp_val: Optional[HtParamValueType] = None) -> Optional[HtParamValueType]:
         """ Perform a verification of the parameter access response data (NAME, MIN, MAX, VAL). Check whether
         the name, min and max value matches with the parameter definition in :class:`~htheatpump.htparams.HtParams`
         and warn if the current value is beyond the limits.
@@ -918,16 +940,16 @@ class HtHeatpump:
         :type resp_name: str
         :param resp_min: The minimal value (MIN=...) of the parameter in the response message. If :const:`None`
             no verification will be performed for this argument.
-        :type resp_min: None/bool/int/float
+        :type resp_min: bool/int/float/None
         :param resp_max: The maximal value (MAX=...) of the parameter in the response message. If :const:`None`
             no verification will be performed for this argument.
-        :type resp_max: None/bool/int/float
+        :type resp_max: bool/int/float/None
         :param resp_val: The current value (VAL=...) of the parameter in the response message. If :const:`None`
             no verification will be performed for this argument.
-        :type resp_val: None/str/bool/int/float
+        :type resp_val: bool/int/float/None
         :returns: The passed current value of the parameter. If :const:`None` no verification will be performed
             for this argument.
-        :rtype: ``None``, ``str``, ``bool``, ``int`` or ``float``
+        :rtype: ``bool``, ``int``, ``float`` or ``None``
         :raises VerificationException:
             Will be raised if the parameter verification fails and the property :attr:`~HtHeatpump.verify_param_error`
             is set to :const:`True`. If property :attr:`~HtHeatpump.verify_param_error` is set to :const:`False` only
@@ -936,7 +958,7 @@ class HtHeatpump:
         """
         # get the corresponding definition for the given parameter
         assert name in HtParams, "parameter definition for parameter {!r} not found".format(name)
-        param = HtParams[name]
+        param = HtParams[name]  # type: ignore
         try:
             # verify 'NAME'
             if (VerifyAction.NAME in self._verify_param_action) and (resp_name != name):
@@ -965,7 +987,7 @@ class HtHeatpump:
                 _logger.warning("response verification of param {!r} failed: {!s}".format(name, e))
         return resp_val
 
-    def update_param_limits(self):
+    def update_param_limits(self) -> List[str]:
         """ Perform an update of the parameter limits in :class:`~htheatpump.htparams.HtParams` by requesting
         the limit values of all "known" parameters directly from the heat pump.
 
@@ -989,7 +1011,7 @@ class HtHeatpump:
         _logger.info("updated {:d} (of {:d}) parameter limits".format(len(updated_params), len(HtParams)))
         return updated_params
 
-    def get_param(self, name):
+    def get_param(self, name: str) -> HtParamValueType:
         """ Query for a specific parameter of the heat pump.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
@@ -997,7 +1019,7 @@ class HtHeatpump:
         :returns: Returned value of the requested parameter.
             The type of the returned value is defined by the csv-table
             of supported heat pump parameters in :file:`htparams.csv`.
-        :rtype: ``str``, ``bool``, ``int`` or ``float``
+        :rtype: ``bool``, ``int`` or ``float``
         :raises KeyError:
             Will be raised when the parameter definition for the passed parameter is not found.
         :raises IOError:
@@ -1023,19 +1045,19 @@ class HtHeatpump:
             resp = self._get_param(name)
             val = self._verify_param_resp(name, *resp)
             _logger.debug("{!r} = {!s}".format(name, val))
-            return val
+            return val  # type: ignore
         except Exception as e:
             _logger.error("get parameter {!r} failed: {!s}".format(name, e))
             raise
 
-    def set_param(self, name, val, ignore_limits=False):
+    def set_param(self, name: str, val: HtParamValueType, ignore_limits: bool = False) -> HtParamValueType:
         """ Set the value of a specific parameter of the heat pump. If :attr:`ignore_limits` is :const:`False`
         and the passed value is beyond the parameter limits a :exc:`ValueError` will be raised.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
         :type name: str
         :param val: The value to set.
-        :type val: str, bool, int or float
+        :type val: bool, int or float
         :param ignore_limits: Indicates if the parameter limits should be ignored or not.
         :type ignore_limits: bool
         :returns: Returned value of the parameter set request.
@@ -1043,7 +1065,7 @@ class HtHeatpump:
             passed to the function.
             The type of the returned value is defined by the csv-table
             of supported heat pump parameters in :file:`htparams.csv`.
-        :rtype: ``str``, ``bool``, ``int`` or ``float``
+        :rtype: ``bool``, ``int`` or ``float``
         :raises KeyError:
             Will be raised when the parameter definition for the passed parameter is not found.
         :raises ValueError:
@@ -1069,7 +1091,7 @@ class HtHeatpump:
         # find the corresponding definition for the parameter
         if name not in HtParams:
             raise KeyError("parameter definition for parameter {!r} not found".format(name))
-        param = HtParams[name]
+        param = HtParams[name]  # type: ignore
         # check the passed value against the defined limits (if desired)
         if not ignore_limits and not param.in_limits(val):
             raise ValueError("value {!r} is beyond the limits [{}, {}]".format(val, param.min_val, param.max_val))
@@ -1079,16 +1101,16 @@ class HtHeatpump:
         # ... and wait for the response
         try:
             resp = self.read_response()
-            resp = self._extract_param_data(name, resp)
-            val = self._verify_param_resp(name, *resp)
-            _logger.debug("{!r} = {!s}".format(name, val))
-            return val
+            data = self._extract_param_data(name, resp)
+            ret = self._verify_param_resp(name, *data)
+            _logger.debug("{!r} = {!s}".format(name, ret))
+            return ret  # type: ignore
         except Exception as e:
             _logger.error("set parameter {!r} failed: {!s}".format(name, e))
             raise
 
     @property
-    def in_error(self):
+    def in_error(self) -> bool:
         """ Query whether the heat pump is malfunctioning.
 
         :returns: :const:`True` if the heat pump is malfunctioning, :const:`False` otherwise.
@@ -1097,9 +1119,9 @@ class HtHeatpump:
             Will be raised when the serial connection is not open or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
-        return self.get_param("Stoerung")
+        return self.get_param("Stoerung")  # type: ignore
 
-    def query(self, *args):
+    def query(self, *args: str) -> Dict[str, HtParamValueType]:
         """ Query for the current values of parameters from the heat pump.
 
         :param args: The parameter name(s) to request from the heat pump.
@@ -1138,12 +1160,12 @@ class HtHeatpump:
             raise
         return values
 
-    def fast_query(self, *args):
+    def fast_query(self, *args: str) -> Dict[str, HtParamValueType]:
         """ Query for the current values of parameters from the heat pump the fast way.
 
         .. note::
 
-            Only available for parameters representing a "MP" data point!
+            Only available for parameters representing a "MP" data point and no parameter verification possible!
 
         :param args: The parameter name(s) to request from the heat pump.
             If not specified all "known" parameters representing a "MP" data point are requested.
@@ -1168,13 +1190,13 @@ class HtHeatpump:
             response (e.g. broken data stream, invalid checksum).
         """
         if not args:
-            args = (name for name, param in HtParams.items() if param.dp_type == "MP")
+            args = (name for name, param in HtParams.items() if param.dp_type == "MP")  # type: ignore
         dp_list = []
         dp_dict = {}
         for name in args:
             if name not in HtParams:
                 raise KeyError("parameter definition for parameter {!r} not found".format(name))
-            param = HtParams[name]
+            param = HtParams[name]  # type: ignore
             if param.dp_type != "MP":
                 raise ValueError("invalid parameter {!r}; only parameters representing a 'MP' data point are allowed"
                                  .format(name))
@@ -1196,7 +1218,8 @@ class HtHeatpump:
                     m = re.match(MR_RESP, r)
                     if not m:
                         raise IOError("invalid response for MR command [{!r}]".format(r))
-                    dp_number, dp_value, unknown_val = m.group(1, 2, 3)  # MP data point number, value and ?
+                    # MP data point number, value and ?
+                    dp_number, dp_value, unknown_val = m.group(1, 2, 3)  # type: Any, str, str
                     dp_number = int(dp_number)
                     if dp_number not in dp_dict:
                         raise IOError("non requested data point value received [MP,{:d}]".format(dp_number))
