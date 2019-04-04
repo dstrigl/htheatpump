@@ -1272,8 +1272,7 @@ class HtHeatpump:
         prog_props = []
         for idx in args:
             # send PRI request to the heat pump
-            cmd = PRI_CMD.format(idx)
-            self.send_request(cmd)
+            self.send_request(PRI_CMD.format(idx))
             # ... and wait for the response
             try:
                 resp = self.read_response()  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
