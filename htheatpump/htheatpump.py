@@ -181,10 +181,14 @@ AR_RESP      = (r"^AA,(\d+),(\d+)"                                              
                 r",(.*)$")                                                         # error message, e.g. 'EQ_Spreizung'
 MR_CMD       = r"MR,{}"                                                   # fast query for several MP data point values
 MR_RESP      = r"^MA,(\d+),([^,]+),(\d+)$"                     # MP data point number, value and ?; e.g. 'MA,0,-3.4,17'
+
+# TODO
 PRL_CMD      = r"PRL"                                          # query for the number of time programs on the heat pump
-PRL_RESP     = r"^SUM=(\d+)$"                                                                            # e.g. 'SUM=5'
-PRI_CMD      = r"PRI{:d}"                        # query for the properties of a specific time program on the heat pump
-PRI_RESP     = r"^PRI{:d},*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$"
+PRL_RESP     = (r"^SUM=(\d+)$",
+                r"^PRI{:d},*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$")
+# TODO
+#PRI_CMD      = r"PRI{:d}"                        # query for the properties of a specific time program on the heat pump
+#PRI_RESP     = r"^PRI{:d},*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$"
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -351,7 +355,7 @@ class HtHeatpump:
         bytesize = self._ser_settings.get("bytesize", serial.EIGHTBITS)
         assert isinstance(bytesize, int)
         parity = self._ser_settings.get("parity", serial.PARITY_NONE)
-        assert isinstance(bytesize, str)
+        assert isinstance(parity, str)
         stopbits = self._ser_settings.get("stopbits", serial.STOPBITS_ONE)
         assert isinstance(stopbits, (int, float))
         xonxoff = self._ser_settings.get("xonxoff", True)
@@ -1153,7 +1157,7 @@ class HtHeatpump:
             :attr:`~HtHeatpump.verify_param_action`.
         """
         if not args:
-            args = HtParams.keys()
+            args = HtParams.keys()  # type: ignore
         values = {}
         try:
             # query for each parameter in the given list
@@ -1240,45 +1244,27 @@ class HtHeatpump:
                 raise
         return values
 
-    def get_number_of_time_programs(self) -> int:
-        """ Query for the number of different time programs on the heat pump.
-
-        :returns: The number of time programs on the heat pump as :obj:`int`.
-        :rtype: ``int``
-        :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
-            response (e.g. broken data stream, invalid checksum).
+    # TODO
+    def get_time_progs(self) -> List[Dict[str, object]]:  # TODO -> List[Dict[str, ?]]:
+        """ TODO doc
         """
+        prog_props = []
         # send PRL request to the heat pump
         self.send_request(PRL_CMD)
         # ... and wait for the response
         try:
             resp = self.read_response()  # e.g. "SUM=5"
-            m = re.match(PRL_RESP, resp)
+            m = re.match(PRL_RESP[0], resp)
             if not m:
                 raise IOError("invalid response for PRL command [{!r}]".format(resp))
             nbr = int(m.group(1))
             _logger.debug("number of time programs = {:d}".format(nbr))
-            return nbr
-        except Exception as e:
-            _logger.error("query for number of time programs failed: {!s}".format(e))
-            raise
-
-    def get_time_program_props(self, *args: int) -> List[Dict[str, object]]:  # TODO -> List[Dict[str, ?]]:
-        """ TODO doc
-        """
-        if not args:
-            args = range(0, self.get_number_of_time_programs())  # type: ignore
-        prog_props = []
-        for idx in args:
-            # send PRI request to the heat pump
-            self.send_request(PRI_CMD.format(idx))
-            # ... and wait for the response
-            try:
+            # TODO comment
+            for idx in range(0, nbr):
                 resp = self.read_response()  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
-                m = re.match(PRI_RESP.format(idx), resp)
+                m = re.match(PRL_RESP[1].format(idx), resp)
                 if not m:
-                    raise IOError("invalid response for PRI{:d} command [{!r}]".format(idx, resp))
+                    raise IOError("invalid response for PRL command [{!r}]".format(resp))
                 # extract data (NAME, EAD, NOS, STE and NOD)
                 name = m.group(1)
                 ead, nos, ste, nod = [int(g) for g in m.group(2, 3, 4, 5)]
@@ -1291,10 +1277,10 @@ class HtHeatpump:
                                    "ste"  : ste,   # step-size [in minutes] (?)
                                    "nod"  : nod,   # number-of-days (?)
                                    })
-            except Exception as e:
-                _logger.error("query for time program properties failed: {!s}".format(e))
-                raise
-        return prog_props if len(prog_props) > 1 else prog_props[0]  # next(iter(your_list or []), None) TODO
+        except Exception as e:
+            _logger.error("query for time programs failed: {!s}".format(e))
+            raise
+        return prog_props
 
 
 # ------------------------------------------------------------------------------------------------------------------- #

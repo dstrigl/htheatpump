@@ -30,7 +30,7 @@
 import enum
 import csv
 from os import path
-from typing import Union, Dict, Optional, Any
+from typing import Union, Dict, Optional, Any, KeysView, ItemsView
 
 from htheatpump.utils import Singleton
 
@@ -344,11 +344,11 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
     """
 
     @classmethod
-    def keys(cls):  # TODO -> type
+    def keys(cls) -> KeysView:
         return cls._params.keys()
 
     @classmethod
-    def items(cls):  # TODO -> type
+    def items(cls) -> ItemsView:
         return cls._params.items()
 
     @classmethod
