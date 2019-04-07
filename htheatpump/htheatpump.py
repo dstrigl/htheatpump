@@ -181,14 +181,11 @@ AR_RESP      = (r"^AA,(\d+),(\d+)"                                              
                 r",(.*)$")                                                         # error message, e.g. 'EQ_Spreizung'
 MR_CMD       = r"MR,{}"                                                   # fast query for several MP data point values
 MR_RESP      = r"^MA,(\d+),([^,]+),(\d+)$"                     # MP data point number, value and ?; e.g. 'MA,0,-3.4,17'
-
-# TODO
-PRL_CMD      = r"PRL"                                          # query for the number of time programs on the heat pump
-PRL_RESP     = (r"^SUM=(\d+)$",
-                r"^PRI{:d},*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$")
-# TODO
-#PRI_CMD      = r"PRI{:d}"                        # query for the properties of a specific time program on the heat pump
-#PRI_RESP     = r"^PRI{:d},*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$"
+PRL_CMD      = r"PRL"                                                    # query for the time programs of the heat pump
+PRL_RESP     = (r"^SUM=(\d+)$",                                                                          # e.g. 'SUM=5'
+                r"^PRI{:d},*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$")     # e.g. 'PRI0,...'
+PRI_CMD      = r"PRI{:d}"                                          # query for a specific time program of the heat pump
+PRI_RESP     = r"^PRI{:d},*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$"  # e.g. 'PRI2,NAME=...'
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -1281,6 +1278,12 @@ class HtHeatpump:
             _logger.error("query for time programs failed: {!s}".format(e))
             raise
         return prog_props
+
+    # TODO
+    def get_time_prog(self, idx: int):  # TODO -> ...
+        """ TODO doc
+        """
+        pass
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
