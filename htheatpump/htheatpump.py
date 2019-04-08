@@ -1313,7 +1313,7 @@ class HtHeatpump:
         assert isinstance(idx, int)
         time_prog_entries = []  # type: List
         # send PRD request to the heat pump
-        self.send_request(PRD_CMD)
+        self.send_request(PRD_CMD.format(idx))
         # ... and wait for the response
         try:
             resp = self.read_response()  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
