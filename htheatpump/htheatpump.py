@@ -1317,7 +1317,7 @@ class HtHeatpump:
         # ... and wait for the response
         try:
             resp = self.read_response()  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
-            m = re.match(PRD_RESP[0], resp)
+            m = re.match(PRD_RESP[0].format(idx), resp)
             if not m:
                 raise IOError("invalid response for PRD command [{!r}]".format(resp))
             # extract data (NAME, EAD, NOS, STE and NOD)
