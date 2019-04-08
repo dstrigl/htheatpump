@@ -159,11 +159,11 @@ LOGOUT_CMD   = r"LOUT"                                                          
 LOGOUT_RESP  = r"^OK"
 RID_CMD      = r"RID"                                                      # query for the manufacturer's serial number
 RID_RESP     = r"^RID,(\d+)$"                                                                 # e.g. '~RID,123456;\r\n'
-VERSION_CMD  = r"SP,NR=9"                                               # returns the software version of the heat pump
-VERSION_RESP = r"^SP,NR=9,.*NAME=([^,]+).*VAL=([^,]+).*$"
+VERSION_CMD  = r"SP,NR=9"                                             # query for the software version of the heat pump
+VERSION_RESP = r"^SP,NR=9,.*NAME=([^,]+).*VAL=([^,]+).*$"            # e.g. 'SP,NR=9,ID=9,NAME=3.0.20,...,VAL=2321,...'
 CLK_CMD      = (r"CLK",                                            # get/set the current date and time of the heat pump
                 r"CLK,DA={:02d}.{:02d}.{:02d},TI={:02d}:{:02d}:{:02d},WD={:d}")
-CLK_RESP     = (r"^CLK"
+CLK_RESP     = (r"^CLK"                                         # answer for the current date and time of the heat pump
                 r",DA=(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"                        # date, e.g. '26.11.15'
                 r",TI=([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                                     # time, e.g. '21:28:57'
                 r",WD=([1-7])$")                                                  # weekday 1-7 (Monday through Sunday)
@@ -183,9 +183,13 @@ MR_CMD       = r"MR,{}"                                                   # fast
 MR_RESP      = r"^MA,(\d+),([^,]+),(\d+)$"                     # MP data point number, value and ?; e.g. 'MA,0,-3.4,17'
 PRL_CMD      = r"PRL"                                                    # query for the time programs of the heat pump
 PRL_RESP     = (r"^SUM=(\d+)$",                                                                          # e.g. 'SUM=5'
-                r"^PRI{:d},*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$")     # e.g. 'PRI0,...'
+                r"^PRI{:d},.*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$")    # e.g. 'PRI0,...'
 PRI_CMD      = r"PRI{:d}"                                          # query for a specific time program of the heat pump
-PRI_RESP     = r"^PRI{:d},*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$"  # e.g. 'PRI2,NAME=...'
+PRI_RESP     = r"^PRI{:d},.*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$"  # e.g. 'PRI2,NAME=..'
+PRD_CMD      = r"PRD{:d}"                           # query for the entries of a specific time program of the heat pump
+PRD_RESP     = (r"^PRI{:d},*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$",     # e.g. 'PRI0,...'
+                r"^PRE,.*PR={:d},.*DAY={:d},.*EV={:d},.*ST=(\d+),"                # e.g. 'PRE,PR=0,DAY=3,EV=1,ST=1,...'
+                r".*BEG=([0-1]\d|2[0-3]):([0-5]\d),.*END=([0-1]\d|2[0-3]):([0-5]\d).*$")     # '...BEG=03:30,END=22:00'
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -1280,10 +1284,65 @@ class HtHeatpump:
         return prog_props
 
     # TODO
-    def get_time_prog(self, idx: int):  # TODO -> ...
+    def get_time_prog(self, idx: int) -> Tuple[str, int, int, int, int]:
         """ TODO doc
         """
-        pass
+        assert isinstance(idx, int)
+        # send PRI request to the heat pump
+        self.send_request(PRI_CMD.format(idx))
+        # ... and wait for the response
+        try:
+            resp = self.read_response()  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
+            m = re.match(PRI_RESP.format(idx), resp)
+            if not m:
+                raise IOError("invalid response for PRI command [{!r}]".format(resp))
+            # extract data (NAME, EAD, NOS, STE and NOD)
+            name = m.group(1)
+            ead, nos, ste, nod = [int(g) for g in m.group(2, 3, 4, 5)]
+            _logger.debug("idx={:d}: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
+                idx, name, ead, nos, ste, nod))
+            return name, ead, nos, ste, nod  # name, entries-a-day, number-of-states, step-size, number-of-days
+        except Exception as e:
+            _logger.error("query for time program failed: {!s}".format(e))
+            raise
+
+    # TODO
+    def get_time_prog_entries(self, idx: int) -> List[List[Dict[str, object]]]:  # TODO -> List[List[Dict[str, ?]]]:
+        """ TODO doc
+        """
+        assert isinstance(idx, int)
+        time_prog_entries = []  # type: List
+        # send PRD request to the heat pump
+        self.send_request(PRD_CMD)
+        # ... and wait for the response
+        try:
+            resp = self.read_response()  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
+            m = re.match(PRD_RESP[0], resp)
+            if not m:
+                raise IOError("invalid response for PRD command [{!r}]".format(resp))
+            # extract data (NAME, EAD, NOS, STE and NOD)
+            name = m.group(1)
+            ead, nos, ste, nod = [int(g) for g in m.group(2, 3, 4, 5)]
+            _logger.debug("idx={:d}: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
+                idx, name, ead, nos, ste, nod))
+            for day in range(0, nod):
+                time_prog_entries.append([])
+                for entry in range(0, ead):
+                    resp = self.read_response()  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
+                    m = re.match(PRD_RESP[1].format(idx, day, entry), resp)
+                    if not m:
+                        raise IOError("invalid response for PRD command [{!r}]".format(resp))
+                    # extract data (ST, BEG, END)
+                    state, beg_hour, beg_min, end_hour, end_min = [int(g) for g in m.group(1, 2, 3, 4, 5)]
+                    beg_time = datetime.time(beg_hour, beg_min)  # begin time, e.g. "03:30:00"
+                    end_time = datetime.time(end_hour, end_min)  # end time, e.g. "22:00:00"
+                    _logger.debug("  day={:d}, entry={:d}: state={:d}, begin={!r}, end={!r}".format(
+                        day, entry, state, beg_time.isoformat(), end_time.isoformat()))
+                    time_prog_entries[-1].append({"state": state, "begin": beg_time, "end": end_time})
+        except Exception as e:
+            _logger.error("query for time program entries failed: {!s}".format(e))
+            raise
+        return time_prog_entries
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
