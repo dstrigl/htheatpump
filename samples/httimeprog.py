@@ -197,8 +197,8 @@ def main():
                             writer.writerow({"day"  : day,
                                              "entry": entry,
                                              "state": data["state"],
-                                             "begin": ":".join(*data["begin"]),
-                                             "end"  : ":".join(*data["end"]),
+                                             "begin": ":".join(data["begin"]),
+                                             "end"  : ":".join(data["end"]),
                                              })
 
         # print execution time only if desired
