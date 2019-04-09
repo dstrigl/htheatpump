@@ -187,9 +187,10 @@ PRL_RESP     = (r"^SUM=(\d+)$",                                                 
 PRI_CMD      = r"PRI{:d}"                                          # query for a specific time program of the heat pump
 PRI_RESP     = r"^PRI{:d},.*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$"  # e.g. 'PRI2,NAME=..'
 PRD_CMD      = r"PRD{:d}"                           # query for the entries of a specific time program of the heat pump
+# TODO find a better regex for 'BEG/END=24:00' (now '24:01' is valid!)
 PRD_RESP     = (r"^PRI{:d},*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$",     # e.g. 'PRI0,...'
                 r"^PRE,.*PR={:d},.*DAY={:d},.*EV={:d},.*ST=(\d+),"                # e.g. 'PRE,PR=0,DAY=3,EV=1,ST=1,...'
-                r".*BEG=([0-1]\d|2[0-3]):([0-5]\d),.*END=([0-1]\d|2[0-3]):([0-5]\d).*$")     # '...BEG=03:30,END=22:00'
+                r".*BEG=([0-1]\d|2[0-4]):([0-5]\d),.*END=([0-1]\d|2[0-4]):([0-5]\d).*$")     # '...BEG=03:30,END=22:00'
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -1269,7 +1270,7 @@ class HtHeatpump:
                 # extract data (NAME, EAD, NOS, STE and NOD)
                 name = m.group(1)
                 ead, nos, ste, nod = [int(g) for g in m.group(2, 3, 4, 5)]
-                _logger.debug("idx={:d}: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
+                _logger.debug("[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
                     idx, name, ead, nos, ste, nod))
                 prog_props.append({"index": idx,   # index of the time program
                                    "name" : name,  # name of the time program
@@ -1299,7 +1300,7 @@ class HtHeatpump:
             # extract data (NAME, EAD, NOS, STE and NOD)
             name = m.group(1)
             ead, nos, ste, nod = [int(g) for g in m.group(2, 3, 4, 5)]
-            _logger.debug("idx={:d}: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
+            _logger.debug("[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
                 idx, name, ead, nos, ste, nod))
             return name, ead, nos, ste, nod  # name, entries-a-day, number-of-states, step-size, number-of-days
         except Exception as e:
@@ -1323,8 +1324,9 @@ class HtHeatpump:
             # extract data (NAME, EAD, NOS, STE and NOD)
             name = m.group(1)
             ead, nos, ste, nod = [int(g) for g in m.group(2, 3, 4, 5)]
-            _logger.debug("idx={:d}: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
+            _logger.debug("[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
                 idx, name, ead, nos, ste, nod))
+            # read the single time program entries for each day
             for day in range(0, nod):
                 time_prog_entries.append([])
                 for entry in range(0, ead):
@@ -1333,12 +1335,13 @@ class HtHeatpump:
                     if not m:
                         raise IOError("invalid response for PRD command [{!r}]".format(resp))
                     # extract data (ST, BEG, END)
-                    state, beg_hour, beg_min, end_hour, end_min = [int(g) for g in m.group(1, 2, 3, 4, 5)]
-                    beg_time = datetime.time(beg_hour, beg_min)  # begin time, e.g. "03:30:00"
-                    end_time = datetime.time(end_hour, end_min)  # end time, e.g. "22:00:00"
-                    _logger.debug("  day={:d}, entry={:d}: state={:d}, begin={!r}, end={!r}".format(
-                        day, entry, state, beg_time.isoformat(), end_time.isoformat()))
-                    time_prog_entries[-1].append({"state": state, "begin": beg_time, "end": end_time})
+                    st, beg_hour, beg_min, end_hour, end_min = [int(g) for g in m.group(1, 2, 3, 4, 5)]
+                    _logger.debug("  day={:d}, entry={:d}: state={:d}, begin={:02d}:{:02d}, end={:02d}:{:02d}".format(
+                        day, entry, st, beg_hour, beg_min, end_hour, end_min))
+                    time_prog_entries[-1].append({"state": st,
+                                                  "begin": (beg_hour, beg_min),  # 00:00 - 24:00
+                                                  "end"  : (end_hour, end_min),  # 00:00 - 24:00
+                                                  })
         except Exception as e:
             _logger.error("query for time program entries failed: {!s}".format(e))
             raise

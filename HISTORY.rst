@@ -4,6 +4,7 @@ History
 1.x.x (2019-xx-xx)
 ------------------
 
+* added new functions to read the time program of the heat pump (see ``HtHeatpump.get_time_prog...``)
 * added type annotations and hints for static type checking (using ``mypy``)
 * splitted up property ``HtHeatpump.verify_param`` to
   ``HtHeatpump.verify_param_action`` and ``HtHeatpump.verify_param_error``

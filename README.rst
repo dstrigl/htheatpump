@@ -48,7 +48,7 @@ Todo
 ~~~~
 
 * check access right for writing parameters of the heat pump
-* read and write the time programs of the heat pump
+* write the time programs of the heat pump
 * add some (more) examples
 * add some (more) unit tests
 * cleanup/extend documentation
