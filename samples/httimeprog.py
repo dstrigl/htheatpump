@@ -186,7 +186,7 @@ def main():
             if args.csv:
                 with open(args.csv, 'w') as csvfile:
                     csvfile.write("# idx={:d}, name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
-                        args.index, *time_prog))
+                        args.index, *time_prog))  # TODO new-line
                     fieldnames = ["day", "entry", "state", "begin", "end"]
                     writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
                     writer.writeheader()
