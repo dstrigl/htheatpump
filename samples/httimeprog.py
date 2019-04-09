@@ -167,12 +167,12 @@ def main():
                 time_prog = hp.get_time_prog(args.index)
                 time_prog_entries = hp.get_time_prog_entries(args.index)
             exec_time = timer.duration
-            print("[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(*time_prog))
+            print("[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(args.index, *time_prog))
             for day in range(len(time_prog_entries)):
                 day_entries = time_prog_entries[day]
                 for entry in range(len(day_entries)):
                     data = day_entries[entry]
-                    print("day={:d}, entry={:d}: state={:d}, begin={:02d}:{:02d}, end={:02d}:{:02d}".format(
+                    print("day={:d}, entry={:d}, state={:d}, begin={:02d}:{:02d}, end={:02d}:{:02d}".format(
                         day, entry, data["state"], *data["begin"], *data["end"]))
 
             # write time program entries to JSON file
