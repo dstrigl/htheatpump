@@ -187,12 +187,19 @@ def main():
                 with open(args.csv, 'w') as csvfile:
                     csvfile.write("# idx={:d}, name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
                         args.index, *time_prog))
-                    fieldnames = ["index", "name", "ead", "nos", "ste", "nod"]
+                    fieldnames = ["day", "entry", "state", "begin", "end"]
                     writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
                     writer.writeheader()
                     for day in range(len(time_prog_entries)):
-                        for entry in time_prog_entries[day]:
-                            writer.writerow({n: entry[n] for n in fieldnames})
+                        day_entries = time_prog_entries[day]
+                        for entry in range(len(day_entries)):
+                            data = day_entries[entry]
+                            writer.writerow({"day"  : day,
+                                             "entry": entry,
+                                             "state": data["state"],
+                                             "begin": ":".join(*data["begin"]),
+                                             "end"  : ":".join(*data["end"]),
+                                             })
 
         # print execution time only if desired
         if args.time:
