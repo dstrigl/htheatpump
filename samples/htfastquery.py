@@ -118,7 +118,7 @@ def main():
     args = parser.parse_args()
 
     # activate logging with level DEBUG in verbose mode
-    if args.verbose:
+    if args.verbose:  # TODO format="%(asctime)s %(levelname)s [%(name)s] %(message)s" + %(funcName)s
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.WARNING)
@@ -145,6 +145,7 @@ def main():
         # print the current value(s) of the retrieved parameter(s)
         if args.json:
             print(json.dumps(values, indent=4, sort_keys=True))
+        # TODO else args.csv:
         else:
             if len(values) > 1:
                 for name in sorted(values.keys()):
@@ -165,7 +166,7 @@ def main():
     end = timer()
 
     # print execution time only if desired
-    if args.time:
+    if args.time:  # TODO
         print("execution time: {:.2f} sec".format(end - start))
 
     sys.exit(0)

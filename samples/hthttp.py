@@ -298,6 +298,7 @@ def main():
     args = parser.parse_args()
 
     # activate logging with level DEBUG in verbose mode
+    # TODO format="%(asctime)s %(levelname)s [%(name)s] %(message)s" + %(funcName)s
     level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(level=level, format="[%(asctime)s][%(levelname)-8s] %(message)s")
 

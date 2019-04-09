@@ -118,13 +118,13 @@ def main():
         "--max-retries",
         default = 2,
         type = int,
-        choices = range(0, 11),
+        choices = range(11),
         help = "maximum number of retries for a data point request (0..10), default: %(default)s")
 
     args = parser.parse_args()
 
     # activate logging with level DEBUG in verbose mode
-    if args.verbose:
+    if args.verbose:  # TODO format="%(asctime)s %(levelname)s [%(name)s] %(message)s" + %(funcName)s
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.WARNING)
@@ -198,6 +198,7 @@ def main():
                     for i, data in content.items():
                         writer.writerow({"type": dp_type, "number": i, "name": data["name"],
                                          "value": data["value"], "min": data["min"], "max": data["max"]})
+                        # TODO writer.writerow({... for n in fieldnames})?
 
     except Exception as ex:
         _logger.error(ex)
@@ -208,7 +209,7 @@ def main():
     end = timer()
 
     # print execution time only if desired
-    if args.time:
+    if args.time:  # TODO
         print("execution time: {:.2f} sec".format(end - start))
 
     sys.exit(0)

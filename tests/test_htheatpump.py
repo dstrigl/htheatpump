@@ -246,7 +246,7 @@ class TestHtHeatpump:
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
     @pytest.mark.parametrize("names", [random.sample(HtParams.keys(), cnt)
-                                       for cnt in range(0, len(HtParams) + 1)])
+                                       for cnt in range(len(HtParams) + 1)])
     def test_query_with_names(self, hthp, names):
         ret = hthp.query(*names)
         # { "HKR Soll_Raum": 21.0,
@@ -278,7 +278,7 @@ class TestHtHeatpump:
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
     @pytest.mark.parametrize("names", [random.sample(HtParams.of_type("MP").keys(), cnt)
-                                       for cnt in range(0, len(HtParams.of_type("MP")) + 1)])
+                                       for cnt in range(len(HtParams.of_type("MP")) + 1)])
     def test_fast_query_with_names(self, hthp, names):
         ret = hthp.fast_query(*names)
         assert isinstance(ret, dict), "'ret' must be of type dict"
@@ -289,6 +289,8 @@ class TestHtHeatpump:
             assert v is not None
             assert HtParams[n].in_limits(v)
         #assert 0
+
+    # TODO add tests for get_time_prog...
 
 
 # TODO: add some more tests here

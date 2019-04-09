@@ -127,7 +127,7 @@ def main():
     args = parser.parse_args()
 
     # activate logging with level DEBUG in verbose mode
-    if args.verbose:
+    if args.verbose:  # TODO format="%(asctime)s %(levelname)s [%(name)s] %(message)s" + %(funcName)s
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.WARNING)
@@ -171,12 +171,13 @@ def main():
                 fieldnames = ["index", "datetime", "error", "message"]
                 writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
                 writer.writeheader()
-                for e in fault_list:
-                    writer.writerow({"index"   : e["index"],
-                                     "datetime": e["datetime"],
-                                     "error"   : e["error"],
-                                     "message" : e["message"]
+                for entry in fault_list:
+                    writer.writerow({"index"   : entry["index"],
+                                     "datetime": entry["datetime"],
+                                     "error"   : entry["error"],
+                                     "message" : entry["message"],
                                      })
+                    # TODO writer.writerow({... for n in fieldnames})?
     except Exception as ex:
         _logger.error(ex)
         sys.exit(1)
@@ -186,7 +187,7 @@ def main():
     end = timer()
 
     # print execution time only if desired
-    if args.time:
+    if args.time:  # TODO
         print("execution time: {:.2f} sec".format(end - start))
 
     sys.exit(0)

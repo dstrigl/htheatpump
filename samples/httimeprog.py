@@ -17,44 +17,37 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" Command line tool to set the value of a specific parameter of the heat pump.
+""" Command line tool to query for the time programs of the heat pump.
 
     Example:
 
     .. code-block:: shell
 
-       $ python3 htset.py --device /dev/ttyUSB1 "HKR Soll_Raum" "21.5"
-       21.5
+       $ python3 httimeprog.py --device /dev/ttyUSB1 --baudrate 9600
+       TODO
 """
 
 import sys
 import argparse
 import textwrap
+import json
+import csv
 from htheatpump.htheatpump import HtHeatpump
-from htheatpump.htparams import HtParams
 from timeit import default_timer as timer
 import logging
 _logger = logging.getLogger(__name__)
-
-
-class ParamNameAction(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        for name in values:
-            if name not in HtParams:
-                raise ValueError("Unknown parameter {!r}".format(name))
-        setattr(namespace, self.dest, values)
 
 
 # Main program
 def main():
     parser = argparse.ArgumentParser(
         description = textwrap.dedent('''\
-            Command line tool to set the value of a specific parameter of the heat pump.
+            Command line tool to query for the time programs of the heat pump.
 
             Example:
 
-              $ python3 %(prog)s --device /dev/ttyUSB1 "HKR Soll_Raum" "21.5"
-              21.5
+              $ python3 %(prog)s --device /dev/ttyUSB1
+              TODO
             '''),
         formatter_class = argparse.RawDescriptionHelpFormatter,
         epilog = textwrap.dedent('''\
@@ -96,17 +89,20 @@ def main():
         help = "increase output verbosity by activating logging")
 
     parser.add_argument(
-        "name",
+        "-j", "--json",
         type = str,
-        nargs = 1,
-        action = ParamNameAction,
-        help = "parameter name (as defined in htparams.csv)")
+        help = "write the time program entries to the specified JSON file")
 
     parser.add_argument(
-        "value",
+        "-c", "--csv",
         type = str,
-        nargs = 1,
-        help = "parameter value (as string)")
+        help = "write the time program entries to the specified CSV file")
+
+    parser.add_argument(
+        "index",
+        type = int,
+        nargs = '?',
+        help = "time program index to query for (omit to get the list of available time programs of the heat pump)")
 
     args = parser.parse_args()
 
@@ -129,11 +125,55 @@ def main():
         if args.verbose:
             _logger.info("software version = {} ({:d})".format(ver[0], ver[1]))
 
-        # convert the passed value (as string) to the specific data type
-        value = HtParams[args.name[0]].from_str(args.value[0])
-        # set the parameter of the heat pump to the passed value
-        value = hp.set_param(args.name[0], value, True)
-        print(value)
+        if args.index is None:
+            # query for all available time programs of the heat pump
+            time_progs = hp.get_time_progs()
+            for time_prog in time_progs:
+                print("[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
+                    time_prog["index"], time_prog["name"], time_prog["ead"], time_prog["nos"],
+                    time_prog["ste"], time_prog["nod"]))
+
+            # write time programs to JSON file
+            if args.json:
+                with open(args.json, 'w') as jsonfile:
+                    json.dump(time_progs, jsonfile, indent=4, sort_keys=True)
+            # write time programs to CSV file
+            if args.csv:
+                with open(args.csv, 'w') as csvfile:
+                    fieldnames = ["index", "name", "ead", "nos", "ste", "nod"]
+                    writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
+                    writer.writeheader()
+                    for time_prog in time_progs:
+                        writer.writerow({n: time_prog[n] for n in fieldnames})
+
+        else:
+            # query for the desired time program entries of the heat pump
+            time_prog = hp.get_time_prog(args.index)
+            print("[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(*time_prog))
+            time_prog_entries = hp.get_time_prog_entries(args.index)
+            for day in range(len(time_prog_entries)):
+                day_entries = time_prog_entries[day]
+                for entry in range(len(day_entries)):
+                    data = day_entries[entry]
+                    print("day={:d}, entry={:d}: state={:d}, begin={:02d}:{:02d}, end={:02d}:{:02d}".format(
+                        day, entry, data["state"], *data["begin"], *data["end"]))
+
+            # write time program entries to JSON file
+            if args.json:
+                data = {n: time_prog[i] for i, n in enumerate(("index", "name", "ead", "nos", "ste", "nod"))}
+                data.update({"entries": time_prog_entries})
+                with open(args.json, 'w') as jsonfile:
+                    json.dump(data, jsonfile, indent=4, sort_keys=True)
+            # write time program entries to CSV file
+            if args.csv:
+                with open(args.csv, 'w') as csvfile:
+                    csvfile.write("# idx={:d}, name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(*time_prog))
+                    fieldnames = ["index", "name", "ead", "nos", "ste", "nod"]
+                    writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
+                    writer.writeheader()
+                    for day in range(len(time_prog_entries)):
+                        for entry in time_prog_entries[day]:
+                            writer.writerow({n: entry[n] for n in fieldnames})
 
     except Exception as ex:
         _logger.error(ex)

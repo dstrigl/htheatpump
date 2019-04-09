@@ -11,6 +11,7 @@ import logging
 # Main program
 def main():
     logging.basicConfig(level=logging.INFO)
+    # TODO format="%(asctime)s %(levelname)s [%(name)s] %(message)s" + %(funcName)s
     hp = HtHeatpump("/dev/ttyUSB0", baudrate=115200)
     #try:
     hp.open_connection()

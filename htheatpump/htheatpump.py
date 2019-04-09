@@ -207,7 +207,7 @@ def calc_checksum(s: bytes) -> int:
     """
     assert isinstance(s, bytes)
     checksum = 0x0
-    for i in range(0, len(s)):
+    for i in range(len(s)):
         databyte = s[i]
         checksum ^= databyte
         databyte = (databyte << 1) & 0xff
@@ -835,7 +835,7 @@ class HtHeatpump:
             response (e.g. broken data stream, invalid checksum).
         """
         if not args:
-            args = range(0, self.get_fault_list_size())  # type: ignore
+            args = range(self.get_fault_list_size())  # type: ignore
         faults = []
         if args:
             # send AR request to the heat pump
@@ -1250,7 +1250,7 @@ class HtHeatpump:
     def get_time_progs(self) -> List[Dict[str, object]]:  # TODO -> List[Dict[str, ?]]:
         """ TODO doc
         """
-        prog_props = []
+        time_progs = []
         # send PRL request to the heat pump
         self.send_request(PRL_CMD)
         # ... and wait for the response
@@ -1262,7 +1262,7 @@ class HtHeatpump:
             nbr = int(m.group(1))
             _logger.debug("number of time programs = {:d}".format(nbr))
             # TODO comment
-            for idx in range(0, nbr):
+            for idx in range(nbr):
                 resp = self.read_response()  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
                 m = re.match(PRL_RESP[1].format(idx), resp)
                 if not m:
@@ -1272,7 +1272,7 @@ class HtHeatpump:
                 ead, nos, ste, nod = [int(g) for g in m.group(2, 3, 4, 5)]
                 _logger.debug("[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
                     idx, name, ead, nos, ste, nod))
-                prog_props.append({"index": idx,   # index of the time program
+                time_progs.append({"index": idx,   # index of the time program
                                    "name" : name,  # name of the time program
                                    "ead"  : ead,   # entries-a-day (?)
                                    "nos"  : nos,   # number-of-states (?)
@@ -1282,7 +1282,7 @@ class HtHeatpump:
         except Exception as e:
             _logger.error("query for time programs failed: {!s}".format(e))
             raise
-        return prog_props
+        return time_progs
 
     # TODO
     def get_time_prog(self, idx: int) -> Tuple[str, int, int, int, int]:
@@ -1327,9 +1327,9 @@ class HtHeatpump:
             _logger.debug("[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
                 idx, name, ead, nos, ste, nod))
             # read the single time program entries for each day
-            for day in range(0, nod):
+            for day in range(nod):
                 time_prog_entries.append([])
-                for entry in range(0, ead):
+                for entry in range(ead):
                     resp = self.read_response()  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
                     m = re.match(PRD_RESP[1].format(idx, day, entry), resp)
                     if not m:

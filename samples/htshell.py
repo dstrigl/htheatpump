@@ -111,7 +111,7 @@ def main():
     args = parser.parse_args()
 
     # activate logging with level DEBUG in verbose mode
-    if args.verbose:
+    if args.verbose:  # TODO format="%(asctime)s %(levelname)s [%(name)s] %(message)s" + %(funcName)s
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.WARNING)
@@ -132,7 +132,7 @@ def main():
             print("> {!r}".format(cmd))
             hp.send_request(cmd)
             # and read all expected responses for this command
-            for _ in range(0, args.responses):
+            for _ in range(args.responses):
                 resp = hp.read_response()
                 print("< {!r}".format(resp))
     except Exception as ex:
@@ -144,7 +144,7 @@ def main():
     end = timer()
 
     # print execution time only if desired
-    if args.time:
+    if args.time:  # TODO
         print("execution time: {:.2f} sec".format(end - start))
 
     sys.exit(0)
