@@ -185,7 +185,8 @@ def main():
             # write time program entries to CSV file
             if args.csv:
                 with open(args.csv, 'w') as csvfile:
-                    csvfile.write("# idx={:d}, name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(*time_prog))
+                    csvfile.write("# idx={:d}, name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
+                        args.index, *time_prog))
                     fieldnames = ["index", "name", "ead", "nos", "ste", "nod"]
                     writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
                     writer.writeheader()
