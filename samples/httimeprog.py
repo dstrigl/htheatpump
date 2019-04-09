@@ -181,7 +181,7 @@ def main():
                 data.update({n: time_prog[i] for i, n in enumerate(("name", "ead", "nos", "ste", "nod"))})
                 data.update({"entries": time_prog_entries})
                 with open(args.json, 'w') as jsonfile:
-                    json.dump(data, jsonfile, indent=4, sort_keys=True)
+                    json.dump(data, jsonfile, indent=4, sort_keys=True)  # TODO begin + end -> str
             # write time program entries to CSV file
             if args.csv:
                 with open(args.csv, 'w') as csvfile:
