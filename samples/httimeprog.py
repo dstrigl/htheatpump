@@ -32,10 +32,24 @@ import argparse
 import textwrap
 import json
 import csv
+import timeit
 from htheatpump.htheatpump import HtHeatpump
-from timeit import default_timer as timer
 import logging
 _logger = logging.getLogger(__name__)
+
+
+class Timer:  # TODO move to utils.py?
+    def __enter__(self):
+        self._start = timeit.default_timer()
+        return self
+
+    def __exit__(self, *args):
+        self._end = timeit.default_timer()
+        self._duration = self._end - self._start
+
+    @property
+    def duration(self):
+        return self._duration
 
 
 # Main program
@@ -113,7 +127,6 @@ def main():
         logging.basicConfig(level=logging.WARNING)
 
     hp = HtHeatpump(args.device, baudrate=args.baudrate)
-    start = timer()
     try:
         hp.open_connection()
         hp.login()
@@ -127,7 +140,9 @@ def main():
 
         if args.index is None:
             # query for all available time programs of the heat pump
-            time_progs = hp.get_time_progs()
+            with Timer() as timer:
+                time_progs = hp.get_time_progs()
+            exec_time = timer.duration
             for time_prog in time_progs:
                 print("[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
                     time_prog["index"], time_prog["name"], time_prog["ead"], time_prog["nos"],
@@ -148,9 +163,11 @@ def main():
 
         else:
             # query for the desired time program entries of the heat pump
-            time_prog = hp.get_time_prog(args.index)
+            with Timer() as timer:
+                time_prog = hp.get_time_prog(args.index)
+                time_prog_entries = hp.get_time_prog_entries(args.index)
+            exec_time = timer.duration
             print("[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(*time_prog))
-            time_prog_entries = hp.get_time_prog_entries(args.index)
             for day in range(len(time_prog_entries)):
                 day_entries = time_prog_entries[day]
                 for entry in range(len(day_entries)):
@@ -175,17 +192,16 @@ def main():
                         for entry in time_prog_entries[day]:
                             writer.writerow({n: entry[n] for n in fieldnames})
 
+        # print execution time only if desired
+        if args.time:
+            print("execution time: {:.2f} sec".format(exec_time))
+
     except Exception as ex:
         _logger.error(ex)
         sys.exit(1)
     finally:
         hp.logout()  # try to logout for an ordinary cancellation (if possible)
         hp.close_connection()
-    end = timer()
-
-    # print execution time only if desired
-    if args.time:  # TODO
-        print("execution time: {:.2f} sec".format(end - start))
 
     sys.exit(0)
 
