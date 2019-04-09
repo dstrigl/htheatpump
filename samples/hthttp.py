@@ -159,12 +159,12 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                 raise HttpGetException(400, "invalid url request {!r}".format(parsed_path.path.lower()))
 
         except HttpGetException as ex:
-            _logger.error(ex)
+            _logger.exception(ex)
             self.send_response(ex.response_code, str(ex))
             self.send_header("Content-Type", "application/json")
             self.end_headers()
         except Exception as ex:
-            _logger.error(ex)
+            _logger.exception(ex)
             # HTTP response 500 = Internal Server Error
             self.send_response(500, str(ex))
             self.send_header("Content-Type", "application/json")
@@ -199,7 +199,7 @@ class HtHttpDaemon(Daemon):
             _logger.info("Starting server at: {}".format(server.server_address))
             server.serve_forever()  # start the server and wait for requests
         except Exception as ex:
-            _logger.error(ex)
+            _logger.exception(ex)
             sys.exit(2)
         finally:
             hp.logout()  # try to logout for an ordinary cancellation (if possible)

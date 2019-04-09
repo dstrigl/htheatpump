@@ -177,7 +177,8 @@ def main():
 
             # write time program entries to JSON file
             if args.json:
-                data = {n: time_prog[i] for i, n in enumerate(("index", "name", "ead", "nos", "ste", "nod"))}
+                data = {"index": args.index}
+                data.update({n: time_prog[i] for i, n in enumerate(("name", "ead", "nos", "ste", "nod"))})
                 data.update({"entries": time_prog_entries})
                 with open(args.json, 'w') as jsonfile:
                     json.dump(data, jsonfile, indent=4, sort_keys=True)
@@ -197,7 +198,7 @@ def main():
             print("execution time: {:.2f} sec".format(exec_time))
 
     except Exception as ex:
-        _logger.error(ex)
+        _logger.exception(ex)
         sys.exit(1)
     finally:
         hp.logout()  # try to logout for an ordinary cancellation (if possible)

@@ -13,7 +13,6 @@ def main():
     logging.basicConfig(level=logging.INFO)
     # TODO format="%(asctime)s %(levelname)s [%(name)s] %(message)s" + %(funcName)s
     hp = HtHeatpump("/dev/ttyUSB0", baudrate=115200)
-    #try:
     hp.open_connection()
     hp.login()
 
@@ -41,8 +40,6 @@ def main():
     print("HtHeatpump.fast_query({:d}) execution time: {:.3f} sec".format(len(names), t_fast_query))
     print("-> {:.3f} x faster".format(t_query / t_fast_query))
 
-    #sys.exit(0)
-
     while True:
         print("\n" + "-" * 100)
         rand_names = random.sample(names, random.randint(0, len(names)))
@@ -63,10 +60,7 @@ def main():
             sys.stdout.flush()
             time.sleep(1)
         print("\rContinue in 0s ...")
-    #except Exception as ex:
-    #    print(ex)
-    #    sys.exit(1)
-    #finally:
+
     hp.logout()  # try to logout for an ordinary cancellation (if possible)
     hp.close_connection()
 

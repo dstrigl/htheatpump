@@ -201,7 +201,7 @@ def main():
                         # TODO writer.writerow({... for n in fieldnames})?
 
     except Exception as ex:
-        _logger.error(ex)
+        _logger.exception(ex)
         sys.exit(1)
     finally:
         hp.logout()  # try to logout for an ordinary cancellation (if possible)
