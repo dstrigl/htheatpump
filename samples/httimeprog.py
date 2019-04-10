@@ -176,7 +176,7 @@ def main():
                     # convert tuple (hour, minutes) of dict entry "begin" and "end" to str
                     entry["begin"] = "{:02d}:{:02d}".format(*entry["begin"])  # e.g. (3, 45) -> '03:45'
                     entry["end"] = "{:02d}:{:02d}".format(*entry["end"])      # e.g. (23, 0) -> '23:00'
-                    print("day={:d}, entry={:d}, state={:d}, begin={!r}, end={!r}".format(
+                    print("[day={:d}, entry={:d}]: state={:d}, begin={!r}, end={!r}".format(
                         entry["day"], entry["entry"], entry["state"], entry["begin"], entry["end"]))
 
             # write time program entries to JSON file
@@ -189,7 +189,7 @@ def main():
             # write time program entries to CSV file
             if args.csv:
                 with open(args.csv, 'w') as csvfile:
-                    csvfile.write("# idx={:d}, name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}\n".format(
+                    csvfile.write("# idx={:d}, name=\"{}\", ead={:d}, nos={:d}, ste={:d}, nod={:d}\n".format(
                         args.index, *time_prog))
                     fieldnames = ["day", "entry", "state", "begin", "end"]
                     writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
