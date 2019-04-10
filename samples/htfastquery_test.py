@@ -10,8 +10,8 @@ import logging
 
 # Main program
 def main():
-    logging.basicConfig(level=logging.INFO)
-    # TODO format="%(asctime)s %(levelname)s [%(name)s] %(message)s" + %(funcName)s
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s [%(name)s|%(funcName)s]: %(message)s")
+
     hp = HtHeatpump("/dev/ttyUSB0", baudrate=115200)
     hp.open_connection()
     hp.login()

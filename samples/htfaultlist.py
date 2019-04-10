@@ -127,10 +127,11 @@ def main():
     args = parser.parse_args()
 
     # activate logging with level DEBUG in verbose mode
-    if args.verbose:  # TODO format="%(asctime)s %(levelname)s [%(name)s] %(message)s" + %(funcName)s
-        logging.basicConfig(level=logging.DEBUG)
+    log_format = "%(asctime)s %(levelname)s [%(name)s|%(funcName)s]: %(message)s"
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG, format=log_format)
     else:
-        logging.basicConfig(level=logging.WARNING)
+        logging.basicConfig(level=logging.WARNING, format=log_format)
 
     hp = HtHeatpump(args.device, baudrate=args.baudrate)
     start = timer()
@@ -157,10 +158,11 @@ def main():
         else:
             # query for the given fault list entries of the heat pump
             fault_list = []
-            for e in hp.get_fault_list(*args.index):
-                e.update({"datetime": e["datetime"].isoformat()})  # convert datetime dict entry to str
-                fault_list.append(e)
-                print("#{:03d} [{}]: {:05d}, {}".format(e["index"], e["datetime"], e["error"], e["message"]))
+            for entry in hp.get_fault_list(*args.index):
+                entry["datetime"] = entry["datetime"].isoformat()  # convert datetime dict entry to str
+                fault_list.append(entry)
+                print("#{:03d} [{}]: {:05d}, {}".format(entry["index"], entry["datetime"], entry["error"],
+                                                        entry["message"]))
 
         if args.json:  # write fault list entries to JSON file
             with open(args.json, 'w') as jsonfile:
@@ -172,12 +174,8 @@ def main():
                 writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
                 writer.writeheader()
                 for entry in fault_list:
-                    writer.writerow({"index"   : entry["index"],
-                                     "datetime": entry["datetime"],
-                                     "error"   : entry["error"],
-                                     "message" : entry["message"],
-                                     })
-                    # TODO writer.writerow({... for n in fieldnames})?
+                    writer.writerow({n: entry[n] for n in fieldnames})
+
     except Exception as ex:
         _logger.exception(ex)
         sys.exit(1)

@@ -111,10 +111,11 @@ def main():
     args = parser.parse_args()
 
     # activate logging with level DEBUG in verbose mode
-    if args.verbose:  # TODO format="%(asctime)s %(levelname)s [%(name)s] %(message)s" + %(funcName)s
-        logging.basicConfig(level=logging.DEBUG)
+    log_format = "%(asctime)s %(levelname)s [%(name)s|%(funcName)s]: %(message)s"
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG, format=log_format)
     else:
-        logging.basicConfig(level=logging.WARNING)
+        logging.basicConfig(level=logging.WARNING, format=log_format)
 
     hp = HtHeatpump(args.device, baudrate=args.baudrate)
     start = timer()

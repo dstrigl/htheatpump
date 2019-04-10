@@ -228,3 +228,9 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htfastquery.py
         "Temp. Ruecklauf": 25.2,
         "Temp. Vorlauf": 25.3
     }
+
+
+httimeprog
+----------
+
+TODO doc

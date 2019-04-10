@@ -42,6 +42,7 @@ Features
 * query for several parameters of the heat pump
 * change parameter values of the heat pump
 * fast query of MP data points / parameters ("Web-Online")
+* read the time programs of the heat pump
 
 
 Todo

@@ -118,13 +118,16 @@ def main():
         nargs = '?',
         help = "time program index to query for (omit to get the list of available time programs of the heat pump)")
 
+    # TODO parser.add_argument 'day' + 'entry'
+
     args = parser.parse_args()
 
     # activate logging with level DEBUG in verbose mode
-    if args.verbose:  # TODO format="%(asctime)s %(levelname)s [%(name)s] %(message)s" + %(funcName)s
-        logging.basicConfig(level=logging.DEBUG)
+    log_format = "%(asctime)s %(levelname)s [%(name)s|%(funcName)s]: %(message)s"
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG, format=log_format)
     else:
-        logging.basicConfig(level=logging.WARNING)
+        logging.basicConfig(level=logging.WARNING, format=log_format)
 
     hp = HtHeatpump(args.device, baudrate=args.baudrate)
     try:
@@ -168,12 +171,13 @@ def main():
                 time_prog_entries = hp.get_time_prog_entries(args.index)
             exec_time = timer.duration
             print("[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(args.index, *time_prog))
-            for day in range(len(time_prog_entries)):
-                day_entries = time_prog_entries[day]
-                for entry in range(len(day_entries)):
-                    data = day_entries[entry]
-                    print("day={:d}, entry={:d}, state={:d}, begin={:02d}:{:02d}, end={:02d}:{:02d}".format(
-                        day, entry, data["state"], *data["begin"], *data["end"]))
+            for day_entries in time_prog_entries:
+                for entry in day_entries:
+                    # convert tuple (hour, minutes) of dict entry "begin" and "end" to str
+                    entry["begin"] = "{:02d}:{:02d}".format(*entry["begin"])  # e.g. (3, 45) -> '03:45'
+                    entry["end"] = "{:02d}:{:02d}".format(*entry["end"])      # e.g. (23, 0) -> '23:00'
+                    print("day={:d}, entry={:d}, state={:d}, begin={!r}, end={!r}".format(
+                        entry["day"], entry["entry"], entry["state"], entry["begin"], entry["end"]))
 
             # write time program entries to JSON file
             if args.json:
@@ -181,25 +185,18 @@ def main():
                 data.update({n: time_prog[i] for i, n in enumerate(("name", "ead", "nos", "ste", "nod"))})
                 data.update({"entries": time_prog_entries})
                 with open(args.json, 'w') as jsonfile:
-                    json.dump(data, jsonfile, indent=4, sort_keys=True)  # TODO begin + end -> str
+                    json.dump(data, jsonfile, indent=4, sort_keys=True)
             # write time program entries to CSV file
             if args.csv:
                 with open(args.csv, 'w') as csvfile:
-                    csvfile.write("# idx={:d}, name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
-                        args.index, *time_prog))  # TODO new-line
+                    csvfile.write("# idx={:d}, name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}\n".format(
+                        args.index, *time_prog))
                     fieldnames = ["day", "entry", "state", "begin", "end"]
                     writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
                     writer.writeheader()
-                    for day in range(len(time_prog_entries)):
-                        day_entries = time_prog_entries[day]
-                        for entry in range(len(day_entries)):
-                            data = day_entries[entry]
-                            writer.writerow({"day"  : day,
-                                             "entry": entry,
-                                             "state": data["state"],
-                                             "begin": "{:02d}:{:02d}".format(*data["begin"]),
-                                             "end"  : "{:02d}:{:02d}".format(*data["end"]),
-                                             })
+                    for day_entries in time_prog_entries:
+                        for entry in day_entries:
+                            writer.writerow({n: entry[n] for n in fieldnames})
 
         # print execution time only if desired
         if args.time:

@@ -187,10 +187,15 @@ PRL_RESP     = (r"^SUM=(\d+)$",                                                 
 PRI_CMD      = r"PRI{:d}"                                          # query for a specific time program of the heat pump
 PRI_RESP     = r"^PRI{:d},.*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$"  # e.g. 'PRI2,NAME=..'
 PRD_CMD      = r"PRD{:d}"                           # query for the entries of a specific time program of the heat pump
-# TODO find a better regex for 'BEG/END=24:00' (now '24:01' is valid!)
 PRD_RESP     = (r"^PRI{:d},*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$",     # e.g. 'PRI0,...'
                 r"^PRE,.*PR={:d},.*DAY={:d},.*EV={:d},.*ST=(\d+),"                # e.g. 'PRE,PR=0,DAY=3,EV=1,ST=1,...'
                 r".*BEG=([0-1]\d|2[0-4]):([0-5]\d),.*END=([0-1]\d|2[0-4]):([0-5]\d).*$")     # '...BEG=03:30,END=22:00'
+# ... TODO find a better regex for 'BEG/END=24:00' (now '24:01' is valid!)
+PRE_CMD      = (r"PRE,PR={:d},DAY={:d},EV={:d}",               # get/set a specific time program entry of the heat pump
+                r"PRE,PR={:d},DAY={:d},EV={:d},ST={:d},BEG={:d}:{:d},END={:d}:{:d}")
+PRE_RESP     = (r"^PRE,.*PR={:d},.*DAY={:d},.*EV={:d},.*ST=(\d+),"                # e.g. 'PRE,PR=2,DAY=5,EV=4,ST=1,...'
+                r".*BEG=([0-1]\d|2[0-4]):([0-5]\d),.*END=([0-1]\d|2[0-4]):([0-5]\d).*$")     # '...BEG=13:30,END=14:45'
+# ... TODO find a better regex for 'BEG/END=24:00' (now '24:01' is valid!)
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -1246,7 +1251,6 @@ class HtHeatpump:
                 raise
         return values
 
-    # TODO
     def get_time_progs(self) -> List[Dict[str, object]]:  # TODO -> List[Dict[str, ?]]:
         """ TODO doc
         """
@@ -1261,7 +1265,6 @@ class HtHeatpump:
                 raise IOError("invalid response for PRL command [{!r}]".format(resp))
             nbr = int(m.group(1))
             _logger.debug("number of time programs = {:d}".format(nbr))
-            # TODO comment
             for idx in range(nbr):
                 resp = self.read_response()  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
                 m = re.match(PRL_RESP[1].format(idx), resp)
@@ -1284,7 +1287,6 @@ class HtHeatpump:
             raise
         return time_progs
 
-    # TODO
     def get_time_prog(self, idx: int) -> Tuple[str, int, int, int, int]:
         """ TODO doc
         """
@@ -1307,7 +1309,6 @@ class HtHeatpump:
             _logger.error("query for time program failed: {!s}".format(e))
             raise
 
-    # TODO
     def get_time_prog_entries(self, idx: int) -> List[List[Dict[str, object]]]:  # TODO -> List[List[Dict[str, ?]]]:
         """ TODO doc
         """
@@ -1329,23 +1330,50 @@ class HtHeatpump:
             # read the single time program entries for each day
             for day in range(nod):
                 time_prog_entries.append([])
-                for entry in range(ead):
+                for num in range(ead):
                     resp = self.read_response()  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
-                    m = re.match(PRD_RESP[1].format(idx, day, entry), resp)
+                    m = re.match(PRD_RESP[1].format(idx, day, num), resp)
                     if not m:
                         raise IOError("invalid response for PRD command [{!r}]".format(resp))
                     # extract data (ST, BEG, END)
-                    st, beg_hour, beg_min, end_hour, end_min = [int(g) for g in m.group(1, 2, 3, 4, 5)]
+                    state, beg_hour, beg_min, end_hour, end_min = [int(g) for g in m.group(1, 2, 3, 4, 5)]
                     _logger.debug("  day={:d}, entry={:d}: state={:d}, begin={:02d}:{:02d}, end={:02d}:{:02d}".format(
-                        day, entry, st, beg_hour, beg_min, end_hour, end_min))
-                    time_prog_entries[-1].append({"state": st,
-                                                  "begin": (beg_hour, beg_min),  # 00:00 - 24:00
-                                                  "end"  : (end_hour, end_min),  # 00:00 - 24:00
+                        day, num, state, beg_hour, beg_min, end_hour, end_min))
+                    time_prog_entries[-1].append({"day"  : day,    # 0..NOD (number-of-days; Monday through Sunday)
+                                                  "entry": num,    # 0..EAD (entries-a-day; e.g. 0..6)
+                                                  "state": state,  # 0..NOS (number-of-states; e.g. 0..2)
+                                                  "begin": (beg_hour, beg_min),  # e.g. ( 9, 30) -> 09:30
+                                                  "end"  : (end_hour, end_min),  # e.g. (24,  0) -> 24:00
                                                   })
         except Exception as e:
             _logger.error("query for time program entries failed: {!s}".format(e))
             raise
         return time_prog_entries
+
+    def get_time_prog_entry(self, idx: int, day: int, num: int) -> Tuple[int, Tuple[int, int], Tuple[int, int]]:
+        """ TODO doc
+        """
+        assert isinstance(idx, int)
+        assert isinstance(day, int)
+        assert isinstance(num, int)
+        # send PRE request to the heat pump
+        self.send_request(PRE_CMD[0].format(idx, day, num))
+        # ... and wait for the response
+        try:
+            resp = self.read_response()  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
+            m = re.match(PRE_RESP.format(idx, day, num), resp)
+            if not m:
+                raise IOError("invalid response for PRE command [{!r}]".format(resp))
+            # extract data (ST, BEG, END)
+            state, beg_hour, beg_min, end_hour, end_min = [int(g) for g in m.group(1, 2, 3, 4, 5)]
+            _logger.debug("state={:d}, begin={:02d}:{:02d}, end={:02d}:{:02d}".format(
+                state, beg_hour, beg_min, end_hour, end_min))
+            return state, (beg_hour, beg_min), (end_hour, end_min)  # state (ST), begin-time (BEG), end-time (END)
+        except Exception as e:
+            _logger.error("query for time program entry failed: {!s}".format(e))
+            raise
+
+        # TODO def set_time_prog_entry(self, ...)
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
