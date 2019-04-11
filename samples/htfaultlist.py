@@ -44,7 +44,7 @@ import textwrap
 import json
 import csv
 from htheatpump.htheatpump import HtHeatpump
-from timeit import default_timer as timer
+from htheatpump.utils import Timer
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -134,7 +134,6 @@ def main():
         logging.basicConfig(level=logging.WARNING, format=log_format)
 
     hp = HtHeatpump(args.device, baudrate=args.baudrate)
-    start = timer()
     try:
         hp.open_connection()
         hp.login()
@@ -148,7 +147,9 @@ def main():
 
         if args.last:
             # query for the last fault message of the heat pump
-            idx, err, dt, msg = hp.get_last_fault()
+            with Timer() as timer:
+                idx, err, dt, msg = hp.get_last_fault()
+            exec_time = timer.duration
             fault_list = [{"index"   : idx,             # fault list index
                            "error"   : err,             # error code
                            "datetime": dt.isoformat(),  # date and time of the entry
@@ -157,10 +158,11 @@ def main():
             print("#{:03d} [{}]: {:05d}, {}".format(idx, dt.isoformat(), err, msg))
         else:
             # query for the given fault list entries of the heat pump
-            fault_list = []
-            for entry in hp.get_fault_list(*args.index):
-                entry["datetime"] = entry["datetime"].isoformat()  # convert datetime dict entry to str
-                fault_list.append(entry)
+            with Timer() as timer:
+                fault_list = hp.get_fault_list(*args.index)
+            exec_time = timer.duration
+            for entry in fault_list:
+                entry["datetime"] = entry["datetime"].isoformat()  # convert "datetime" dict entry to str
                 print("#{:03d} [{}]: {:05d}, {}".format(entry["index"], entry["datetime"], entry["error"],
                                                         entry["message"]))
 
@@ -176,17 +178,16 @@ def main():
                 for entry in fault_list:
                     writer.writerow({n: entry[n] for n in fieldnames})
 
+        # print execution time only if desired
+        if args.time:
+            print("execution time: {:.2f} sec".format(exec_time))
+
     except Exception as ex:
         _logger.exception(ex)
         sys.exit(1)
     finally:
         hp.logout()  # try to logout for an ordinary cancellation (if possible)
         hp.close_connection()
-    end = timer()
-
-    # print execution time only if desired
-    if args.time:  # TODO
-        print("execution time: {:.2f} sec".format(end - start))
 
     sys.exit(0)
 

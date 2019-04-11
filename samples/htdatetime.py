@@ -34,7 +34,7 @@ import argparse
 import textwrap
 import datetime
 from htheatpump.htheatpump import HtHeatpump
-from timeit import default_timer as timer
+from htheatpump.utils import Timer
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -117,19 +117,22 @@ def main():
         logging.basicConfig(level=logging.WARNING, format=log_format)
 
     hp = HtHeatpump(args.device, baudrate=args.baudrate)
-    start = timer()
     try:
         hp.open_connection()
         hp.login()
+
         rid = hp.get_serial_number()
         if args.verbose:
             _logger.info("connected successfully to heat pump with serial number {:d}".format(rid))
         ver = hp.get_version()
         if args.verbose:
             _logger.info("software version = {} ({:d})".format(ver[0], ver[1]))
+
         if args.datetime is None:
             # get current date and time on the heat pump
-            dt, wd = hp.get_date_time()
+            with Timer() as timer:
+                dt, wd = hp.get_date_time()
+            exec_time = timer.duration
             print("{}, {}".format(WEEKDAYS[wd - 1], dt.isoformat()))
         else:
             # set current date and time on the heat pump
@@ -139,19 +142,21 @@ def main():
             else:
                 # otherwise translate the given string to a valid datetime object
                 dt = datetime.datetime.strptime(args.datetime, "%Y-%m-%dT%H:%M:%S")
-            dt, wd = hp.set_date_time(dt)
+            with Timer() as timer:
+                dt, wd = hp.set_date_time(dt)
+            exec_time = timer.duration
             print("{}, {}".format(WEEKDAYS[wd - 1], dt.isoformat()))
+
+        # print execution time only if desired
+        if args.time:
+            print("execution time: {:.2f} sec".format(exec_time))
+
     except Exception as ex:
         _logger.exception(ex)
         sys.exit(1)
     finally:
         hp.logout()  # try to logout for an ordinary cancellation (if possible)
         hp.close_connection()
-    end = timer()
-
-    # print execution time only if desired
-    if args.time:  # TODO
-        print("execution time: {:.2f} sec".format(end - start))
 
     sys.exit(0)
 

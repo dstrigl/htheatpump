@@ -32,7 +32,7 @@ import argparse
 import textwrap
 from htheatpump.htheatpump import HtHeatpump
 from htheatpump.htparams import HtParams
-from timeit import default_timer as timer
+from htheatpump.utils import Timer
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -118,7 +118,6 @@ def main():
         logging.basicConfig(level=logging.WARNING, format=log_format)
 
     hp = HtHeatpump(args.device, baudrate=args.baudrate)
-    start = timer()
     try:
         hp.open_connection()
         hp.login()
@@ -133,8 +132,14 @@ def main():
         # convert the passed value (as string) to the specific data type
         value = HtParams[args.name[0]].from_str(args.value[0])
         # set the parameter of the heat pump to the passed value
-        value = hp.set_param(args.name[0], value, True)
+        with Timer() as timer:
+            value = hp.set_param(args.name[0], value, True)
+        exec_time = timer.duration
         print(value)
+
+        # print execution time only if desired
+        if args.time:
+            print("execution time: {:.2f} sec".format(exec_time))
 
     except Exception as ex:
         _logger.exception(ex)
@@ -142,11 +147,6 @@ def main():
     finally:
         hp.logout()  # try to logout for an ordinary cancellation (if possible)
         hp.close_connection()
-    end = timer()
-
-    # print execution time only if desired
-    if args.time:  # TODO
-        print("execution time: {:.2f} sec".format(end - start))
 
     sys.exit(0)
 

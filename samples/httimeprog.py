@@ -32,24 +32,10 @@ import argparse
 import textwrap
 import json
 import csv
-import timeit
 from htheatpump.htheatpump import HtHeatpump
+from htheatpump.utils import Timer
 import logging
 _logger = logging.getLogger(__name__)
-
-
-class Timer:  # TODO move to utils.py?
-    def __enter__(self):
-        self._start = timeit.default_timer()
-        return self
-
-    def __exit__(self, *args):
-        self._end = timeit.default_timer()
-        self._duration = self._end - self._start
-
-    @property
-    def duration(self):
-        return self._duration
 
 
 # Main program
@@ -118,7 +104,17 @@ def main():
         nargs = '?',
         help = "time program index to query for (omit to get the list of available time programs of the heat pump)")
 
-    # TODO parser.add_argument 'day' + 'entry'
+    parser.add_argument(
+        "day",
+        type = int,
+        nargs = '?',
+        help = "TODO")  # TODO doc
+
+    parser.add_argument(
+        "entry",
+        type = int,
+        nargs = '?',
+        help = "TODO")  # TODO doc
 
     args = parser.parse_args()
 
@@ -141,31 +137,23 @@ def main():
         if args.verbose:
             _logger.info("software version = {} ({:d})".format(ver[0], ver[1]))
 
-        if args.index is None:
-            # query for all available time programs of the heat pump
+        if args.index is not None and args.day is not None and args.entry is not None:
+            # query for a specific time program entry of the heat pump
             with Timer() as timer:
-                time_progs = hp.get_time_progs()
+                state, begin, end = hp.get_time_prog_entry(args.index, args.day, args.entry)
             exec_time = timer.duration
-            for time_prog in time_progs:
-                print("[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
-                    time_prog["index"], time_prog["name"], time_prog["ead"], time_prog["nos"],
-                    time_prog["ste"], time_prog["nod"]))
+            begin = "{:02d}:{:02d}".format(*begin)  # e.g. (3, 45) -> '03:45'
+            end = "{:02d}:{:02d}".format(*end)      # e.g. (23, 0) -> '23:00'
+            print("[idx={:d}, day={:d}, entry={:d}]: state={:d}, begin={!r}, end={!r}".format(
+                args.index, args.day, args.entry, state, begin, end))
+            pass  # TODO
 
-            # write time programs to JSON file
-            if args.json:
-                with open(args.json, 'w') as jsonfile:
-                    json.dump(time_progs, jsonfile, indent=4, sort_keys=True)
-            # write time programs to CSV file
-            if args.csv:
-                with open(args.csv, 'w') as csvfile:
-                    fieldnames = ["index", "name", "ead", "nos", "ste", "nod"]
-                    writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
-                    writer.writeheader()
-                    for time_prog in time_progs:
-                        writer.writerow({n: time_prog[n] for n in fieldnames})
+        elif args.index is not None and args.day:
+            assert 0
+            pass  # TODO
 
-        else:
-            # query for the desired time program entries of the heat pump
+        elif args.index is not None:
+            # query for the entries of a specific time program of the heat pump
             with Timer() as timer:
                 time_prog = hp.get_time_prog(args.index)
                 time_prog_entries = hp.get_time_prog_entries(args.index)
@@ -174,8 +162,8 @@ def main():
             for day_entries in time_prog_entries:
                 for entry in day_entries:
                     # convert tuple (hour, minutes) of dict entry "begin" and "end" to str
-                    entry["begin"] = "{:02d}:{:02d}".format(*entry["begin"])  # e.g. (3, 45) -> '03:45'
-                    entry["end"] = "{:02d}:{:02d}".format(*entry["end"])      # e.g. (23, 0) -> '23:00'
+                    entry["begin"] = "{:02d}:{:02d}".format(*entry["begin"])  # e.g. (3, 45) -> '03:45'  # TODO
+                    entry["end"] = "{:02d}:{:02d}".format(*entry["end"])      # e.g. (23, 0) -> '23:00'  # TODO
                     print("[day={:d}, entry={:d}]: state={:d}, begin={!r}, end={!r}".format(
                         entry["day"], entry["entry"], entry["state"], entry["begin"], entry["end"]))
 
@@ -197,6 +185,29 @@ def main():
                     for day_entries in time_prog_entries:
                         for entry in day_entries:
                             writer.writerow({n: entry[n] for n in fieldnames})
+
+        else:
+            # query for all available time programs of the heat pump
+            with Timer() as timer:
+                time_progs = hp.get_time_progs()
+            exec_time = timer.duration
+            for time_prog in time_progs:
+                print("[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
+                    time_prog["index"], time_prog["name"], time_prog["ead"], time_prog["nos"],
+                    time_prog["ste"], time_prog["nod"]))
+
+            # write time programs to JSON file
+            if args.json:
+                with open(args.json, 'w') as jsonfile:
+                    json.dump(time_progs, jsonfile, indent=4, sort_keys=True)
+            # write time programs to CSV file
+            if args.csv:
+                with open(args.csv, 'w') as csvfile:
+                    fieldnames = ["index", "name", "ead", "nos", "ste", "nod"]
+                    writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
+                    writer.writeheader()
+                    for time_prog in time_progs:
+                        writer.writerow({n: time_prog[n] for n in fieldnames})
 
         # print execution time only if desired
         if args.time:

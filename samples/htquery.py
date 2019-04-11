@@ -40,7 +40,7 @@ import textwrap
 import json
 from htheatpump.htheatpump import HtHeatpump
 from htheatpump.htparams import HtDataTypes, HtParams
-from timeit import default_timer as timer
+from htheatpump.utils import Timer
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -122,7 +122,6 @@ def main():
         logging.basicConfig(level=logging.WARNING, format=log_format)
 
     hp = HtHeatpump(args.device, baudrate=args.baudrate)
-    start = timer()
     try:
         hp.open_connection()
         hp.login()
@@ -135,7 +134,9 @@ def main():
             _logger.info("software version = {} ({:d})".format(ver[0], ver[1]))
 
         # query for the given parameter(s)
-        values = hp.query(*args.name)
+        with Timer() as timer:
+            values = hp.query(*args.name)
+        exec_time = timer.duration
         for name, val in values.items():
             if args.boolasint and HtParams[name].data_type == HtDataTypes.BOOL:
                 values[name] = 1 if val else 0
@@ -151,17 +152,16 @@ def main():
             elif len(values) == 1:
                 print(next(iter(values.values())))
 
+        # print execution time only if desired
+        if args.time:
+            print("execution time: {:.2f} sec".format(exec_time))
+
     except Exception as ex:
         _logger.exception(ex)
         sys.exit(1)
     finally:
         hp.logout()  # try to logout for an ordinary cancellation (if possible)
         hp.close_connection()
-    end = timer()
-
-    # print execution time only if desired
-    if args.time:  # TODO
-        print("execution time: {:.2f} sec".format(end - start))
 
     sys.exit(0)
 

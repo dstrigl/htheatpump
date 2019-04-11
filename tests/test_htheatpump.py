@@ -294,6 +294,8 @@ class TestHtHeatpump:
     # TODO add test(s) for get_time_prog()
     # TODO add test(s) for get_time_prog_entries()
     # TODO add test(s) for get_time_prog_entry()
+    # TODO add test(s) for set_time_prog_entry()
+    # TODO add test(s) for set_time_prog_entries()
 
 
 # TODO: add some more tests here

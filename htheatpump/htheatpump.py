@@ -841,7 +841,7 @@ class HtHeatpump:
         """
         if not args:
             args = range(self.get_fault_list_size())  # type: ignore
-        faults = []
+        fault_list = []
         if args:
             # send AR request to the heat pump
             cmd = AR_CMD.format(','.join(map(lambda i: str(i), args)))
@@ -867,15 +867,15 @@ class HtHeatpump:
                     if idx != args[i]:
                         raise IOError("fault list index doesn't match [{:d}, should be {:d}]".format(idx, args[i]))
                     # add the received fault list entry to the result list
-                    faults.append({ "index"   : idx,  # fault list index
-                                    "error"   : err,  # error code
-                                    "datetime": dt,   # date and time of the entry
-                                    "message" : msg,  # error message
-                                    })
+                    fault_list.append({ "index"   : idx,  # fault list index
+                                        "error"   : err,  # error code
+                                        "datetime": dt,   # date and time of the entry
+                                        "message" : msg,  # error message
+                                        })
             except Exception as e:
                 _logger.error("query for fault list failed: {!s}".format(e))
                 raise
-        return faults
+        return fault_list
 
     def _extract_param_data(self, name: str, resp: str) -> Tuple[str, HtParamValueType, HtParamValueType,
                                                                  HtParamValueType]:
@@ -1337,7 +1337,7 @@ class HtHeatpump:
                         raise IOError("invalid response for PRD command [{!r}]".format(resp))
                     # extract data (ST, BEG, END)
                     state, beg_hour, beg_min, end_hour, end_min = [int(g) for g in m.group(1, 2, 3, 4, 5)]
-                    _logger.debug("  day={:d}, entry={:d}: state={:d}, begin={:02d}:{:02d}, end={:02d}:{:02d}".format(
+                    _logger.debug("day={:d}, entry={:d}: state={:d}, begin={:02d}:{:02d}, end={:02d}:{:02d}".format(
                         day, num, state, beg_hour, beg_min, end_hour, end_min))
                     time_prog_entries[-1].append({"day"  : day,    # 0..NOD (number-of-days; Monday through Sunday)
                                                   "entry": num,    # 0..EAD (entries-a-day; e.g. 0..6)
@@ -1374,6 +1374,7 @@ class HtHeatpump:
             raise
 
         # TODO def set_time_prog_entry(self, ...)
+        # TODO def set_time_prog_entries(self, ...)
 
 
 # ------------------------------------------------------------------------------------------------------------------- #

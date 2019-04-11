@@ -41,7 +41,7 @@ import re
 import json
 import csv
 from htheatpump.htheatpump import HtHeatpump
-from timeit import default_timer as timer
+from htheatpump.utils import Timer
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -131,7 +131,6 @@ def main():
         logging.basicConfig(level=logging.WARNING, format=log_format)
 
     hp = HtHeatpump(args.device, baudrate=args.baudrate)
-    start = timer()
     try:
         hp.open_connection()
         hp.login()
@@ -142,49 +141,51 @@ def main():
         print("software version = {} ({:d})".format(ver[0], ver[1]))
 
         result = {}
-        for dp_type in ("SP", "MP"):  # for all known data point types
-            result.update({dp_type: {}})
-            i = 0  # start at zero for each data point type
-            while True:
-                success = False
-                retry = 0
-                while not success and retry <= args.max_retries:
-                    data_point = "{},NR={:d}".format(dp_type, i)
-                    # send request for data point to the heat pump
-                    hp.send_request(data_point)
-                    # ... and wait for the response
-                    try:
-                        resp = hp.read_response()
-                        # search for pattern "NAME=...", "VAL=...", "MAX=..." and "MIN=..." inside the answer
-                        m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$"
-                                     .format(data_point), resp)
-                        if not m:
-                            raise IOError("invalid response for query of data point {!r} [{}]"
-                                          .format(data_point, resp))
-                        # extract name, value, min and max
-                        name, value, min_val, max_val = (g.strip() for g in m.group(1, 2, 4, 3))
-                        if args.without_values:
-                            value = ""  # keep it blank (if desired)
-                        print("{!r} [{}]: VAL={!r}, MIN={!r}, MAX={!r}"
-                              .format(data_point, name, value, min_val, max_val))
-                        # store the determined data in the result dict
-                        result[dp_type].update({i: {"name": name, "value": value, "min": min_val, "max": max_val}})
-                        success = True
-                    except Exception as e:
-                        retry += 1
-                        _logger.warning("try #{:d}/{:d} for query of data point {!r} failed: {!s}"
-                                        .format(retry, args.max_retries + 1, data_point, e))
-                        # try a reconnect, maybe this will help
-                        hp.reconnect()   # perform a reconnect
+        with Timer() as timer:
+            for dp_type in ("SP", "MP"):  # for all known data point types
+                result.update({dp_type: {}})
+                i = 0  # start at zero for each data point type
+                while True:
+                    success = False
+                    retry = 0
+                    while not success and retry <= args.max_retries:
+                        data_point = "{},NR={:d}".format(dp_type, i)
+                        # send request for data point to the heat pump
+                        hp.send_request(data_point)
+                        # ... and wait for the response
                         try:
-                            hp.login(0)  # and a new login
-                        except Exception:
-                            pass  # ignore a potential problem
-                if not success:
-                    _logger.error("query of data point {!r} failed after {:d} try/tries".format(data_point, retry))
-                    break
-                else:
-                    i += 1
+                            resp = hp.read_response()
+                            # search for pattern "NAME=...", "VAL=...", "MAX=..." and "MIN=..." inside the answer
+                            m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$"
+                                         .format(data_point), resp)
+                            if not m:
+                                raise IOError("invalid response for query of data point {!r} [{}]"
+                                              .format(data_point, resp))
+                            # extract name, value, min and max
+                            name, value, min_val, max_val = (g.strip() for g in m.group(1, 2, 4, 3))
+                            if args.without_values:
+                                value = ""  # keep it blank (if desired)
+                            print("{!r} [{}]: VAL={!r}, MIN={!r}, MAX={!r}"
+                                  .format(data_point, name, value, min_val, max_val))
+                            # store the determined data in the result dict
+                            result[dp_type].update({i: {"name": name, "value": value, "min": min_val, "max": max_val}})
+                            success = True
+                        except Exception as e:
+                            retry += 1
+                            _logger.warning("try #{:d}/{:d} for query of data point {!r} failed: {!s}"
+                                            .format(retry, args.max_retries + 1, data_point, e))
+                            # try a reconnect, maybe this will help
+                            hp.reconnect()  # perform a reconnect
+                            try:
+                                hp.login(max_retries=0)  # ... and a new login
+                            except Exception:
+                                pass  # ignore a potential problem
+                    if not success:
+                        _logger.error("query of data point {!r} failed after {:d} try/tries".format(data_point, retry))
+                        break
+                    else:
+                        i += 1
+        exec_time = timer.duration
 
         if args.json:  # write result to JSON file
             with open(args.json, 'w') as jsonfile:
@@ -201,17 +202,16 @@ def main():
                         row_data.update(data)
                         writer.writerow({n: row_data[n] for n in fieldnames})
 
+        # print execution time only if desired
+        if args.time:
+            print("execution time: {:.2f} sec".format(exec_time))
+
     except Exception as ex:
         _logger.exception(ex)
         sys.exit(1)
     finally:
         hp.logout()  # try to logout for an ordinary cancellation (if possible)
         hp.close_connection()
-    end = timer()
-
-    # print execution time only if desired
-    if args.time:  # TODO
-        print("execution time: {:.2f} sec".format(end - start))
 
     sys.exit(0)
 

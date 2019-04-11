@@ -19,6 +19,8 @@
 
 """ Some useful helper classes and methods. """
 
+import timeit
+
 
 class Singleton:
     """ Singleton base class.
@@ -51,6 +53,22 @@ class Singleton:
         return cls._inst
 
 
+class Timer:
+    """ TODO doc
+    """
+    def __enter__(self):
+        self._start = timeit.default_timer()
+        return self
+
+    def __exit__(self, *args):
+        self._end = timeit.default_timer()
+        self._duration = self._end - self._start
+
+    @property
+    def duration(self):
+        return self._duration
+
+
 #if __name__ == "__main__":
 #    import doctest
 #    doctest.testmod()
@@ -60,4 +78,4 @@ class Singleton:
 # Exported symbols
 # ------------------------------------------------------------------------------------------------------------------- #
 
-__all__ = ["Singleton"]
+__all__ = ["Singleton", "Timer"]

@@ -34,7 +34,7 @@ import sys
 import argparse
 import textwrap
 from htheatpump.htheatpump import HtHeatpump
-from timeit import default_timer as timer
+from htheatpump.utils import Timer
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -118,35 +118,38 @@ def main():
         logging.basicConfig(level=logging.WARNING, format=log_format)
 
     hp = HtHeatpump(args.device, baudrate=args.baudrate)
-    start = timer()
     try:
         hp.open_connection()
         hp.login()
+
         rid = hp.get_serial_number()
         if args.verbose:
             _logger.info("connected successfully to heat pump with serial number {:d}".format(rid))
         ver = hp.get_version()
         if args.verbose:
             _logger.info("software version = {} ({:d})".format(ver[0], ver[1]))
-        for cmd in args.cmd:
-            # write the given command to the heat pump
-            print("> {!r}".format(cmd))
-            hp.send_request(cmd)
-            # and read all expected responses for this command
-            for _ in range(args.responses):
-                resp = hp.read_response()
-                print("< {!r}".format(resp))
+
+        with Timer() as timer:
+            for cmd in args.cmd:
+                # write the given command to the heat pump
+                print("> {!r}".format(cmd))
+                hp.send_request(cmd)
+                # and read all expected responses for this command
+                for _ in range(args.responses):
+                    resp = hp.read_response()
+                    print("< {!r}".format(resp))
+        exec_time = timer.duration
+
+        # print execution time only if desired
+        if args.time:
+            print("execution time: {:.2f} sec".format(exec_time))
+
     except Exception as ex:
         _logger.exception(ex)
         sys.exit(1)
     finally:
         hp.logout()  # try to logout for an ordinary cancellation (if possible)
         hp.close_connection()
-    end = timer()
-
-    # print execution time only if desired
-    if args.time:  # TODO
-        print("execution time: {:.2f} sec".format(end - start))
 
     sys.exit(0)
 
