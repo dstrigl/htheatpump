@@ -41,8 +41,72 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
+class TimeProgramPeriod:
+    """ TODO doc
+    """
+    TIME_PATTERN = r"^(\d{2}):(\d{2})$"
+
+    def __init__(self, beg_hour: int, beg_minute: int, end_hour: int, end_minute: int, step_size: int = 15) -> None:
+        self._beg_hour = beg_hour
+        self._beg_minute = beg_minute
+        self._end_hour = end_hour
+        self._end_minute = end_minute
+        self._step_size = step_size
+        self._verify()
+
+    def _verify(self) -> None:
+        pass  # TODO
+
+    @staticmethod
+    def from_str(beg_str: str, end_str: str, step_size: int = 15) -> "TimeProgramPeriod":
+        m_beg = re.match(TimeProgramPeriod.TIME_PATTERN, beg_str)
+        m_end = re.match(TimeProgramPeriod.TIME_PATTERN, end_str)
+        if m_beg and m_end:
+            beg_hour, beg_minute = [int(v) for v in m_beg.group(1, 2)]
+            end_hour, end_minute = [int(v) for v in m_end.group(1, 2)]
+            return TimeProgramPeriod(beg_hour, beg_minute, end_hour, end_minute, step_size)
+        else:
+            raise ValueError("TODO")  # TODO
+
+    def __str__(self) -> str:
+        return "{:02d}:{:02d}-{:02d}:{:02d}".format(self._beg_hour, self.beg_minute, self.end_hour, self._end_minute)
+
+    def beg_str(self) -> str:
+        return "{:02d}:{:02d}".format(self._beg_hour, self.beg_minute)
+
+    def end_str(self) -> str:
+        return "{:02d}:{:02d}".format(self._end_hour, self.end_minute)
+
+    @property
+    def beg_hour(self) -> int:
+        return self._beg_hour
+
+    @property
+    def beg_minute(self) -> int:
+        return self._beg_minute
+
+    @property
+    def end_hour(self) -> int:
+        return self._end_hour
+
+    @property
+    def end_minute(self) -> int:
+        return self._end_minute
+
+    @property
+    def step_size(self) -> int:
+        return self._step_size
+
+
+class TimeProgramEntry:
+    """ TODO doc
+    """
+    def __init__(self, state: int) -> None:
+        pass
+
+
 # ------------------------------------------------------------------------------------------------------------------- #
-# Constants
+# Constants & enums
 # ------------------------------------------------------------------------------------------------------------------- #
 
 _serial_timeout = 5  # type: int

@@ -364,7 +364,7 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
 
     @classmethod
     def dump(cls) -> None:
-        for name, param in HtParams.items():
+        for name, param in cls._params.items():
             print("{!r}: dp_type = {!r}, dp_number = {:d}, acl = {!r}, data_type = {!s}, min = {!s}, max = {!s}"
                   .format(name, param.dp_type, param.dp_number, param.acl,
                           param.data_type if param.data_type else "<unknown>",
