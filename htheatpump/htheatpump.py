@@ -44,46 +44,68 @@ _logger = logging.getLogger(__name__)
 class TimeProgramPeriod:
     """ TODO doc
     """
-    TIME_PATTERN = r"^(\d{2}):(\d{2})$"
+    TIME_PATTERN = r"^(\d{2}):(\d{2})$"  # e.g. '23:45'
+    HOURS_RANGE = range(0, 25)           # 0..24
+    MINUTES_RANGE = range(0, 60)         # 0..59
 
-    def __init__(self, beg_hour: int, beg_minute: int, end_hour: int, end_minute: int, step_size: int = 15) -> None:
-        self._beg_hour = beg_hour
-        self._beg_minute = beg_minute
-        self._end_hour = end_hour
-        self._end_minute = end_minute
-        self._step_size = step_size
-        self._verify()
-
-    def _verify(self) -> None:
-        pass  # TODO
+    def __init__(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
+        # verify the passed time values
+        self._verify(start_hour, start_minute, end_hour, end_minute)
+        self._start_hour, self._start_minute = start_hour, start_minute
+        self._end_hour, self._end_minute = end_hour, end_minute
 
     @staticmethod
-    def from_str(beg_str: str, end_str: str, step_size: int = 15) -> "TimeProgramPeriod":
-        m_beg = re.match(TimeProgramPeriod.TIME_PATTERN, beg_str)
+    def _verify_time(hour, minute) -> bool:
+        if (hour not in TimeProgramPeriod.HOURS_RANGE) or (minute not in TimeProgramPeriod.MINUTES_RANGE):
+            return False
+        if (hour * 60 + minute) > (24 * 60 + 0):  # e.g. '24:15' -> not valid!
+            return False
+        return True
+
+    @staticmethod
+    def _verify(start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
+        if not TimeProgramPeriod._verify_time(start_hour, start_minute):
+            raise ValueError("the provided start time does not represent a valid time value")
+        if not TimeProgramPeriod._verify_time(end_hour, end_minute):
+            raise ValueError("the provided end time does not represent a valid time value")
+        if (start_hour * 24 + start_minute) > (end_hour * 24 + end_minute):
+            raise ValueError("the provided start time must be lesser or equal to the end time")
+
+    @staticmethod
+    def from_str(start_str: str, end_str: str) -> "TimeProgramPeriod":
+        m_start = re.match(TimeProgramPeriod.TIME_PATTERN, start_str)
+        if not m_start:
+            raise ValueError("the provided 'start_str' does not represent a valid time value")
         m_end = re.match(TimeProgramPeriod.TIME_PATTERN, end_str)
-        if m_beg and m_end:
-            beg_hour, beg_minute = [int(v) for v in m_beg.group(1, 2)]
-            end_hour, end_minute = [int(v) for v in m_end.group(1, 2)]
-            return TimeProgramPeriod(beg_hour, beg_minute, end_hour, end_minute, step_size)
-        else:
-            raise ValueError("TODO")  # TODO
+        if not m_end:
+            raise ValueError("the provided 'end_str' does not represent a valid time value")
+        start_hour, start_minute = [int(v) for v in m_start.group(1, 2)]
+        end_hour, end_minute = [int(v) for v in m_end.group(1, 2)]
+        return TimeProgramPeriod(start_hour, start_minute, end_hour, end_minute)
+
+    def set(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
+        # verify the passed time values
+        self._verify(start_hour, start_minute, end_hour, end_minute)
+        self._start_hour, self._start_minute = start_hour, start_minute
+        self._end_hour, self._end_minute = end_hour, end_minute
 
     def __str__(self) -> str:
-        return "{:02d}:{:02d}-{:02d}:{:02d}".format(self._beg_hour, self.beg_minute, self.end_hour, self._end_minute)
+        return "{:02d}:{:02d}-{:02d}:{:02d}".format(self._start_hour, self.start_minute,
+                                                    self.end_hour, self._end_minute)
 
-    def beg_str(self) -> str:
-        return "{:02d}:{:02d}".format(self._beg_hour, self.beg_minute)
+    def start_str(self) -> str:
+        return "{:02d}:{:02d}".format(self._start_hour, self.start_minute)
 
     def end_str(self) -> str:
         return "{:02d}:{:02d}".format(self._end_hour, self.end_minute)
 
     @property
-    def beg_hour(self) -> int:
-        return self._beg_hour
+    def start_hour(self) -> int:
+        return self._start_hour
 
     @property
-    def beg_minute(self) -> int:
-        return self._beg_minute
+    def start_minute(self) -> int:
+        return self._start_minute
 
     @property
     def end_hour(self) -> int:
@@ -93,16 +115,27 @@ class TimeProgramPeriod:
     def end_minute(self) -> int:
         return self._end_minute
 
-    @property
-    def step_size(self) -> int:
-        return self._step_size
-
 
 class TimeProgramEntry:
     """ TODO doc
     """
-    def __init__(self, state: int) -> None:
-        pass
+    def __init__(self, period: TimeProgramPeriod, state: int) -> None:
+        self.set(period, state)
+
+    def set(self, period: TimeProgramPeriod, state: int) -> None:
+        self._period = period
+        self._state = state
+
+    def __str__(self) -> str:
+        return "{!s}, state={:d}".format(self._period, self._state)
+
+    @property
+    def period(self) -> TimeProgramPeriod:
+        return self._period
+
+    @property
+    def state(self) -> int:
+        return self._state
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
