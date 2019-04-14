@@ -41,7 +41,7 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-class TimeProgramPeriod:
+class TimeProgPeriod:
     """ TODO doc
     """
     TIME_PATTERN = r"^(\d{2}):(\d{2})$"  # e.g. '23:45'
@@ -51,41 +51,43 @@ class TimeProgramPeriod:
     def __init__(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
         # verify the passed time values
         self._verify(start_hour, start_minute, end_hour, end_minute)
+        # ... and store it
         self._start_hour, self._start_minute = start_hour, start_minute
         self._end_hour, self._end_minute = end_hour, end_minute
 
-    @staticmethod
-    def _verify_time(hour, minute) -> bool:
-        if (hour not in TimeProgramPeriod.HOURS_RANGE) or (minute not in TimeProgramPeriod.MINUTES_RANGE):
+    @classmethod
+    def _is_time_valid(cls, hour, minute) -> bool:
+        if (hour not in cls.HOURS_RANGE) or (minute not in cls.MINUTES_RANGE):
             return False
         if (hour * 60 + minute) > (24 * 60 + 0):  # e.g. '24:15' -> not valid!
             return False
         return True
 
-    @staticmethod
-    def _verify(start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
-        if not TimeProgramPeriod._verify_time(start_hour, start_minute):
+    @classmethod
+    def _verify(cls, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
+        if not cls._is_time_valid(start_hour, start_minute):
             raise ValueError("the provided start time does not represent a valid time value")
-        if not TimeProgramPeriod._verify_time(end_hour, end_minute):
+        if not cls._is_time_valid(end_hour, end_minute):
             raise ValueError("the provided end time does not represent a valid time value")
-        if (start_hour * 24 + start_minute) > (end_hour * 24 + end_minute):
+        if (start_hour * 60 + start_minute) > (end_hour * 60 + end_minute):
             raise ValueError("the provided start time must be lesser or equal to the end time")
 
-    @staticmethod
-    def from_str(start_str: str, end_str: str) -> "TimeProgramPeriod":
-        m_start = re.match(TimeProgramPeriod.TIME_PATTERN, start_str)
+    @classmethod
+    def from_str(cls, start_str: str, end_str: str):  # TODO -> ?
+        m_start = re.match(cls.TIME_PATTERN, start_str)
         if not m_start:
             raise ValueError("the provided 'start_str' does not represent a valid time value")
-        m_end = re.match(TimeProgramPeriod.TIME_PATTERN, end_str)
+        m_end = re.match(cls.TIME_PATTERN, end_str)
         if not m_end:
             raise ValueError("the provided 'end_str' does not represent a valid time value")
         start_hour, start_minute = [int(v) for v in m_start.group(1, 2)]
         end_hour, end_minute = [int(v) for v in m_end.group(1, 2)]
-        return TimeProgramPeriod(start_hour, start_minute, end_hour, end_minute)
+        return cls(start_hour, start_minute, end_hour, end_minute)
 
     def set(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
         # verify the passed time values
         self._verify(start_hour, start_minute, end_hour, end_minute)
+        # ... and store it
         self._start_hour, self._start_minute = start_hour, start_minute
         self._end_hour, self._end_minute = end_hour, end_minute
 
@@ -116,13 +118,14 @@ class TimeProgramPeriod:
         return self._end_minute
 
 
-class TimeProgramEntry:
+class TimeProgEntry:
     """ TODO doc
     """
-    def __init__(self, period: TimeProgramPeriod, state: int) -> None:
-        self.set(period, state)
+    def __init__(self, period: TimeProgPeriod, state: int) -> None:
+        self._period = period
+        self._state = state
 
-    def set(self, period: TimeProgramPeriod, state: int) -> None:
+    def set(self, period: TimeProgPeriod, state: int) -> None:
         self._period = period
         self._state = state
 
@@ -130,7 +133,7 @@ class TimeProgramEntry:
         return "{!s}, state={:d}".format(self._period, self._state)
 
     @property
-    def period(self) -> TimeProgramPeriod:
+    def period(self) -> TimeProgPeriod:
         return self._period
 
     @property
