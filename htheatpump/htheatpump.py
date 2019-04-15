@@ -20,7 +20,7 @@
 """ This module is responsible for the communication with the Heliotherm heat pump. """
 
 from htheatpump.htparams import HtParams, HtParamValueType
-from typing import Optional, List, Dict, Set, Tuple, Any, Type, TypeVar
+from typing import Optional, List, Dict, Set, Tuple, Any  # , Type, TypeVar
 
 import serial
 import time
@@ -41,15 +41,15 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-T = TypeVar("T", bound="TimeProgPeriod")
+#T = TypeVar("T", bound="TimeProgPeriod")
 
 
 class TimeProgPeriod:
     """ TODO doc
     """
-    TIME_PATTERN = r"^(\d{2}):(\d{2})$"  # e.g. '23:45'
-    HOURS_RANGE = range(0, 25)           # 0..24
-    MINUTES_RANGE = range(0, 60)         # 0..59
+    TIME_PATTERN = r"^(\d{1,2}):(\d{1,2})$"  # e.g. '23:45'
+    HOURS_RANGE = range(0, 25)               # 0..24
+    MINUTES_RANGE = range(0, 60)             # 0..59
 
     def __init__(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
         # verify the passed time values
@@ -59,7 +59,8 @@ class TimeProgPeriod:
         self._end_hour, self._end_minute = end_hour, end_minute
 
     @classmethod
-    def _is_time_valid(cls: Type[T], hour, minute) -> bool:
+    #def _is_time_valid(cls: Type[T], hour, minute) -> bool:
+    def _is_time_valid(cls, hour, minute) -> bool:
         if (hour not in cls.HOURS_RANGE) or (minute not in cls.MINUTES_RANGE):
             return False
         if (hour * 60 + minute) > (24 * 60 + 0):  # e.g. '24:15' -> not valid!
@@ -67,7 +68,8 @@ class TimeProgPeriod:
         return True
 
     @classmethod
-    def _verify(cls: Type[T], start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
+    #def _verify(cls: Type[T], start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
+    def _verify(cls, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
         if not cls._is_time_valid(start_hour, start_minute):
             raise ValueError("the provided start time does not represent a valid time value")
         if not cls._is_time_valid(end_hour, end_minute):
@@ -76,7 +78,8 @@ class TimeProgPeriod:
             raise ValueError("the provided start time must be lesser or equal to the end time")
 
     @classmethod
-    def from_str(cls: Type[T], start_str: str, end_str: str) -> T:
+    #def from_str(cls: Type[T], start_str: str, end_str: str) -> T:
+    def from_str(cls, start_str: str, end_str: str) -> Any:
         m_start = re.match(cls.TIME_PATTERN, start_str)
         if not m_start:
             raise ValueError("the provided 'start_str' does not represent a valid time value")
@@ -98,9 +101,16 @@ class TimeProgPeriod:
         return "{:02d}:{:02d}-{:02d}:{:02d}".format(self._start_hour, self.start_minute,
                                                     self.end_hour, self._end_minute)
 
+    def as_dict(self) -> Dict:
+        """ Create a dict representation of this time period.
+        """
+        return {}  # TODO
+
+    @property
     def start_str(self) -> str:
         return "{:02d}:{:02d}".format(self._start_hour, self.start_minute)
 
+    @property
     def end_str(self) -> str:
         return "{:02d}:{:02d}".format(self._end_hour, self.end_minute)
 
@@ -124,32 +134,42 @@ class TimeProgPeriod:
 class TimeProgEntry:
     """ TODO doc
     """
-    def __init__(self, period: TimeProgPeriod, state: int) -> None:
-        self._period = period
+    def __init__(self, state: int, period: TimeProgPeriod) -> None:
         self._state = state
+        self._period = period
 
-    def set(self, period: TimeProgPeriod, state: int) -> None:
-        self._period = period
+    @classmethod
+    #def from_str(cls: Type[T], state: str, start_str: str, end_str: str) -> T:
+    def from_str(cls, state: str, start_str: str, end_str: str) -> Any:
+        return cls(int(state), TimeProgPeriod.from_str(start_str, end_str))
+
+    def set(self, state: int, period: TimeProgPeriod) -> None:
         self._state = state
+        self._period = period
 
     def __str__(self) -> str:
-        return "{!s}, state={:d}".format(self._period, self._state)
+        return "state={:d}, {!s}".format(self._state, self._period)
 
-    @property
-    def period(self) -> TimeProgPeriod:
-        return self._period
-
-    @period.setter
-    def period(self, val: TimeProgPeriod):
-        self._period = val
+    def as_dict(self) -> Dict:
+        """ Create a dict representation of this time program entry.
+        """
+        return {}  # TODO
 
     @property
     def state(self) -> int:
         return self._state
 
     @state.setter
-    def state(self, val: int):
+    def state(self, val: int) -> None:
         self._state = val
+
+    @property
+    def period(self) -> TimeProgPeriod:
+        return self._period
+
+    @period.setter
+    def period(self, val: TimeProgPeriod) -> None:
+        self._period = val
 
 
 class TimeProgram:
@@ -339,10 +359,9 @@ PRD_RESP     = (r"^PRI{:d},*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).
                 r".*BEG=([0-1]\d|2[0-4]):([0-5]\d),.*END=([0-1]\d|2[0-4]):([0-5]\d).*$")     # '...BEG=03:30,END=22:00'
 # ... TODO find a better regex for 'BEG/END=24:00' (now '24:01' is valid!)
 PRE_CMD      = (r"PRE,PR={:d},DAY={:d},EV={:d}",               # get/set a specific time program entry of the heat pump
-                r"PRE,PR={:d},DAY={:d},EV={:d},ST={:d},BEG={:d}:{:d},END={:d}:{:d}")
+                r"PRE,PR={:d},DAY={:d},EV={:d},ST={:d},BEG={},END={}")
 PRE_RESP     = (r"^PRE,.*PR={:d},.*DAY={:d},.*EV={:d},.*ST=(\d+),"                # e.g. 'PRE,PR=2,DAY=5,EV=4,ST=1,...'
-                r".*BEG=([0-1]\d|2[0-4]):([0-5]\d),.*END=([0-1]\d|2[0-4]):([0-5]\d).*$")     # '...BEG=13:30,END=14:45'
-# ... TODO find a better regex for 'BEG/END=24:00' (now '24:01' is valid!)
+                r".*BEG=(\d{1,2}:\d{1,2}),.*END=(\d{1,2}:\d{1,2}).*$")                       # '...BEG=13:30,END=14:45'
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -1497,7 +1516,7 @@ class HtHeatpump:
             raise
         return time_prog_entries
 
-    def get_time_prog_entry(self, idx: int, day: int, num: int) -> Tuple[int, Tuple[int, int], Tuple[int, int]]:
+    def get_time_prog_entry(self, idx: int, day: int, num: int) -> TimeProgEntry:
         """ TODO doc
         """
         assert isinstance(idx, int)
@@ -1512,10 +1531,9 @@ class HtHeatpump:
             if not m:
                 raise IOError("invalid response for PRE command [{!r}]".format(resp))
             # extract data (ST, BEG, END)
-            state, beg_hour, beg_min, end_hour, end_min = [int(g) for g in m.group(1, 2, 3, 4, 5)]
-            _logger.debug("state={:d}, begin={:02d}:{:02d}, end={:02d}:{:02d}".format(
-                state, beg_hour, beg_min, end_hour, end_min))
-            return state, (beg_hour, beg_min), (end_hour, end_min)  # state (ST), begin-time (BEG), end-time (END)
+            st, beg, end = m.group(1, 2, 3)
+            _logger.debug("st={}, beg={}, end={}".format(st, beg, end))
+            return TimeProgEntry.from_str(st, beg, end)
         except Exception as e:
             _logger.error("query for time program entry failed: {!s}".format(e))
             raise

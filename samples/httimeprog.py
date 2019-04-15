@@ -139,14 +139,14 @@ def main():
 
         if args.index is not None and args.day is not None and args.entry is not None:
             # query for a specific time program entry of the heat pump
-            with Timer() as timer:
-                state, begin, end = hp.get_time_prog_entry(args.index, args.day, args.entry)
-            exec_time = timer.duration
-            begin = "{:02d}:{:02d}".format(*begin)  # e.g. (3, 45) -> '03:45'
-            end = "{:02d}:{:02d}".format(*end)      # e.g. (23, 0) -> '23:00'
-            print("[idx={:d}, day={:d}, entry={:d}]: state={:d}, begin={!r}, end={!r}".format(
-                args.index, args.day, args.entry, state, begin, end))
-            pass  # TODO
+            #with Timer() as timer:
+            #    state, begin, end = hp.get_time_prog_entry(args.index, args.day, args.entry)
+            #exec_time = timer.duration
+            #begin = "{:02d}:{:02d}".format(*begin)  # e.g. (3, 45) -> '03:45'
+            #end = "{:02d}:{:02d}".format(*end)      # e.g. (23, 0) -> '23:00'
+            #print("[idx={:d}, day={:d}, entry={:d}]: state={:d}, begin={!r}, end={!r}".format(
+            #    args.index, args.day, args.entry, state, begin, end))
+            pass  # TODO -> TimeProgEntry
 
         elif args.index is not None and args.day:
             assert 0
