@@ -20,7 +20,7 @@
 """ This module is responsible for the communication with the Heliotherm heat pump. """
 
 from htheatpump.htparams import HtParams, HtParamValueType
-from typing import Optional, List, Dict, Set, Tuple, Any
+from typing import Optional, List, Dict, Set, Tuple, Any, Type, TypeVar
 
 import serial
 import time
@@ -41,6 +41,9 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
+T = TypeVar("T", bound="TimeProgPeriod")
+
+
 class TimeProgPeriod:
     """ TODO doc
     """
@@ -56,7 +59,7 @@ class TimeProgPeriod:
         self._end_hour, self._end_minute = end_hour, end_minute
 
     @classmethod
-    def _is_time_valid(cls, hour, minute) -> bool:
+    def _is_time_valid(cls: Type[T], hour, minute) -> bool:
         if (hour not in cls.HOURS_RANGE) or (minute not in cls.MINUTES_RANGE):
             return False
         if (hour * 60 + minute) > (24 * 60 + 0):  # e.g. '24:15' -> not valid!
@@ -64,7 +67,7 @@ class TimeProgPeriod:
         return True
 
     @classmethod
-    def _verify(cls, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
+    def _verify(cls: Type[T], start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
         if not cls._is_time_valid(start_hour, start_minute):
             raise ValueError("the provided start time does not represent a valid time value")
         if not cls._is_time_valid(end_hour, end_minute):
@@ -73,7 +76,7 @@ class TimeProgPeriod:
             raise ValueError("the provided start time must be lesser or equal to the end time")
 
     @classmethod
-    def from_str(cls, start_str: str, end_str: str):  # TODO -> ?
+    def from_str(cls: Type[T], start_str: str, end_str: str) -> T:
         m_start = re.match(cls.TIME_PATTERN, start_str)
         if not m_start:
             raise ValueError("the provided 'start_str' does not represent a valid time value")
@@ -136,9 +139,53 @@ class TimeProgEntry:
     def period(self) -> TimeProgPeriod:
         return self._period
 
+    @period.setter
+    def period(self, val: TimeProgPeriod):
+        self._period = val
+
     @property
     def state(self) -> int:
         return self._state
+
+    @state.setter
+    def state(self, val: int):
+        self._state = val
+
+
+class TimeProgram:
+    """ TODO doc
+    """
+    def __init__(self, idx: int, name: str, ead: int, nos: int, ste: int, nod: int) -> None:
+        self._index = idx
+        self._name = name
+        self._entries_a_day = ead
+        self._number_of_states = nos
+        self._step_size = ste
+        self._number_of_days = nod
+
+    @property
+    def index(self) -> int:
+        return self._index
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def entries_a_day(self) -> int:
+        return self._entries_a_day
+
+    @property
+    def number_of_states(self) -> int:
+        return self._number_of_states
+
+    @property
+    def step_size(self) -> int:
+        return self._step_size
+
+    @property
+    def number_of_days(self) -> int:
+        return self._number_of_days
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -1474,7 +1521,7 @@ class HtHeatpump:
             raise
 
         # TODO def set_time_prog_entry(self, ...)
-        # TODO def set_time_prog_entries(self, ...)
+        # TODO [def set_time_prog_entries(self, ...)]
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
