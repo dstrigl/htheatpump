@@ -139,14 +139,11 @@ def main():
 
         if args.index is not None and args.day is not None and args.entry is not None:
             # query for a specific time program entry of the heat pump
-            #with Timer() as timer:
-            #    state, begin, end = hp.get_time_prog_entry(args.index, args.day, args.entry)
-            #exec_time = timer.duration
-            #begin = "{:02d}:{:02d}".format(*begin)  # e.g. (3, 45) -> '03:45'
-            #end = "{:02d}:{:02d}".format(*end)      # e.g. (23, 0) -> '23:00'
-            #print("[idx={:d}, day={:d}, entry={:d}]: state={:d}, begin={!r}, end={!r}".format(
-            #    args.index, args.day, args.entry, state, begin, end))
-            pass  # TODO -> TimeProgEntry
+            with Timer() as timer:
+                time_prog_entry = hp.get_time_prog_entry(args.index, args.day, args.entry)
+            exec_time = timer.duration
+            print("[idx={:d}, day={:d}, entry={:d}]: {!s}".format(args.index, args.day, args.entry, time_prog_entry))
+            pass  # TODO
 
         elif args.index is not None and args.day:
             assert 0
@@ -155,36 +152,29 @@ def main():
         elif args.index is not None:
             # query for the entries of a specific time program of the heat pump
             with Timer() as timer:
-                time_prog = hp.get_time_prog(args.index)
-                time_prog_entries = hp.get_time_prog_entries(args.index)
+                time_prog = hp.get_time_prog_entries(args.index)
             exec_time = timer.duration
-            print("[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(args.index, *time_prog))
-            for day_entries in time_prog_entries:
-                for entry in day_entries:
-                    # convert tuple (hour, minutes) of dict entry "begin" and "end" to str
-                    entry["begin"] = "{:02d}:{:02d}".format(*entry["begin"])  # e.g. (3, 45) -> '03:45'  # TODO
-                    entry["end"] = "{:02d}:{:02d}".format(*entry["end"])      # e.g. (23, 0) -> '23:00'  # TODO
-                    print("[day={:d}, entry={:d}]: state={:d}, begin={!r}, end={!r}".format(
-                        entry["day"], entry["entry"], entry["state"], entry["begin"], entry["end"]))
-
+            print("[idx={:d}]: {!s}".format(args.index, time_prog))
+            for day in range(time_prog.number_of_days):
+                for num in range(time_prog.entries_a_day):
+                    entry = time_prog.entry(day, num)
+                    print("[day={:d}, entry={:d}]: {!s}".format(day, num, entry))
             # write time program entries to JSON file
             if args.json:
-                data = {"index": args.index}
-                data.update({n: time_prog[i] for i, n in enumerate(("name", "ead", "nos", "ste", "nod"))})
-                data.update({"entries": time_prog_entries})
                 with open(args.json, 'w') as jsonfile:
-                    json.dump(data, jsonfile, indent=4, sort_keys=True)
+                    json.dump(time_prog.as_dict(), jsonfile, indent=4, sort_keys=True)
             # write time program entries to CSV file
             if args.csv:
                 with open(args.csv, 'w') as csvfile:
-                    csvfile.write("# idx={:d}, name=\"{}\", ead={:d}, nos={:d}, ste={:d}, nod={:d}\n".format(
-                        args.index, *time_prog))
-                    fieldnames = ["day", "entry", "state", "begin", "end"]
+                    csvfile.write("# {!s}\n".format(time_prog))
+                    fieldnames = ["day", "entry", "state", "start", "end"]
                     writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
                     writer.writeheader()
-                    for day_entries in time_prog_entries:
-                        for entry in day_entries:
-                            writer.writerow({n: entry[n] for n in fieldnames})
+                    for day in range(time_prog.number_of_days):
+                        for num in range(time_prog.entries_a_day):
+                            row = {"day": day, "entry": num}
+                            row.update(time_prog.entry(day, num).as_dict())
+                            writer.writerow(row)
 
         else:
             # query for all available time programs of the heat pump

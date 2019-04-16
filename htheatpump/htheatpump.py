@@ -41,7 +41,7 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-#T = TypeVar("T", bound="TimeProgPeriod")
+#T = TypeVar("T", bound="TimeProgPeriod")  # TODO
 
 
 class TimeProgPeriod:
@@ -71,21 +71,25 @@ class TimeProgPeriod:
     #def _verify(cls: Type[T], start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
     def _verify(cls, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
         if not cls._is_time_valid(start_hour, start_minute):
-            raise ValueError("the provided start time does not represent a valid time value")
+            raise ValueError("the provided start time does not represent a valid time value [{:d}:{:d}]".format(
+                start_hour, start_minute))
         if not cls._is_time_valid(end_hour, end_minute):
-            raise ValueError("the provided end time does not represent a valid time value")
+            raise ValueError("the provided end time does not represent a valid time value [{:d}:{:d}]".format(
+                end_hour, end_minute))
         if (start_hour * 60 + start_minute) > (end_hour * 60 + end_minute):
-            raise ValueError("the provided start time must be lesser or equal to the end time")
+            raise ValueError(
+                "the provided start time must be lesser or equal to the end time [{:d}:{:d}-{:d}:{:d}]".format(
+                    start_hour, start_minute, end_hour, end_minute))
 
     @classmethod
     #def from_str(cls: Type[T], start_str: str, end_str: str) -> T:
     def from_str(cls, start_str: str, end_str: str) -> Any:
         m_start = re.match(cls.TIME_PATTERN, start_str)
         if not m_start:
-            raise ValueError("the provided 'start_str' does not represent a valid time value")
+            raise ValueError("the provided 'start_str' does not represent a valid time value [{}]".format(start_str))
         m_end = re.match(cls.TIME_PATTERN, end_str)
         if not m_end:
-            raise ValueError("the provided 'end_str' does not represent a valid time value")
+            raise ValueError("the provided 'end_str' does not represent a valid time value [{}]".format(end_str))
         start_hour, start_minute = [int(v) for v in m_start.group(1, 2)]
         end_hour, end_minute = [int(v) for v in m_end.group(1, 2)]
         return cls(start_hour, start_minute, end_hour, end_minute)
@@ -104,7 +108,10 @@ class TimeProgPeriod:
     def as_dict(self) -> Dict:
         """ Create a dict representation of this time period.
         """
-        return {}  # TODO
+        return {
+            "start": self.start_str,
+            "end": self.end_str,
+        }
 
     @property
     def start_str(self) -> str:
@@ -130,6 +137,14 @@ class TimeProgPeriod:
     def end_minute(self) -> int:
         return self._end_minute
 
+    @property
+    def start(self) -> Tuple[int, int]:
+        return self._start_hour, self._start_minute
+
+    @property
+    def end(self) -> Tuple[int, int]:
+        return self._end_hour, self._end_minute
+
 
 class TimeProgEntry:
     """ TODO doc
@@ -153,7 +168,9 @@ class TimeProgEntry:
     def as_dict(self) -> Dict:
         """ Create a dict representation of this time program entry.
         """
-        return {}  # TODO
+        ret = {"state": self._state}
+        ret.update(self._period.as_dict())
+        return ret
 
     @property
     def state(self) -> int:
@@ -182,6 +199,37 @@ class TimeProgram:
         self._number_of_states = nos
         self._step_size = ste
         self._number_of_days = nod
+        self._entries = [[None] * self._entries_a_day] * self._number_of_days \
+            # type: List[List[Optional[TimeProgEntry]]]
+        # TODO verify args!
+
+    def _verify_entry(self, entry: TimeProgEntry) -> None:
+        if entry.state not in range(0, self._number_of_states):
+            raise ValueError("the state of the provided entry is outside the allowed range [{:d}, 0..{:d}]".format(
+                entry.state, self._number_of_states))
+        if entry.period.start_minute % self._step_size != 0:
+            raise ValueError("the provided start time must be a multiple of the given step size [{}, {:d}]".format(
+                entry.period.start_str, self._step_size))
+        if entry.period.end_minute % self._step_size != 0:
+            raise ValueError("the provided end time must be a multiple of the given step size [{}, {:d}]".format(
+                entry.period.end_str, self._step_size))
+
+    def __str__(self) -> str:
+        return "idx={:d}, name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
+            self._index, self._name, self._entries_a_day, self._number_of_states, self._step_size, self._number_of_days)
+
+    def as_dict(self) -> Dict:
+        """ Create a dict representation of this time program.
+        """
+        return {
+            "index": self._index,
+            "name": self._name,
+            "ead": self._entries_a_day,
+            "nos": self._number_of_states,
+            "ste": self._step_size,
+            "nod": self._number_of_days,
+            "entries": self._entries,
+        }
 
     @property
     def index(self) -> int:
@@ -206,6 +254,13 @@ class TimeProgram:
     @property
     def number_of_days(self) -> int:
         return self._number_of_days
+
+    def entry(self, day: int, num: int) -> Optional[TimeProgEntry]:
+        return self._entries[day][num]
+
+    def set_entry(self, day: int, num: int, entry: TimeProgEntry) -> None:
+        self._verify_entry(entry)
+        self._entries[day][num] = entry
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -356,8 +411,7 @@ PRI_RESP     = r"^PRI{:d},.*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).
 PRD_CMD      = r"PRD{:d}"                           # query for the entries of a specific time program of the heat pump
 PRD_RESP     = (r"^PRI{:d},*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$",     # e.g. 'PRI0,...'
                 r"^PRE,.*PR={:d},.*DAY={:d},.*EV={:d},.*ST=(\d+),"                # e.g. 'PRE,PR=0,DAY=3,EV=1,ST=1,...'
-                r".*BEG=([0-1]\d|2[0-4]):([0-5]\d),.*END=([0-1]\d|2[0-4]):([0-5]\d).*$")     # '...BEG=03:30,END=22:00'
-# ... TODO find a better regex for 'BEG/END=24:00' (now '24:01' is valid!)
+                r".*BEG=(\d{1,2}:\d{1,2}),.*END=(\d{1,2}:\d{1,2}).*$")                       # '...BEG=03:30,END=22:00'
 PRE_CMD      = (r"PRE,PR={:d},DAY={:d},EV={:d}",               # get/set a specific time program entry of the heat pump
                 r"PRE,PR={:d},DAY={:d},EV={:d},ST={:d},BEG={},END={}")
 PRE_RESP     = (r"^PRE,.*PR={:d},.*DAY={:d},.*EV={:d},.*ST=(\d+),"                # e.g. 'PRE,PR=2,DAY=5,EV=4,ST=1,...'
@@ -1475,11 +1529,10 @@ class HtHeatpump:
             _logger.error("query for time program failed: {!s}".format(e))
             raise
 
-    def get_time_prog_entries(self, idx: int) -> List[List[Dict[str, object]]]:  # TODO -> List[List[Dict[str, ?]]]:
+    def get_time_prog_entries(self, idx: int) -> TimeProgram:
         """ TODO doc
         """
         assert isinstance(idx, int)
-        time_prog_entries = []  # type: List
         # send PRD request to the heat pump
         self.send_request(PRD_CMD.format(idx))
         # ... and wait for the response
@@ -1493,28 +1546,22 @@ class HtHeatpump:
             ead, nos, ste, nod = [int(g) for g in m.group(2, 3, 4, 5)]
             _logger.debug("[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
                 idx, name, ead, nos, ste, nod))
+            time_prog = TimeProgram(idx, name, ead, nos, ste, nod)
             # read the single time program entries for each day
             for day in range(nod):
-                time_prog_entries.append([])
                 for num in range(ead):
                     resp = self.read_response()  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
                     m = re.match(PRD_RESP[1].format(idx, day, num), resp)
                     if not m:
                         raise IOError("invalid response for PRD command [{!r}]".format(resp))
                     # extract data (ST, BEG, END)
-                    state, beg_hour, beg_min, end_hour, end_min = [int(g) for g in m.group(1, 2, 3, 4, 5)]
-                    _logger.debug("day={:d}, entry={:d}: state={:d}, begin={:02d}:{:02d}, end={:02d}:{:02d}".format(
-                        day, num, state, beg_hour, beg_min, end_hour, end_min))
-                    time_prog_entries[-1].append({"day"  : day,    # 0..NOD (number-of-days; Monday through Sunday)
-                                                  "entry": num,    # 0..EAD (entries-a-day; e.g. 0..6)
-                                                  "state": state,  # 0..NOS (number-of-states; e.g. 0..2)
-                                                  "begin": (beg_hour, beg_min),  # e.g. ( 9, 30) -> 09:30
-                                                  "end"  : (end_hour, end_min),  # e.g. (24,  0) -> 24:00
-                                                  })
+                    st, beg, end = m.group(1, 2, 3)
+                    _logger.debug("day={:d}, entry={:d}: st={}, beg={}, end={}".format(day, num, st, beg, end))
+                    time_prog.set_entry(day, num, TimeProgEntry.from_str(st, beg, end))
+            return time_prog
         except Exception as e:
             _logger.error("query for time program entries failed: {!s}".format(e))
             raise
-        return time_prog_entries
 
     def get_time_prog_entry(self, idx: int, day: int, num: int) -> TimeProgEntry:
         """ TODO doc
