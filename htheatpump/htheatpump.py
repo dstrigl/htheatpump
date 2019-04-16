@@ -1585,7 +1585,29 @@ class HtHeatpump:
             _logger.error("query for time program entry failed: {!s}".format(e))
             raise
 
-        # TODO def set_time_prog_entry(self, ...)
+    def set_time_prog_entry(self, idx: int, day: int, num: int, entry: TimeProgEntry) -> TimeProgEntry:
+        """ TODO doc
+        """
+        assert isinstance(idx, int)
+        assert isinstance(day, int)
+        assert isinstance(num, int)
+        assert isinstance(entry, TimeProgEntry)
+        # send PRE command to the heat pump
+        self.send_request(PRE_CMD[1].format(idx, day, num, entry.state, entry.period.start_str, entry.period.end_str))
+        # ... and wait for the response
+        try:
+            resp = self.read_response()  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
+            m = re.match(PRE_RESP.format(idx, day, num), resp)
+            if not m:
+                raise IOError("invalid response for PRE command [{!r}]".format(resp))
+            # extract data (ST, BEG, END)
+            st, beg, end = m.group(1, 2, 3)
+            _logger.debug("st={}, beg={}, end={}".format(st, beg, end))
+            return TimeProgEntry.from_str(st, beg, end)
+        except Exception as e:
+            _logger.error("set time program entry failed: {!s}".format(e))
+            raise
+
         # TODO [def set_time_prog_entries(self, ...)]
 
 
