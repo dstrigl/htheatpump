@@ -143,7 +143,7 @@ def main():
                 time_prog_entry = hp.get_time_prog_entry(args.index, args.day, args.entry)
             exec_time = timer.duration
             print("[idx={:d}, day={:d}, entry={:d}]: {!s}".format(args.index, args.day, args.entry, time_prog_entry))
-            pass  # TODO
+            pass  # TODO write json/csv
 
         elif args.index is not None and args.day:
             assert 0
@@ -159,6 +159,7 @@ def main():
                 for num in range(time_prog.entries_a_day):
                     entry = time_prog.entry(day, num)
                     print("[day={:d}, entry={:d}]: {!s}".format(day, num, entry))
+
             # write time program entries to JSON file
             if args.json:
                 with open(args.json, 'w') as jsonfile:
