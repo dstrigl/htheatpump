@@ -1400,7 +1400,10 @@ class HtHeatpump:
                 entry = time_prog.entry(day, num)
                 _logger.debug("[idx={:d}, day={:d}, entry={:d}]: {!s}".format(idx, day, num, entry))
                 if entry is not None:
-                    self.set_time_prog_entry(idx, day, num, entry)
+                    entry = self.set_time_prog_entry(idx, day, num, entry)
+                else:
+                    entry = self.get_time_prog_entry(idx, day, num)
+                time_prog.set_entry(day, num, entry)
         return time_prog
 
 
