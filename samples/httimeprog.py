@@ -108,13 +108,13 @@ def main():
         "day",
         type = int,
         nargs = '?',
-        help = "TODO")  # TODO doc
+        help = "number of day of a specific time program to query for")
 
     parser.add_argument(
         "entry",
         type = int,
         nargs = '?',
-        help = "TODO")  # TODO doc
+        help = "number of entry of a specific day of a time program to query for")
 
     args = parser.parse_args()
 
@@ -143,16 +143,50 @@ def main():
                 time_prog_entry = hp.get_time_prog_entry(args.index, args.day, args.entry)
             exec_time = timer.duration
             print("[idx={:d}, day={:d}, entry={:d}]: {!s}".format(args.index, args.day, args.entry, time_prog_entry))
-            pass  # TODO write json/csv
 
-        elif args.index is not None and args.day:
-            assert 0
-            pass  # TODO
+            # write time program entry to JSON file
+            if args.json:
+                with open(args.json, 'w') as jsonfile:
+                    json.dump(time_prog_entry.as_dict(), jsonfile, indent=4, sort_keys=True)
+            # write time program entry to CSV file
+            if args.csv:
+                with open(args.csv, 'w') as csvfile:
+                    csvfile.write("# idx={:d}, day={:d}, entry={:d}".format(args.index, args.day, args.entry))
+                    fieldnames = ["state", "start", "end"]
+                    writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
+                    writer.writeheader()
+                    writer.writerow(time_prog_entry.as_dict())
+
+        elif args.index is not None and args.day is not None:
+            # query for the entries of a specific day of a time program of the heat pump
+            with Timer() as timer:
+                time_prog = hp.get_time_prog(args.index, with_entries=True)
+            exec_time = timer.duration
+            print("[idx={:d}]: {!s}".format(args.index, time_prog))
+            day_entries = time_prog.entries_of_day(args.day)
+            for num in range(len(day_entries)):
+                print("[day={:d}, entry={:d}]: {!s}".format(args.day, num, day_entries[num]))
+
+            # write time program entries of the specified day to JSON file
+            if args.json:
+                with open(args.json, 'w') as jsonfile:
+                    json.dump([entry.as_dict() for entry in day_entries], jsonfile, indent=4, sort_keys=True)
+            # write time program entries of the specified day to CSV file
+            if args.csv:
+                with open(args.csv, 'w') as csvfile:
+                    csvfile.write("# {!s}\n".format(time_prog))
+                    fieldnames = ["day", "entry", "state", "start", "end"]
+                    writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
+                    writer.writeheader()
+                    for num in range(len(day_entries)):
+                        row = {"day": args.day, "entry": num}
+                        row.update(day_entries[num].as_dict())
+                        writer.writerow(row)
 
         elif args.index is not None:
             # query for the entries of a specific time program of the heat pump
             with Timer() as timer:
-                time_prog = hp.get_time_prog_entries(args.index)
+                time_prog = hp.get_time_prog(args.index, with_entries=True)
             exec_time = timer.duration
             print("[idx={:d}]: {!s}".format(args.index, time_prog))
             for day in range(time_prog.number_of_days):
@@ -183,22 +217,22 @@ def main():
                 time_progs = hp.get_time_progs()
             exec_time = timer.duration
             for time_prog in time_progs:
-                print("[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
-                    time_prog["index"], time_prog["name"], time_prog["ead"], time_prog["nos"],
-                    time_prog["ste"], time_prog["nod"]))
+                print("{!s}".format(time_prog))
 
+            keys = ["index", "name", "ead", "nos", "ste", "nod"]
+            data = []
+            for time_prog in time_progs:
+                data.append({n: time_prog.as_dict()[n] for n in keys})
             # write time programs to JSON file
             if args.json:
                 with open(args.json, 'w') as jsonfile:
-                    json.dump(time_progs, jsonfile, indent=4, sort_keys=True)
+                    json.dump(data, jsonfile, indent=4, sort_keys=True)
             # write time programs to CSV file
             if args.csv:
                 with open(args.csv, 'w') as csvfile:
-                    fieldnames = ["index", "name", "ead", "nos", "ste", "nod"]
-                    writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
+                    writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=keys)
                     writer.writeheader()
-                    for time_prog in time_progs:
-                        writer.writerow({n: time_prog[n] for n in fieldnames})
+                    writer.writerows(data)
 
         # print execution time only if desired
         if args.time:

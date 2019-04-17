@@ -9,6 +9,10 @@ htheatpump.htheatpump
 .. automodule:: htheatpump.htheatpump
    :members:
 
+htheatpump.httimeprog
+---------------------
+.. automodule:: htheatpump.httimeprog
+   :members:
 
 htheatpump.htparams
 ---------------------
