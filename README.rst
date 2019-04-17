@@ -42,14 +42,13 @@ Features
 * query for several parameters of the heat pump
 * change parameter values of the heat pump
 * fast query of MP data points / parameters ("Web-Online")
-* read the time programs of the heat pump
+* read and write time programs of the heat pump
 
 
 Todo
 ~~~~
 
 * check access right for writing parameters of the heat pump
-* write the time programs of the heat pump
 * add some (more) examples
 * add some (more) unit tests
 * cleanup/extend documentation
