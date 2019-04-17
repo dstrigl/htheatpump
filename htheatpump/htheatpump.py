@@ -1335,7 +1335,7 @@ class HtHeatpump:
                     time_prog.set_entry(day, num, TimeProgEntry.from_str(st, beg, end))
             return time_prog
         except Exception as e:
-            _logger.error("query for time program entries failed: {!s}".format(e))
+            _logger.error("query for time program with entries failed: {!s}".format(e))
             raise
 
     def get_time_prog(self, idx: int, with_entries: bool = True):

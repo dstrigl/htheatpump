@@ -290,12 +290,7 @@ class TestHtHeatpump:
             assert HtParams[n].in_limits(v)
         #assert 0
 
-    # TODO add test(s) for get_time_progs()
-    # TODO add test(s) for get_time_prog()
-    # TODO add test(s) for get_time_prog_entries()
-    # TODO add test(s) for get_time_prog_entry()
-    # TODO add test(s) for set_time_prog_entry()
-    # TODO add test(s) for set_time_prog_entries()
+    # TODO add test(s) for get_time_prog...
 
 
 # TODO: add some more tests here

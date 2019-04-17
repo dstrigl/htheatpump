@@ -1,13 +1,15 @@
 History
 =======
 
-1.x.x (2019-xx-xx)
+1.2.0 (2019-xx-xx)
 ------------------
 
+* added new sample ``samples/httimeprog.py`` to read/write time programs over the shell
+* added new functions to write/change time program entries of the heat pump
 * added new functions to read the time program of the heat pump (see ``HtHeatpump.get_time_prog...``)
 * added type annotations and hints for static type checking (using ``mypy``)
-* splitted up property ``HtHeatpump.verify_param`` to
-  ``HtHeatpump.verify_param_action`` and ``HtHeatpump.verify_param_error``
+* splitted up property ``HtHeatpump.verify_param`` to ``HtHeatpump.verify_param_action``
+  and ``HtHeatpump.verify_param_error``
 * renamed exception ``ParamVerificationException`` to ``VerificationException``
 * added support for Python 3.7
 * dropped support for Python 3.4
