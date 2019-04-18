@@ -1251,7 +1251,13 @@ class HtHeatpump:
         return values
 
     def get_time_progs(self) -> List[TimeProgram]:
-        """ TODO doc
+        """ Return a list of all available time programs of the heat pump.
+
+        :returns: A list of :class:`~htheatpump.httimeprog.TimeProgram` instances.
+        :rtype: ``list``
+        :raises IOError:
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum).
         """
         time_progs = []
         # send PRL request to the heat pump
@@ -1346,7 +1352,21 @@ class HtHeatpump:
         return self._get_time_prog_with_entries(idx) if with_entries else self._get_time_prog(idx)
 
     def get_time_prog_entry(self, idx: int, day: int, num: int) -> TimeProgEntry:
-        """ TODO doc
+        """ Return a specific time program entry (specified by time program index, day and entry-of-day)
+        of the heat pump.
+
+        :param idx: the time program index
+        :type idx: int
+        :param day: the day of the time program entry (inside the specified time program)
+        :type day: int
+        :param num: the number of the time program entry (of the specified day)
+        :type num: int
+
+        :returns: The requested time program entry.
+        :rtype: ``TimeProgEntry``
+        :raises IOError:
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum).
         """
         assert isinstance(idx, int)
         assert isinstance(day, int)
