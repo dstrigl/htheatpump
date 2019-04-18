@@ -24,9 +24,9 @@ from htheatpump.utils import Singleton
 
 # A simple Singleton class with one `int` member
 class MySingleton(Singleton):
-    val = -1
+    val = -1  # type: int
 
-    def __init__(self, v):
+    def __init__(self, v: int):
         self.val = v
 
 

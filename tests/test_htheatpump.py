@@ -23,19 +23,20 @@ import pytest
 import re
 import datetime
 import random
-from htheatpump.htparams import HtParams
+from htheatpump.htparams import HtParam, HtParams
 from htheatpump.htheatpump import HtHeatpump
+from typing import List
 
 
 @pytest.mark.parametrize("s, checksum", [(b"", 0x0)])  # TODO add some more samples
-def test_calc_checksum(s, checksum):
+def test_calc_checksum(s: bytes, checksum: int):
     from htheatpump.htheatpump import calc_checksum
     assert calc_checksum(s) == checksum
     #assert 0
 
 
 @pytest.mark.parametrize("s", [b"", b"\x01"])
-def test_verify_checksum_raises_ValueError(s):
+def test_verify_checksum_raises_ValueError(s: bytes):
     from htheatpump.htheatpump import verify_checksum
     with pytest.raises(ValueError):
         verify_checksum(s)
@@ -43,14 +44,14 @@ def test_verify_checksum_raises_ValueError(s):
 
 
 @pytest.mark.parametrize("s, result", [(b"\x00\x00", True)])  # TODO add some more samples
-def test_verify_checksum(s, result):
+def test_verify_checksum(s: bytes, result: bool):
     from htheatpump.htheatpump import verify_checksum
     assert verify_checksum(s) == result
     #assert 0
 
 
 @pytest.mark.parametrize("s", [b""])
-def test_add_checksum_raises_ValueError(s):
+def test_add_checksum_raises_ValueError(s: bytes):
     from htheatpump.htheatpump import add_checksum
     with pytest.raises(ValueError):
         add_checksum(s)
@@ -58,14 +59,14 @@ def test_add_checksum_raises_ValueError(s):
 
 
 @pytest.mark.parametrize("s, result", [(b"\x00", b"\x00\x00")])  # TODO add some more samples
-def test_add_checksum(s, result):
+def test_add_checksum(s: bytes, result: bytes):
     from htheatpump.htheatpump import add_checksum
     assert add_checksum(s) == result
     #assert 0
 
 
 @pytest.mark.parametrize("cmd", ["?" * 254])
-def test_create_request_raises_ValueError(cmd):
+def test_create_request_raises_ValueError(cmd: str):
     from htheatpump.htheatpump import create_request
     with pytest.raises(ValueError):
         create_request(cmd)
@@ -73,14 +74,14 @@ def test_create_request_raises_ValueError(cmd):
 
 
 @pytest.mark.parametrize("cmd, result", [("", b"\x02\xfd\xd0\xe0\x00\x00\x02~;\x98")])  # TODO add some more samples
-def test_create_request(cmd, result):
+def test_create_request(cmd: str, result: bytes):
     from htheatpump.htheatpump import create_request
     assert create_request(cmd) == result
     #assert 0
 
 
 @pytest.fixture(scope="class")
-def hthp(cmdopt_device, cmdopt_baudrate):
+def hthp(cmdopt_device: str, cmdopt_baudrate: int):
     hthp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
     try:
         hthp.open_connection()
@@ -90,7 +91,7 @@ def hthp(cmdopt_device, cmdopt_baudrate):
 
 
 @pytest.fixture()
-def reconnect(hthp):
+def reconnect(hthp: HtHeatpump):
     hthp.reconnect()
     hthp.login()
     yield
@@ -100,7 +101,7 @@ def reconnect(hthp):
 class TestHtHeatpump:
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
-    def test_get_serial_number(self, hthp):
+    def test_get_serial_number(self, hthp: HtHeatpump):
         rid = hthp.get_serial_number()
         assert isinstance(rid, int), "'rid' must be of type int"
         assert rid > 0
@@ -108,7 +109,7 @@ class TestHtHeatpump:
 
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
-    def test_get_version(self, hthp):
+    def test_get_version(self, hthp: HtHeatpump):
         ret = hthp.get_version()
         # ( "3.0.20", 2321 )
         assert isinstance(ret, tuple), "'ret' must be of type tuple"
@@ -129,7 +130,7 @@ class TestHtHeatpump:
 
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
-    def test_get_date_time(self, hthp):
+    def test_get_date_time(self, hthp: HtHeatpump):
         ret = hthp.get_date_time()
         # (datetime.datetime(...), 2)  # 2 = Tuesday
         assert isinstance(ret, tuple), "'ret' must be of type tuple"
@@ -142,13 +143,13 @@ class TestHtHeatpump:
 
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
-    def test_set_date_time(self, hthp):
+    def test_set_date_time(self, hthp: HtHeatpump):
         pass  # TODO
         #assert 0
 
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
-    def test_get_last_fault(self, hthp):
+    def test_get_last_fault(self, hthp: HtHeatpump):
         ret = hthp.get_last_fault()
         # (29, 20, datetime.datetime(...), "EQ_Spreizung")
         assert isinstance(ret, tuple), "'ret' must be of type tuple"
@@ -164,7 +165,7 @@ class TestHtHeatpump:
 
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
-    def test_get_fault_list_size(self, hthp):
+    def test_get_fault_list_size(self, hthp: HtHeatpump):
         ret = hthp.get_fault_list_size()
         assert isinstance(ret, int), "'ret' must be of type int"
         assert ret >= 0
@@ -172,7 +173,7 @@ class TestHtHeatpump:
 
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
-    def test_get_fault_list(self, hthp):
+    def test_get_fault_list(self, hthp: HtHeatpump):
         ret = hthp.get_fault_list()
         # [ { "index": 29,  # fault list index
         #     "error": 20,  # error code
@@ -198,14 +199,14 @@ class TestHtHeatpump:
 
     #@pytest.mark.run_if_connected
     #@pytest.mark.usefixtures("reconnect")
-    #def test_get_fault_list_with_indices(self, hthp, indices):
+    #def test_get_fault_list_with_indices(self, hthp: HtHeatpump, indices):
     #    pass  # TODO
     #    #assert 0
 
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
     @pytest.mark.parametrize("name, param", HtParams.items())
-    def test_get_param(self, hthp, name, param):
+    def test_get_param(self, hthp: HtHeatpump, name: str, param: HtParam):
         ret = hthp.get_param(name)
         assert ret is not None, "'ret' must not be None"
         assert param.in_limits(ret)
@@ -214,13 +215,13 @@ class TestHtHeatpump:
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
     @pytest.mark.parametrize("name, param", HtParams.items())
-    def test_set_param(self, hthp, name, param):
+    def test_set_param(self, hthp: HtHeatpump, name: str, param: HtParam):
         pass  # TODO
         #assert 0
 
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
-    def test_in_error(self, hthp):
+    def test_in_error(self, hthp: HtHeatpump):
         ret = hthp.in_error
         assert isinstance(ret, bool), "'ret' must be of type bool"
         assert ret == hthp.get_param("Stoerung")
@@ -228,7 +229,7 @@ class TestHtHeatpump:
 
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
-    def test_query(self, hthp):
+    def test_query(self, hthp: HtHeatpump):
         ret = hthp.query()
         # { "HKR Soll_Raum": 21.0,
         #   "Stoerung": False,
@@ -247,7 +248,7 @@ class TestHtHeatpump:
     @pytest.mark.usefixtures("reconnect")
     @pytest.mark.parametrize("names", [random.sample(HtParams.keys(), cnt)
                                        for cnt in range(len(HtParams) + 1)])
-    def test_query_with_names(self, hthp, names):
+    def test_query_with_names(self, hthp: HtHeatpump, names: List[str]):
         ret = hthp.query(*names)
         # { "HKR Soll_Raum": 21.0,
         #   "Stoerung": False,
@@ -265,7 +266,7 @@ class TestHtHeatpump:
 
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
-    def test_fast_query(self, hthp):
+    def test_fast_query(self, hthp: HtHeatpump):
         ret = hthp.fast_query()
         assert isinstance(ret, dict), "'ret' must be of type dict"
         assert len(ret) == len(HtParams.of_type("MP"))
@@ -279,7 +280,7 @@ class TestHtHeatpump:
     @pytest.mark.usefixtures("reconnect")
     @pytest.mark.parametrize("names", [random.sample(HtParams.of_type("MP").keys(), cnt)
                                        for cnt in range(len(HtParams.of_type("MP")) + 1)])
-    def test_fast_query_with_names(self, hthp, names):
+    def test_fast_query_with_names(self, hthp: HtHeatpump, names: List[str]):
         ret = hthp.fast_query(*names)
         assert isinstance(ret, dict), "'ret' must be of type dict"
         assert not names or len(ret) == len(set(names))

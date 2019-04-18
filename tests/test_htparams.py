@@ -21,12 +21,13 @@
 
 import pytest
 import re
-from htheatpump.htparams import HtDataTypes, HtParam, HtParams
+from htheatpump.htparams import HtDataTypes, HtParam, HtParams, HtParamValueType
 from htheatpump.htheatpump import HtHeatpump
+from typing import Optional
 
 
 class TestHtDataTypes:
-    @pytest.mark.parametrize("str", [
+    @pytest.mark.parametrize("s", [
         # -- should raise a 'ValueError':
         "none", "NONE", "None",
         "string", "String",
@@ -36,9 +37,9 @@ class TestHtDataTypes:
         "123456", "ÄbcDef", "äbcdef", "ab&def", "@bcdef", "aBcde$", "WzßrÖt",
         # ...
     ])
-    def test_from_str_raises_ValueError(self, str):
+    def test_from_str_raises_ValueError(self, s: str):
         with pytest.raises(ValueError):
-            HtDataTypes.from_str(str)
+            HtDataTypes.from_str(s)
         #assert 0
 
     def test_from_str(self):
@@ -49,7 +50,7 @@ class TestHtDataTypes:
 
 
 class TestHtParam:
-    @pytest.mark.parametrize("str, data_type, exp_value", [
+    @pytest.mark.parametrize("s, data_type, exp_value", [
         ("0", HtDataTypes.BOOL, False),
         ("1", HtDataTypes.BOOL, True),
         ("123", HtDataTypes.INT, 123),
@@ -81,12 +82,12 @@ class TestHtParam:
         ("789", HtDataTypes.FLOAT, None),
         # ...
     ])
-    def test_from_str(self, str, data_type, exp_value):
+    def test_from_str(self, s: str, data_type: HtDataTypes, exp_value: Optional[HtParamValueType]):
         if exp_value is None:
             with pytest.raises(ValueError):
-                HtParam.from_str(str, data_type)
+                HtParam.from_str(s, data_type)
         else:
-            assert HtParam.from_str(str, data_type) == exp_value
+            assert HtParam.from_str(s, data_type) == exp_value
         #assert 0
 
     @pytest.mark.parametrize("val, data_type, exp_str", [
@@ -102,30 +103,30 @@ class TestHtParam:
         (-789.0, HtDataTypes.FLOAT, "-789.0"),
         # ... add some more samples here!
     ])
-    def test_to_str(self, val, data_type, exp_str):
+    def test_to_str(self, val: HtParamValueType, data_type: HtDataTypes, exp_str: str):
         assert HtParam.to_str(val, data_type) == exp_str
         #assert 0
 
     @pytest.mark.parametrize("name, cmd", [(name, param.cmd()) for name, param in HtParams.items()])
-    def test_cmd_format(self, name, cmd):
+    def test_cmd_format(self, name: str, cmd: str):
         m = re.match(r"^[S|M]P,NR=(\d+)$", cmd)
         assert m is not None, "non valid command string for parameter {!r} [{!r}]".format(name, cmd)
         #assert 0
 
     @pytest.mark.parametrize("name, param", HtParams.items())
-    def test_set_limits(self, name, param):
+    def test_set_limits(self, name: str, param: HtParam):
         assert not param.set_limits(param.min_val, param.max_val)
         #assert 0
 
     @pytest.mark.parametrize("name, param", HtParams.items())
-    def test_in_limits(self, name, param):
+    def test_in_limits(self, name: str, param: HtParam):
         assert param.in_limits(param.min_val)
         assert param.in_limits(param.max_val)
         #assert 0
 
 
 @pytest.fixture(scope="class")
-def hthp(cmdopt_device, cmdopt_baudrate):
+def hthp(cmdopt_device: str, cmdopt_baudrate: int):
     hthp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
     try:
         hthp.open_connection()
@@ -135,7 +136,7 @@ def hthp(cmdopt_device, cmdopt_baudrate):
 
 
 @pytest.fixture()
-def reconnect(hthp):
+def reconnect(hthp: HtHeatpump):
     hthp.reconnect()
     hthp.login()
     yield
@@ -144,7 +145,7 @@ def reconnect(hthp):
 
 class TestHtParams:
     @pytest.mark.parametrize("name, acl", [(name, param.acl) for name, param in HtParams.items()])
-    def test_acl(self, name, acl):
+    def test_acl(self, name: str, acl: str):
         assert acl is not None, "'acl' must not be None"
         m = re.match(r"^(r-|-w|rw)$", acl)
         assert m is not None, "invalid acl definition for parameter {!r} [{!r}]".format(name, acl)
@@ -152,7 +153,7 @@ class TestHtParams:
 
     @pytest.mark.parametrize("name, min_val, max_val", [(name, param.min_val, param.max_val)
                                                         for name, param in HtParams.items()])
-    def test_limits(self, name, min_val, max_val):
+    def test_limits(self, name: str, min_val: HtParamValueType, max_val: HtParamValueType):
         assert min_val is not None, "minimal value for parameter {!r} must not be None".format(name)
         assert max_val is not None, "maximal value for parameter {!r} must not be None".format(name)
         assert min_val <= max_val
@@ -162,7 +163,7 @@ class TestHtParams:
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
     @pytest.mark.parametrize("name, param", HtParams.items())
-    def test_validate_param(self, hthp, name, param):
+    def test_validate_param(self, hthp: HtHeatpump, name: str, param: HtParam):
         hthp.send_request(param.cmd())
         resp = hthp.read_response()
         m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(param.cmd()), resp)

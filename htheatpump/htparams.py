@@ -137,7 +137,7 @@ class HtParam:
         self.max_val = max_val
         return ret
 
-    def in_limits(self, val: HtParamValueType) -> bool:
+    def in_limits(self, val: Optional[HtParamValueType]) -> bool:
         """ Determine whether the passed value is in between the parameter limits or not.
 
         :param val: The value to check against the parameter limits.
@@ -145,7 +145,8 @@ class HtParam:
         :returns: :const:`True` if the passed value is in between the limits, :const:`False` otherwise.
         :rtype: ``bool``
         """
-        assert val is not None, "'val' must not be None"
+        if val is None:
+            return True
         # check the passed value against the defined limits (if given; 'None' means "doesn't matter")
         return (self.min_val is None or self.min_val <= val) and (self.max_val is None or val <= self.max_val)
 

@@ -34,7 +34,7 @@ class TestTimeProgPeriod:
         ( 0,  0, 24,  1),
         # ...
     ])
-    def test_init_raises_ValueError(self, start_hour, start_minute, end_hour, end_minute):
+    def test_init_raises_ValueError(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int):
         with pytest.raises(ValueError):
             TimeProgPeriod(start_hour, start_minute, end_hour, end_minute)
         #assert 0
@@ -51,7 +51,7 @@ class TestTimeProgPeriod:
         ("12345", "67890"),
         # ...
     ])
-    def test_from_str_raises_ValueError(self, start_str, end_str):
+    def test_from_str_raises_ValueError(self, start_str: str, end_str: str):
         with pytest.raises(ValueError):
             TimeProgPeriod.from_str(start_str, end_str)
         #assert 0
@@ -66,7 +66,7 @@ class TestTimeProgPeriod:
         ( 0,  0, 24,  1),
         # ...
     ])
-    def test_set_raises_ValueError(self, start_hour, start_minute, end_hour, end_minute):
+    def test_set_raises_ValueError(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int):
         period = TimeProgPeriod(0, 0, 0, 0)
         with pytest.raises(ValueError):
             period.set(start_hour, start_minute, end_hour, end_minute)
