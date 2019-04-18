@@ -17,7 +17,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" TODO """
+""" Classes representing the time programs and their entries of the Heliotherm heat pump. """
 
 from typing import Optional, List, Dict, Tuple, Any  # , Type, TypeVar
 from itertools import chain
