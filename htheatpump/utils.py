@@ -54,7 +54,14 @@ class Singleton:
 
 
 class Timer:
-    """ TODO doc
+    """ Context manager for execution time measurement.
+
+    Example:
+
+    >>> with Timer() as timer:
+    ...     s = "-".join(str(n) for n in range(1000))
+    ...
+    >>> exec_time = timer.elapsed
     """
     def __enter__(self):
         self._start = timeit.default_timer()
@@ -62,11 +69,16 @@ class Timer:
 
     def __exit__(self, *args):
         self._end = timeit.default_timer()
-        self._duration = self._end - self._start
+        self._elapsed = self._end - self._start
 
     @property
-    def duration(self):
-        return self._duration
+    def elapsed(self):
+        """ Return the elapsed time.
+
+        :returns: The elapsed time in seconds.
+        :rtype: ``float``
+        """
+        return self._elapsed
 
 
 #if __name__ == "__main__":

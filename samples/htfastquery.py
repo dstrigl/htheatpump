@@ -139,7 +139,7 @@ def main():
         # fast query for the given parameter(s)
         with Timer() as timer:
             values = hp.fast_query(*args.name)
-        exec_time = timer.duration
+        exec_time = timer.elapsed
         for name, val in values.items():
             if args.boolasint and HtParams[name].data_type == HtDataTypes.BOOL:
                 values[name] = 1 if val else 0

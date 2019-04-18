@@ -141,7 +141,7 @@ def main():
             # query for a specific time program entry of the heat pump
             with Timer() as timer:
                 time_prog_entry = hp.get_time_prog_entry(args.index, args.day, args.entry)
-            exec_time = timer.duration
+            exec_time = timer.elapsed
             print("[idx={:d}, day={:d}, entry={:d}]: {!s}".format(args.index, args.day, args.entry, time_prog_entry))
 
             # write time program entry to JSON file
@@ -161,7 +161,7 @@ def main():
             # query for the entries of a specific day of a time program of the heat pump
             with Timer() as timer:
                 time_prog = hp.get_time_prog(args.index, with_entries=True)
-            exec_time = timer.duration
+            exec_time = timer.elapsed
             print("[idx={:d}]: {!s}".format(args.index, time_prog))
             day_entries = time_prog.entries_of_day(args.day)
             for num in range(len(day_entries)):
@@ -187,7 +187,7 @@ def main():
             # query for the entries of a specific time program of the heat pump
             with Timer() as timer:
                 time_prog = hp.get_time_prog(args.index, with_entries=True)
-            exec_time = timer.duration
+            exec_time = timer.elapsed
             print("[idx={:d}]: {!s}".format(args.index, time_prog))
             for day in range(time_prog.number_of_days):
                 for num in range(time_prog.entries_a_day):
@@ -215,7 +215,7 @@ def main():
             # query for all available time programs of the heat pump
             with Timer() as timer:
                 time_progs = hp.get_time_progs()
-            exec_time = timer.duration
+            exec_time = timer.elapsed
             for time_prog in time_progs:
                 print("{!s}".format(time_prog))
 

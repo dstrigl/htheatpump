@@ -138,7 +138,7 @@ def main():
                 for _ in range(args.responses):
                     resp = hp.read_response()
                     print("< {!r}".format(resp))
-        exec_time = timer.duration
+        exec_time = timer.elapsed
 
         # print execution time only if desired
         if args.time:

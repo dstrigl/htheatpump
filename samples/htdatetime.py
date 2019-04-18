@@ -132,7 +132,7 @@ def main():
             # get current date and time on the heat pump
             with Timer() as timer:
                 dt, wd = hp.get_date_time()
-            exec_time = timer.duration
+            exec_time = timer.elapsed
             print("{}, {}".format(WEEKDAYS[wd - 1], dt.isoformat()))
         else:
             # set current date and time on the heat pump
@@ -144,7 +144,7 @@ def main():
                 dt = datetime.datetime.strptime(args.datetime, "%Y-%m-%dT%H:%M:%S")
             with Timer() as timer:
                 dt, wd = hp.set_date_time(dt)
-            exec_time = timer.duration
+            exec_time = timer.elapsed
             print("{}, {}".format(WEEKDAYS[wd - 1], dt.isoformat()))
 
         # print execution time only if desired

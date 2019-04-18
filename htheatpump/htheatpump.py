@@ -165,19 +165,19 @@ VERSION_RESP = r"^SP,NR=9,.*NAME=([^,]+).*VAL=([^,]+).*$"            # e.g. 'SP,
 CLK_CMD      = (r"CLK",                                            # get/set the current date and time of the heat pump
                 r"CLK,DA={:02d}.{:02d}.{:02d},TI={:02d}:{:02d}:{:02d},WD={:d}")
 CLK_RESP     = (r"^CLK"                                         # answer for the current date and time of the heat pump
-                r",DA=(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"                        # date, e.g. '26.11.15'
+                r",DA=(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d\d)"                         # date, e.g. '26.11.15'
                 r",TI=([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                                     # time, e.g. '21:28:57'
                 r",WD=([1-7])$")                                                  # weekday 1-7 (Monday through Sunday)
 ALC_CMD      = r"ALC"                                               # query for the last fault message of the heat pump
 ALC_RESP     = (r"^AA,(\d+),(\d+)"                                                # fault list index and error code (?)
-                r",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"                           # date, e.g. '14.09.14'
+                r",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d\d)"                            # date, e.g. '14.09.14'
                 r"-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                                        # time, e.g. '11:52:08'
                 r",(.*)$")                                                         # error message, e.g. 'EQ_Spreizung'
 ALS_CMD      = r"ALS"                                                  # query for the fault list size of the heat pump
 ALS_RESP     = r"^SUM=(\d+)$"                                                                         # e.g. 'SUM=2757'
 AR_CMD       = r"AR,{}"                                                  # query for specific entries of the fault list
 AR_RESP      = (r"^AA,(\d+),(\d+)"                                                # fault list index and error code (?)
-                r",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d{2})"                           # date, e.g. '14.09.14'
+                r",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d\d)"                            # date, e.g. '14.09.14'
                 r"-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                                        # time, e.g. '11:52:08'
                 r",(.*)$")                                                         # error message, e.g. 'EQ_Spreizung'
 MR_CMD       = r"MR,{}"                                                   # fast query for several MP data point values
@@ -190,11 +190,11 @@ PRI_RESP     = r"^PRI{:d},.*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).
 PRD_CMD      = r"PRD{:d}"                           # query for the entries of a specific time program of the heat pump
 PRD_RESP     = (r"^PRI{:d},*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$",     # e.g. 'PRI0,...'
                 r"^PRE,.*PR={:d},.*DAY={:d},.*EV={:d},.*ST=(\d+),"                # e.g. 'PRE,PR=0,DAY=3,EV=1,ST=1,...'
-                r".*BEG=(\d{1,2}:\d{1,2}),.*END=(\d{1,2}:\d{1,2}).*$")                       # '...BEG=03:30,END=22:00'
+                r".*BEG=(\d?\d:\d?\d),.*END=(\d?\d:\d?\d).*$")                               # '...BEG=03:30,END=22:00'
 PRE_CMD      = (r"PRE,PR={:d},DAY={:d},EV={:d}",               # get/set a specific time program entry of the heat pump
                 r"PRE,PR={:d},DAY={:d},EV={:d},ST={:d},BEG={},END={}")
 PRE_RESP     = (r"^PRE,.*PR={:d},.*DAY={:d},.*EV={:d},.*ST=(\d+),"                # e.g. 'PRE,PR=2,DAY=5,EV=4,ST=1,...'
-                r".*BEG=(\d{1,2}:\d{1,2}),.*END=(\d{1,2}:\d{1,2}).*$")                       # '...BEG=13:30,END=14:45'
+                r".*BEG=(\d?\d:\d?\d),.*END=(\d?\d:\d?\d).*$")                               # '...BEG=13:30,END=14:45'
 
 
 # ------------------------------------------------------------------------------------------------------------------- #

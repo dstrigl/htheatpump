@@ -149,7 +149,7 @@ def main():
             # query for the last fault message of the heat pump
             with Timer() as timer:
                 idx, err, dt, msg = hp.get_last_fault()
-            exec_time = timer.duration
+            exec_time = timer.elapsed
             fault_list = [{"index"   : idx,             # fault list index
                            "error"   : err,             # error code
                            "datetime": dt.isoformat(),  # date and time of the entry
@@ -160,7 +160,7 @@ def main():
             # query for the given fault list entries of the heat pump
             with Timer() as timer:
                 fault_list = hp.get_fault_list(*args.index)
-            exec_time = timer.duration
+            exec_time = timer.elapsed
             for entry in fault_list:
                 entry["datetime"] = entry["datetime"].isoformat()  # convert "datetime" dict entry to str
                 print("#{:03d} [{}]: {:05d}, {}".format(entry["index"], entry["datetime"], entry["error"],

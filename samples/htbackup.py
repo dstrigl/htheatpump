@@ -185,7 +185,7 @@ def main():
                         break
                     else:
                         i += 1
-        exec_time = timer.duration
+        exec_time = timer.elapsed
 
         if args.json:  # write result to JSON file
             with open(args.json, 'w') as jsonfile:

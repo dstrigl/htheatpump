@@ -134,7 +134,7 @@ def main():
         # set the parameter of the heat pump to the passed value
         with Timer() as timer:
             value = hp.set_param(args.name[0], value, True)
-        exec_time = timer.duration
+        exec_time = timer.elapsed
         print(value)
 
         # print execution time only if desired
