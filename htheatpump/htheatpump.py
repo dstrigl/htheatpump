@@ -28,6 +28,7 @@ import time
 import re
 import datetime
 import enum
+import copy
 
 #import sys
 #import pprint
@@ -1287,7 +1288,17 @@ class HtHeatpump:
         return time_progs
 
     def _get_time_prog(self, idx: int) -> TimeProgram:
-        """ TODO doc
+        """ Return a specific time program (specified by their index) without their time program entries
+        from the heat pump.
+
+        :param idx: The time program index.
+        :type idx: int
+
+        :returns: The requested time program.
+        :rtype: ``TimeProgram``
+        :raises IOError:
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum).
         """
         assert isinstance(idx, int)
         # send PRI request to the heat pump
@@ -1310,7 +1321,17 @@ class HtHeatpump:
             raise
 
     def _get_time_prog_with_entries(self, idx: int) -> TimeProgram:
-        """ TODO doc
+        """ Return a specific time program (specified by their index) together with their time program entries
+        from the heat pump.
+
+        :param idx: The time program index.
+        :type idx: int
+
+        :returns: The requested time program.
+        :rtype: ``TimeProgram``
+        :raises IOError:
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum).
         """
         assert isinstance(idx, int)
         # send PRD request to the heat pump
@@ -1344,8 +1365,21 @@ class HtHeatpump:
             _logger.error("query for time program with entries failed: {!s}".format(e))
             raise
 
-    def get_time_prog(self, idx: int, with_entries: bool = True):
-        """ TODO doc
+    def get_time_prog(self, idx: int, with_entries: bool = True) -> TimeProgram:
+        """ Return a specific time program (specified by their index) together with their time program entries
+        (if desired) from the heat pump.
+
+        :param idx: The time program index.
+        :type idx: int
+        :param with_entries: Determines whether also the single time program entries should be requested or not.
+            Default is :const:`True`.
+        :type with_entries: bool
+
+        :returns: The requested time program.
+        :rtype: ``TimeProgram``
+        :raises IOError:
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum).
         """
         assert isinstance(idx, int)
         assert isinstance(with_entries, bool)
@@ -1355,11 +1389,11 @@ class HtHeatpump:
         """ Return a specific time program entry (specified by time program index, day and entry-of-day)
         of the heat pump.
 
-        :param idx: the time program index
+        :param idx: The time program index.
         :type idx: int
-        :param day: the day of the time program entry (inside the specified time program)
+        :param day: The day of the time program entry (inside the specified time program).
         :type day: int
-        :param num: the number of the time program entry (of the specified day)
+        :param num: The number of the time program entry (of the specified day).
         :type num: int
 
         :returns: The requested time program entry.
@@ -1388,7 +1422,23 @@ class HtHeatpump:
             raise
 
     def set_time_prog_entry(self, idx: int, day: int, num: int, entry: TimeProgEntry) -> TimeProgEntry:
-        """ TODO doc
+        """ Set a specific time program entry (specified by time program index, day and entry-of-day)
+        of the heat pump.
+
+        :param idx: The time program index.
+        :type idx: int
+        :param day: The day of the time program entry (inside the specified time program).
+        :type day: int
+        :param num: The number of the time program entry (of the specified day).
+        :type num: int
+        :param entry: The new time program entry.
+        :type entry: TimeProgEntry
+
+        :returns: The changed time program entry.
+        :rtype: ``TimeProgEntry``
+        :raises IOError:
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum).
         """
         assert isinstance(idx, int)
         assert isinstance(day, int)
@@ -1410,21 +1460,33 @@ class HtHeatpump:
             _logger.error("set time program entry failed: {!s}".format(e))
             raise
 
-    def set_time_prog(self, idx: int, time_prog: TimeProgram) -> TimeProgram:
-        """ TODO doc
+    def set_time_prog(self, time_prog: TimeProgram) -> TimeProgram:
+        """ Set all time program entries of a specific time program. Any non-specified entry
+        (which is :const:`None`) in the time program will be requested from the heat pump.
+        The returned :class:`~htheatpump.httimeprog.TimeProgram` instance includes therefore
+        all entries of this time program.
+
+        :param time_prog: The given time program.
+        :type time_prog: TimeProgram
+
+        :returns: The time program including all time program entries.
+        :rtype: ``TimeProgram``
+        :raises IOError:
+            Will be raised when the serial connection is not open or received an incomplete/invalid
+            response (e.g. broken data stream, invalid checksum).
         """
-        assert isinstance(idx, int)
         assert isinstance(time_prog, TimeProgram)
+        ret = copy.deepcopy(time_prog)
         for day in range(time_prog.number_of_days):
             for num in range(time_prog.entries_a_day):
                 entry = time_prog.entry(day, num)
-                _logger.debug("[idx={:d}, day={:d}, entry={:d}]: {!s}".format(idx, day, num, entry))
+                _logger.debug("[idx={:d}, day={:d}, entry={:d}]: {!s}".format(time_prog.index, day, num, entry))
                 if entry is not None:
-                    entry = self.set_time_prog_entry(idx, day, num, entry)
+                    entry = self.set_time_prog_entry(time_prog.index, day, num, entry)
                 else:
-                    entry = self.get_time_prog_entry(idx, day, num)
-                time_prog.set_entry(day, num, entry)
-        return time_prog
+                    entry = self.get_time_prog_entry(time_prog.index, day, num)
+                ret.set_entry(day, num, entry)
+        return ret
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
