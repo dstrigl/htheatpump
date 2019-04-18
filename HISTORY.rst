@@ -4,7 +4,7 @@ History
 1.2.0 (2019-xx-xx)
 ------------------
 
-* added new sample ``samples/httimeprog.py`` to read/write time programs over the shell
+* added new sample ``samples/httimeprog.py`` to read the time programs of the heat pump
 * added new functions to write/change time program entries of the heat pump
 * added new functions to read the time program of the heat pump (see ``HtHeatpump.get_time_prog...``)
 * added type annotations and hints for static type checking (using ``mypy``)
