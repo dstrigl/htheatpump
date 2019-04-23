@@ -44,13 +44,13 @@ TimeProgPeriodT = TypeVar("TimeProgPeriodT", bound="TimeProgPeriod")
 class TimeProgPeriod:
     """ Representation of a time program period defined by start- and end-time (``HH:MM``).
 
-    :param start_hour: The hour value of the start-time.
+    :param start_hour: The hour value of the start-time (``HH``).
     :type start_hour: int
-    :param start_minute: The minute value of the start-time.
+    :param start_minute: The minute value of the start-time (``MM``).
     :type start_minute: int
-    :param end_hour: The hour value of the end-time.
+    :param end_hour: The hour value of the end-time (``HH``).
     :type end_hour: int
-    :param end_minute: The minute value of the end-time.
+    :param end_minute: The minute value of the end-time (``MM``).
     :type end_minute: int
     :raises ValueError:
         Will be raised for any invalid argument.
@@ -215,7 +215,7 @@ class TimeProgPeriod:
         :returns: The start-time of this time program period as tuple. For example:
             ::
 
-                ( 11, 00 )  # -> 11:00
+                ( 11, 0 )  # -> 11:00
 
         :rtype: ``tuple`` ( int, int )
         """
@@ -459,7 +459,7 @@ class TimeProgram:
         :param day: The day of the time program entries.
         :type day: int
         :returns: A list of :class:`~TimeProgEntry` instances or :const:`None` if not set.
-        :rtype: ``list``
+        :rtype: ``list`` (TimeProgEntry)
         """
         return copy.deepcopy(self._entries[day])
 

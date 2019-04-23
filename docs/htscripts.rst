@@ -233,4 +233,14 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htfastquery.py
 httimeprog
 ----------
 
-TODO doc
+Command line tool to query for the time programs of the heat pump.
+
+Source: https://github.com/dstrigl/htheatpump/blob/master/samples/httimeprog.py
+
+**Example:**
+
+.. code-block:: shell
+
+    $ python3 python3 httimeprog.py --device /dev/ttyUSB1 --csv timeprog.csv
+    TODO
+    ...
