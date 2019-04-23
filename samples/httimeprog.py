@@ -23,8 +23,9 @@
 
     .. code-block:: shell
 
-       $ python3 httimeprog.py --device /dev/ttyUSB1 --baudrate 9600
+       $ python3 httimeprog.py --device /dev/ttyUSB1 --baudrate 9600 1
        TODO
+       ...
 """
 
 import sys
@@ -46,8 +47,9 @@ def main():
 
             Example:
 
-              $ python3 %(prog)s --device /dev/ttyUSB1
+              $ python3 %(prog)s --device /dev/ttyUSB1 1
               TODO
+              ...
             '''),
         formatter_class = argparse.RawDescriptionHelpFormatter,
         epilog = textwrap.dedent('''\

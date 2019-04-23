@@ -1294,7 +1294,8 @@ class HtHeatpump:
         :param idx: The time program index.
         :type idx: int
 
-        :returns: The requested time program.
+        :returns: The requested time program as :class:`~htheatpump.httimeprog.TimeProgram` without
+            their time program entries.
         :rtype: ``TimeProgram``
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
@@ -1327,7 +1328,8 @@ class HtHeatpump:
         :param idx: The time program index.
         :type idx: int
 
-        :returns: The requested time program.
+        :returns: The requested time program as :class:`~htheatpump.httimeprog.TimeProgram` together
+            with their time program entries.
         :rtype: ``TimeProgram``
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
@@ -1375,7 +1377,7 @@ class HtHeatpump:
             Default is :const:`True`.
         :type with_entries: bool
 
-        :returns: The requested time program.
+        :returns: The requested time program as :class:`~htheatpump.httimeprog.TimeProgram`.
         :rtype: ``TimeProgram``
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
@@ -1396,7 +1398,7 @@ class HtHeatpump:
         :param num: The number of the time program entry (of the specified day).
         :type num: int
 
-        :returns: The requested time program entry.
+        :returns: The requested time program entry as :class:`~htheatpump.httimeprog.TimeProgEntry`.
         :rtype: ``TimeProgEntry``
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
@@ -1431,10 +1433,10 @@ class HtHeatpump:
         :type day: int
         :param num: The number of the time program entry (of the specified day).
         :type num: int
-        :param entry: The new time program entry.
+        :param entry: The new time program entry as :class:`~htheatpump.httimeprog.TimeProgEntry`.
         :type entry: TimeProgEntry
 
-        :returns: The changed time program entry.
+        :returns: The changed time program entry :class:`~htheatpump.httimeprog.TimeProgEntry`.
         :rtype: ``TimeProgEntry``
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
@@ -1466,10 +1468,10 @@ class HtHeatpump:
         The returned :class:`~htheatpump.httimeprog.TimeProgram` instance includes therefore
         all entries of this time program.
 
-        :param time_prog: The given time program.
+        :param time_prog: The given time program as :class:`~htheatpump.httimeprog.TimeProgram`.
         :type time_prog: TimeProgram
 
-        :returns: The time program including all time program entries.
+        :returns: The time program as :class:`~htheatpump.httimeprog.TimeProgram` including all time program entries.
         :rtype: ``TimeProgram``
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
