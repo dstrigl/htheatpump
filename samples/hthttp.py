@@ -72,7 +72,7 @@ _logger = logging.getLogger(__name__)
 
 class HttpGetException(Exception):
     def __init__(self, response_code, message):
-        Exception.__init__(self, message)
+        super().__init__(self, message)
         self._response_code = response_code
 
     @property

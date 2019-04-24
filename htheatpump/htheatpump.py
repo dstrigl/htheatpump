@@ -280,7 +280,7 @@ class VerificationException(ValueError):  # pragma: no cover
     :type message: str
     """
     def __init__(self, message: str) -> None:
-        ValueError.__init__(self, message)
+        super().__init__(self, message)
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
