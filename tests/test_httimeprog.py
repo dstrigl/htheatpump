@@ -32,11 +32,24 @@ class TestTimeProgPeriod:
         (22, 45, 19, 15),
         (24,  1,  0,  0),
         ( 0,  0, 24,  1),
-        # ...
+        (23, 45,  0, 15),
+        # ... TODO add some more samples
     ])
     def test_init_raises_ValueError(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int):
         with pytest.raises(ValueError):
             TimeProgPeriod(start_hour, start_minute, end_hour, end_minute)
+        #assert 0
+
+    @pytest.mark.parametrize("start_hour, start_minute, end_hour, end_minute", [
+        ( 0,  0,  0,  0),
+        (24,  0, 24,  0),
+        (12, 45, 23, 15),
+        ( 2, 10,  3, 35),
+        (23, 45, 24,  0),
+        # ... TODO add some more samples
+    ])
+    def test_init(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int):
+        TimeProgPeriod(start_hour, start_minute, end_hour, end_minute)
         #assert 0
 
     @pytest.mark.parametrize("start_str, end_str", [
@@ -49,11 +62,25 @@ class TestTimeProgPeriod:
         ("00:00", "24:01"),
         ("ab:cd", "uv:wx"),
         ("12345", "67890"),
-        # ...
+        (" 3:45", " 4:00"),
+        # ... TODO add some more samples
     ])
     def test_from_str_raises_ValueError(self, start_str: str, end_str: str):
         with pytest.raises(ValueError):
             TimeProgPeriod.from_str(start_str, end_str)
+        #assert 0
+
+    @pytest.mark.parametrize("start_str, end_str", [
+        ("00:00", "00:00"),
+        ("24:00", "24:00"),
+        ( "3:45",  "4:00"),
+        ("12:45", "23:15"),
+        ("02:10", "03:35"),
+        ("23:45", "24:00"),
+        # ... TODO add some more samples
+    ])
+    def test_from_str(self, start_str: str, end_str: str):
+        TimeProgPeriod.from_str(start_str, end_str)
         #assert 0
 
     @pytest.mark.parametrize("start_hour, start_minute, end_hour, end_minute", [
@@ -64,7 +91,7 @@ class TestTimeProgPeriod:
         (22, 45, 19, 15),
         (24,  1,  0,  0),
         ( 0,  0, 24,  1),
-        # ...
+        # ... TODO add some more samples
     ])
     def test_set_raises_ValueError(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int):
         period = TimeProgPeriod(0, 0, 0, 0)
@@ -72,5 +99,17 @@ class TestTimeProgPeriod:
             period.set(start_hour, start_minute, end_hour, end_minute)
         #assert 0
 
+    @pytest.mark.parametrize("start_hour, start_minute, end_hour, end_minute", [
+        ( 0,  0,  0,  0),
+        (24,  0, 24,  0),
+        ( 3, 45,  4,  0),
+        (12, 45, 23, 15),
+        ( 2, 10,  3, 35),
+        (23, 45, 24,  0),
+        # ... TODO add some more samples
+    ])
+    def test_set(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int):
+        TimeProgPeriod(0, 0, 0, 0).set(start_hour, start_minute, end_hour, end_minute)
+        #assert 0
 
 # TODO: add some more tests here

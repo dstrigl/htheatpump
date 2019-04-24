@@ -55,9 +55,9 @@ class TimeProgPeriod:
     :raises ValueError:
         Will be raised for any invalid argument.
     """
-    TIME_PATTERN = r"^(\d{1,2}):(\d{1,2})$"  # e.g. '23:45'
-    HOURS_RANGE = range(0, 25)               # 0..24
-    MINUTES_RANGE = range(0, 60)             # 0..59
+    TIME_PATTERN = r"^(\d?\d):(\d?\d)$"  # e.g. '23:45' or '2:5'
+    HOURS_RANGE = range(0, 25)           # 0..24
+    MINUTES_RANGE = range(0, 60)         # 0..59
 
     def __init__(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
         # verify the passed time values
@@ -77,14 +77,14 @@ class TimeProgPeriod:
     @classmethod
     def _verify(cls: Type[TimeProgPeriodT], start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
         if not cls._is_time_valid(start_hour, start_minute):
-            raise ValueError("the provided start time does not represent a valid time value [{:d}:{:d}]".format(
+            raise ValueError("the provided start time does not represent a valid time value [{:02d}:{:02d}]".format(
                 start_hour, start_minute))
         if not cls._is_time_valid(end_hour, end_minute):
-            raise ValueError("the provided end time does not represent a valid time value [{:d}:{:d}]".format(
+            raise ValueError("the provided end time does not represent a valid time value [{:02d}:{:02d}]".format(
                 end_hour, end_minute))
         if (start_hour * 60 + start_minute) > (end_hour * 60 + end_minute):
             raise ValueError(
-                "the provided start time must be lesser or equal to the end time [{:d}:{:d}-{:d}:{:d}]".format(
+                "the provided start time must be lesser or equal to the end time [{:02d}:{:02d}-{:02d}:{:02d}]".format(
                     start_hour, start_minute, end_hour, end_minute))
 
     @classmethod
@@ -102,10 +102,10 @@ class TimeProgPeriod:
         """
         m_start = re.match(cls.TIME_PATTERN, start_str)
         if not m_start:
-            raise ValueError("the provided 'start_str' does not represent a valid time value [{}]".format(start_str))
+            raise ValueError("the provided 'start_str' does not represent a valid time value [{!r}]".format(start_str))
         m_end = re.match(cls.TIME_PATTERN, end_str)
         if not m_end:
-            raise ValueError("the provided 'end_str' does not represent a valid time value [{}]".format(end_str))
+            raise ValueError("the provided 'end_str' does not represent a valid time value [{!r}]".format(end_str))
         start_hour, start_minute = [int(v) for v in m_start.group(1, 2)]
         end_hour, end_minute = [int(v) for v in m_end.group(1, 2)]
         return cls(start_hour, start_minute, end_hour, end_minute)

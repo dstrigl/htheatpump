@@ -235,8 +235,8 @@ httimeprog
 
 Command line tool to query for the time programs of the heat pump.
 
-The option ``-c``, ``--csv`` and ``-j``, ``--json`` can be used to write the time program properties
-to a specified CSV or JSON file.
+The option ``-c``, ``--csv`` and ``-j``, ``--json`` can be used to write the
+time program properties to a specified CSV or JSON file.
 
 Source: https://github.com/dstrigl/htheatpump/blob/master/samples/httimeprog.py
 
