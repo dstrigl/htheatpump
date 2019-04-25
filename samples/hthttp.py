@@ -23,13 +23,19 @@
 
       * http://ip:port/datetime/sync
           synchronize the system time of the heat pump with the current time
+      * http://ip:port/datetime
+          query for the current system time of the heat pump
       * http://ip:port/faultlist/last
           query for the last fault message of the heat pump
       * http://ip:port/faultlist
           query for the whole fault list of the heat pump
-      * http://ip:port/?Param1&Param2&Param3=Value&Param4=Value ...
+      * http://ip:port/timeprogs
+          query for the list of available time programs of the heat pump
+      * http://ip:port/timeprog/<idx>
+          query for a specific time program of the heat pump
+      * http://ip:port/param/?Param1&Param2&Param3=Value&Param4=Value ...
           query and/or set specific parameter values of the heat pump
-      * http://ip:port/
+      * http://ip:port/param/
           query for all "known" parameter values of the heat pump
 
       The result in the HTTP response is given in JSON format.
@@ -60,6 +66,7 @@ import argparse
 import textwrap
 import sys
 import json
+import re
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib import parse as urlparse
 from htheatpump.htheatpump import HtHeatpump
@@ -81,6 +88,15 @@ class HttpGetException(Exception):
 
 
 class HttpGetHandler(BaseHTTPRequestHandler):
+
+    DATETIME_SYNC_PATH  = r"^\/datetime\/sync\/?"
+    DATETIME_PATH       = r"^\/datetime\/?"
+    FAULTLIST_LAST_PATH = r"^\/faultlist\/last\/?"
+    FAULTLIST_PATH      = r"^\/faultlist\/?"
+    TIMEPROGS_PATH      = r"^\/timeprogs\/?"
+    TIMEPROG_PATH       = r"^\/timeprog\/(\d+)\/?"
+    PARAM_PATH          = r"^\/param\/?"
+
     def do_GET(self):
         parsed_path = urlparse.urlparse(self.path)
         _logger.info(parsed_path.path.lower())
@@ -90,28 +106,55 @@ class HttpGetHandler(BaseHTTPRequestHandler):
             hp.reconnect()
             hp.login()
 
-            if parsed_path.path.lower() in ("/datetime/sync", "/datetime/sync/"):
+            if re.match(self.DATETIME_SYNC_PATH, parsed_path.path.lower()):
                 # synchronize the system time of the heat pump with the current time
                 dt, _ = hp.set_date_time(datetime.now())
                 result = {"datetime": dt.isoformat()}
                 _logger.debug(dt.isoformat())
 
-            elif parsed_path.path.lower() in ("/faultlist/last", "/faultlist/last/"):
+            elif re.match(self.DATETIME_PATH, parsed_path.path.lower()):
+                # return the current system time of the heat pump
+                dt, _ = hp.get_date_time()
+                result = {"datetime": dt.isoformat()}
+                _logger.debug(dt.isoformat())
+
+            elif re.match(self.FAULTLIST_LAST_PATH, parsed_path.path.lower()):
                 # query for the last fault message of the heat pump
                 idx, err, dt, msg = hp.get_last_fault()
                 result = {"index": idx, "error": err, "datetime": dt.isoformat(), "message": msg}
                 _logger.debug("#{:d} [{}]: {:d}, {}".format(idx, dt.isoformat(), err, msg))
 
-            elif parsed_path.path.lower() in ("/faultlist", "/faultlist/"):
+            elif re.match(self.FAULTLIST_PATH, parsed_path.path.lower()):
                 # query for the whole fault list of the heat pump
                 result = []
-                for e in hp.get_fault_list():
-                    e.update({"datetime": e["datetime"].isoformat()})  # convert datetime dict entry to string
-                    result.append(e)
+                for entry in hp.get_fault_list():
+                    entry.update({"datetime": entry["datetime"].isoformat()})  # convert datetime dict entry to string
+                    result.append(entry)
                     _logger.debug("#{:03d} [{}]: {:05d}, {}".format(
-                        e["index"], e["datetime"], e["error"], e["message"]))
+                        entry["index"], entry["datetime"], entry["error"], entry["message"]))
 
-            elif parsed_path.path.lower() == "/":
+            elif re.match(self.TIMEPROGS_PATH, parsed_path.path.lower()):
+                # query for the list of available time programs of the heat pump
+                time_progs = hp.get_time_progs()
+                result = []
+                for time_prog in time_progs:
+                    result.append({n: time_prog.as_dict()[n] for n in ["index", "name", "ead", "nos", "ste", "nod"]})
+                    _logger.debug("{}".format(time_prog))
+
+            elif re.match(self.TIMEPROG_PATH, parsed_path.path.lower()):
+                # query for a specific time program  of the heat pump (including all time program entries)
+                m = re.match(self.TIMEPROG_PATH, parsed_path.path.lower())
+                try:
+                    idx = int(m.group(1))
+                except ValueError as ex:
+                    # for an invalid time program index: HTTP response 400 = Bad Request
+                    raise HttpGetException(400, str(ex))
+                time_prog = hp.get_time_prog(idx, with_entries=True)
+                result = time_prog.as_dict()
+                _logger.debug("{}".format(time_prog))
+
+            elif re.match(self.PARAM_PATH, parsed_path.path.lower()):
+                # query and/or set parameter values of the heat pump
                 qsl = urlparse.parse_qsl(parsed_path.query, keep_blank_values=True)
                 _logger.info(qsl)
                 result = {}
@@ -153,6 +196,20 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                             value = 1 if value else 0
                         result.update({name: value})
                         _logger.debug("{}: {}".format(name, value))
+
+            elif parsed_path.path.lower() == "/":
+                # query for some properties of the connected heat pump
+                property_id = hp.get_param("Liegenschaft") if "Liegenschaft" in HtParams else 0
+                serial_number = hp.get_serial_number()
+                software_version, _ = hp.get_version()
+                dt, _ = hp.get_date_time()
+                result.update({"property_id": property_id,
+                               "serial_number": serial_number,
+                               "software_version": software_version,
+                               "datetime": dt.isoformat(),
+                               })
+                _logger.debug("property_id: {}, serial_number: {}, software_version: {}, datetime: {}".format(
+                    property_id, serial_number, software_version, dt.isoformat()))
 
             else:
                 # for an invalid url request: HTTP response 400 = Bad Request
@@ -216,13 +273,19 @@ def main():
 
               * http://ip:port/datetime/sync
                   synchronize the system time of the heat pump with the current time
+              * http://ip:port/datetime
+                  query for the current system time of the heat pump
               * http://ip:port/faultlist/last
                   query for the last fault message of the heat pump
               * http://ip:port/faultlist
                   query for the whole fault list of the heat pump
-              * http://ip:port/?Param1&Param2&Param3=Value&Param4=Value ...
+              * http://ip:port/timeprogs
+                  query for the list of available time programs of the heat pump
+              * http://ip:port/timeprog/<idx>
+                  query for a specific time program of the heat pump
+              * http://ip:port/param/?Param1&Param2&Param3=Value&Param4=Value ...
                   query and/or set specific parameter values of the heat pump
-              * http://ip:port/
+              * http://ip:port/param/
                   query for all "known" parameter values of the heat pump
 
               The result in the HTTP response is given in JSON format.

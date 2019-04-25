@@ -165,13 +165,19 @@ Simple HTTP server which provides the possibility to access the Heliotherm heat 
 
   * http://ip:port/datetime/sync
       synchronize the system time of the heat pump with the current time
+  * http://ip:port/datetime
+      query for the current system time of the heat pump
   * http://ip:port/faultlist/last
       query for the last fault message of the heat pump
   * http://ip:port/faultlist
       query for the whole fault list of the heat pump
-  * http://ip:port/?Param1&Param2&Param3=Value&Param4=Value ...
+  * http://ip:port/timeprogs
+      query for the list of available time programs of the heat pump
+  * http://ip:port/timeprog/<idx>
+      query for a specific time program of the heat pump
+  * http://ip:port/param/?Param1&Param2&Param3=Value&Param4=Value ...
       query and/or set specific parameter values of the heat pump
-  * http://ip:port/
+  * http://ip:port/param/
       query for all "known" parameter values of the heat pump
 
   The result in the HTTP response is given in JSON format.
