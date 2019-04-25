@@ -30,7 +30,7 @@
 import enum
 import csv
 from os import path
-from typing import Union, Dict, Optional, Any, KeysView, ItemsView
+from typing import Union, Dict, Optional, Any, KeysView, ItemsView, ValuesView
 
 from htheatpump.utils import Singleton
 
@@ -186,7 +186,7 @@ class HtParam:
             else:
                 raise ValueError("invalid representation for data type FLOAT ({!r})".format(value))
         else:
-            assert 0, "unsupported data type ({!r})".format(data_type)
+            assert 0, "unsupported data type ({!r})".format(data_type)  # pragma: no cover
 
     def from_str(self: Union["HtParam", str], arg: Union[str, HtDataTypes]) -> HtParamValueType:
         """ Convert the passed value (in form of a string) to the expected data type.
@@ -241,7 +241,7 @@ class HtParam:
             assert isinstance(value, (int, float))
             return str(float(value))
         else:
-            assert 0, "unsupported data type ({!r})".format(data_type)
+            assert 0, "unsupported data type ({!r})".format(data_type)  # pragma: no cover
 
     def to_str(self: Union["HtParam", HtParamValueType], arg: Union[HtParamValueType, HtDataTypes]) -> str:
         """ Convert the passed value to a string.
@@ -353,9 +353,13 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
         return cls._params.items()
 
     @classmethod
+    def values(cls) -> ValuesView:
+        return cls._params.values()
+
+    @classmethod
     def get(cls, key: str, default: Optional[HtParam] = None) -> Optional[HtParam]:
         assert isinstance(key, str), "'key' must be of type str"
-        assert isinstance(default, str), "'default' must be of type HtParam or None"
+        assert isinstance(default, (HtParam, type(None))), "'default' must be of type HtParam or None"
         return cls._params.get(key, default)
 
     @classmethod

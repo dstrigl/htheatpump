@@ -82,12 +82,23 @@ class TestHtParam:
         ("789", HtDataTypes.FLOAT, None),
         # ...
     ])
-    def test_from_str(self, s: str, data_type: HtDataTypes, exp_value: Optional[HtParamValueType]):
+    def test_from_str_static(self, s: str, data_type: HtDataTypes, exp_value: Optional[HtParamValueType]):
         if exp_value is None:
             with pytest.raises(ValueError):
                 HtParam.from_str(s, data_type)
         else:
             assert HtParam.from_str(s, data_type) == exp_value
+        #assert 0
+
+    def test_from_str_static_assert(self):
+        with pytest.raises(AssertionError):
+            HtParam.from_str("", 0)
+        #assert 0
+
+    @pytest.mark.parametrize("param", HtParams.values())
+    def test_from_str_member(self, param: HtParam):
+        assert param.from_str(param.to_str(param.min_val)) == param.min_val  # type: ignore
+        assert param.from_str(param.to_str(param.max_val)) == param.max_val  # type: ignore
         #assert 0
 
     @pytest.mark.parametrize("val, data_type, exp_str", [
@@ -103,12 +114,24 @@ class TestHtParam:
         (-789.0, HtDataTypes.FLOAT, "-789.0"),
         # ... add some more samples here!
     ])
-    def test_to_str(self, val: HtParamValueType, data_type: HtDataTypes, exp_str: str):
+    def test_to_str_static(self, val: HtParamValueType, data_type: HtDataTypes, exp_str: str):
         assert HtParam.to_str(val, data_type) == exp_str
         #assert 0
 
+    @pytest.mark.parametrize("param", HtParams.values())
+    def test_to_str_member(self, param: HtParam):
+        assert param.to_str(param.min_val) == HtParam.to_str(param.min_val, param.data_type)  # type: ignore
+        assert param.to_str(param.max_val) == HtParam.to_str(param.max_val, param.data_type)  # type: ignore
+        #assert 0
+
+    @pytest.mark.parametrize("name, param", HtParams.items())
+    def test_repr(self, name: str, param: HtParam):
+        assert repr(param) == "HtParam({},{:d},{!r},{}[{},{}])".format(
+            param.dp_type, param.dp_number, param.acl, param.data_type, param.min_val, param.max_val)
+        #assert 0
+
     @pytest.mark.parametrize("name, cmd", [(name, param.cmd()) for name, param in HtParams.items()])
-    def test_cmd_format(self, name: str, cmd: str):
+    def test_cmd(self, name: str, cmd: str):
         m = re.match(r"^[S|M]P,NR=(\d+)$", cmd)
         assert m is not None, "non valid command string for parameter {!r} [{!r}]".format(name, cmd)
         #assert 0
@@ -122,6 +145,11 @@ class TestHtParam:
     def test_in_limits(self, name: str, param: HtParam):
         assert param.in_limits(param.min_val)
         assert param.in_limits(param.max_val)
+        #assert 0
+
+    @pytest.mark.parametrize("param", HtParams.values())
+    def test_in_limits_None(self, param: HtParam):
+        assert param.in_limits(None)
         #assert 0
 
 
@@ -158,6 +186,15 @@ class TestHtParams:
         assert max_val is not None, "maximal value for parameter {!r} must not be None".format(name)
         assert min_val <= max_val
         assert max_val >= min_val
+        #assert 0
+
+    @pytest.mark.parametrize("name, param", HtParams.items())
+    def test_get(self, name: str, param: HtParam):
+        assert HtParams.get(name) == param
+        #assert 0
+
+    def test_dump(self):
+        assert HtParams.dump() is None
         #assert 0
 
     @pytest.mark.run_if_connected

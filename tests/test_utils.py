@@ -19,7 +19,8 @@
 
 """ Tests for code in htheatpump.utils. """
 
-from htheatpump.utils import Singleton
+from htheatpump.utils import Singleton, Timer
+import time
 
 
 # A simple Singleton class with one `int` member
@@ -36,3 +37,9 @@ def test_SingletonClass():
     s2 = MySingleton(2)
     assert s2.val == 2
     assert s1.val == 2  # now, 's1' should also be 2
+
+
+def test_Timer():
+    with Timer() as timer:
+        time.sleep(1)  # wait for 1s
+    assert timer.elapsed >= 1
