@@ -142,7 +142,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                     _logger.debug("{}".format(time_prog))
 
             elif re.match(self.TIMEPROG_PATH, parsed_path.path.lower()):
-                # query for a specific time program  of the heat pump (including all time program entries)
+                # query for a specific time program of the heat pump (including all time program entries)
                 m = re.match(self.TIMEPROG_PATH, parsed_path.path.lower())
                 try:
                     idx = int(m.group(1))
