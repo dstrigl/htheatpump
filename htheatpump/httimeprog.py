@@ -134,6 +134,11 @@ class TimeProgPeriod:
         return "{:02d}:{:02d}-{:02d}:{:02d}".format(self._start_hour, self.start_minute,
                                                     self.end_hour, self._end_minute)
 
+    def __eq__(self, other):
+        assert isinstance(other, TimeProgPeriod)
+        return self._start_hour == other.start_hour and self._start_minute == other.start_minute\
+            and self._end_hour == other.end_hour and self._end_minute == other.end_minute
+
     def as_dict(self) -> Dict[str, object]:
         """ Create a dict representation of this time program period.
 
@@ -294,6 +299,10 @@ class TimeProgEntry:
 
     def __str__(self) -> str:
         return "state={:d}, time={!s}".format(self._state, self._period)
+
+    def __eq__(self, other):
+        assert isinstance(other, TimeProgEntry)
+        return self._state == other.state and self._period == other.period
 
     def as_dict(self) -> Dict[str, object]:
         """ Create a dict representation of this time program entry.

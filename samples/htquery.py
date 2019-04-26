@@ -144,7 +144,6 @@ def main():
         # print the current value(s) of the retrieved parameter(s)
         if args.json:
             print(json.dumps(values, indent=4, sort_keys=True))
-        # TODO else args.csv:
         else:
             if len(values) > 1:
                 for name in sorted(values.keys()):

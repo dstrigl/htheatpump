@@ -817,7 +817,7 @@ class HtHeatpump:
             _logger.error("query for fault list size failed: {!s}".format(e))
             raise
 
-    def get_fault_list(self, *args: int) -> List[Dict[str, object]]:  # TODO -> List[Dict[str, ?]]
+    def get_fault_list(self, *args: int) -> List[Dict[str, object]]:
         """ Query for the fault list of the heat pump.
 
         :param args: The index number(s) to request from the fault list (optional).

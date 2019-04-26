@@ -20,7 +20,7 @@
 """ Tests for code in `htheatpump.httimeprog`. """
 
 import pytest
-from htheatpump.httimeprog import TimeProgPeriod  # , TimeProgEntry, TimeProgram
+from htheatpump.httimeprog import TimeProgPeriod, TimeProgEntry  # , TimeProgram
 
 
 class TestTimeProgPeriod:
@@ -127,6 +127,15 @@ class TestTimeProgPeriod:
             "{:02d}:{:02d}-{:02d}:{:02d}".format(start_hour, start_minute, end_hour, end_minute)
         #assert 0
 
+    def test_eq(self):
+        assert TimeProgPeriod(0, 0, 0, 0) == TimeProgPeriod(0, 0, 0, 0)
+        assert TimeProgPeriod(0, 0, 0, 0) != TimeProgPeriod(0, 0, 0, 1)
+        assert TimeProgPeriod(0, 0, 0, 0) != TimeProgPeriod(0, 0, 1, 0)
+        assert TimeProgPeriod(0, 0, 0, 0) != TimeProgPeriod(0, 1, 0, 1)
+        assert TimeProgPeriod(0, 0, 0, 0) != TimeProgPeriod(1, 0, 1, 0)
+        # ...
+        #assert 0
+
     @pytest.mark.parametrize("start_hour, start_minute, end_hour, end_minute", [
         ( 0,  0,  0,  0),
         (24,  0, 24,  0),
@@ -176,6 +185,94 @@ class TestTimeProgPeriod:
         assert period.end_minute == end_minute
         assert period.start == (start_hour, start_minute)
         assert period.end == (end_hour, end_minute)
+        #assert 0
+
+
+class TestTimeProgEntry:
+
+    def test_init(self):
+        state = 123
+        period = TimeProgPeriod(21, 22, 23, 24)
+        entry = TimeProgEntry(state, period)
+        assert entry.state == state
+        assert entry.period == period
+        assert entry.period is not period  # entry.period should be a "deepcopy" of period
+        #assert 0
+
+    @pytest.mark.parametrize("state", [
+        # -- should raise a 'ValueError':
+        "abc",
+        "--1",
+        "-1+",
+        "0x8",
+        "1,2",
+        # ...
+    ])
+    def test_from_str_raises_ValueError(self, state: str):
+        with pytest.raises(ValueError):
+            TimeProgEntry.from_str(state, "00:00", "00:00")
+        #assert 0
+
+    @pytest.mark.parametrize("state", range(-10, 10))
+    def test_from_str(self, state: str):
+        entry = TimeProgEntry.from_str(str(state), "00:00", "00:00")
+        assert entry.state == state
+        #assert 0
+
+    def test_set(self):
+        entry = TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0))
+        assert entry.state == 0
+        assert entry.period == TimeProgPeriod(0, 0, 0, 0)
+        state = 123
+        period = TimeProgPeriod(21, 22, 23, 24)
+        entry.set(state, period)
+        assert entry.state == state
+        assert entry.period == period
+        assert entry.period is not period  # entry.period should be a "deepcopy" of period
+        #assert 0
+
+    @pytest.mark.parametrize("state", range(-10, 10))
+    def test_str(self, state: str):
+        assert str(TimeProgEntry.from_str(str(state), "00:00", "00:00")) ==\
+            "state={:d}, time={!s}".format(state, TimeProgPeriod.from_str("00:00", "00:00"))
+        #assert 0
+
+    def test_eq(self):
+        assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) == TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0))
+        assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) != TimeProgEntry(1, TimeProgPeriod(0, 0, 0, 0))
+        assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) != TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 1))
+        assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) != TimeProgEntry(0, TimeProgPeriod(0, 0, 1, 0))
+        assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) != TimeProgEntry(0, TimeProgPeriod(0, 1, 0, 1))
+        assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) != TimeProgEntry(0, TimeProgPeriod(1, 0, 1, 0))
+        # ...
+        #assert 0
+
+    def test_as_dict(self):
+        state = 123
+        period = TimeProgPeriod(21, 22, 23, 24)
+        assert TimeProgEntry(state, period).as_dict() == {"state": state, "start": period.start, "end": period.end}
+        #assert 0
+
+    def test_as_json(self):
+        state = 123
+        period = TimeProgPeriod(21, 22, 23, 24)
+        assert TimeProgEntry(state, period).as_json() ==\
+            {"state": state, "start": period.start_str, "end": period.end_str}
+        #assert 0
+
+    def test_properties(self):
+        state = 0
+        period = TimeProgPeriod(0, 0, 0, 0)
+        entry = TimeProgEntry(state, period)
+        assert entry.state == state
+        assert entry.period == period
+        assert entry.period is not period  # entry.period should be a "deepcopy" of period
+        entry.state = 123
+        assert entry.state == 123
+        period = TimeProgPeriod(21, 22, 23, 24)
+        entry.period = period
+        assert entry.period == period
+        assert entry.period is not period  # entry.period should be a "deepcopy" of period
         #assert 0
 
 
