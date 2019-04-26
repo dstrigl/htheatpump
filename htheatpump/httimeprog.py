@@ -134,10 +134,21 @@ class TimeProgPeriod:
         return "{:02d}:{:02d}-{:02d}:{:02d}".format(self._start_hour, self.start_minute,
                                                     self.end_hour, self._end_minute)
 
-    def as_dict(self) -> Dict:
+    def as_dict(self) -> Dict[str, object]:
         """ Create a dict representation of this time program period.
 
         :returns: A dict representing this time program period.
+        :rtype: ``dict``
+        """
+        return {
+            "start": (self._start_hour, self._start_minute),
+            "end": (self._end_hour, self._end_minute),
+        }
+
+    def as_json(self) -> Dict[str, object]:
+        """ Create a json-readable dict representation of this time program period.
+
+        :returns: A json-readable dict representing this time program period.
         :rtype: ``dict``
         """
         return {
@@ -284,14 +295,24 @@ class TimeProgEntry:
     def __str__(self) -> str:
         return "state={:d}, time={!s}".format(self._state, self._period)
 
-    def as_dict(self) -> Dict:
+    def as_dict(self) -> Dict[str, object]:
         """ Create a dict representation of this time program entry.
 
         :returns: A dict representing this time program entry.
         :rtype: ``dict``
         """
-        ret = {"state": self._state}
+        ret = {"state": self._state}  # type: Dict[str, object]
         ret.update(self._period.as_dict())
+        return ret
+
+    def as_json(self) -> Dict[str, object]:
+        """ Create a json-readable dict representation of this time program entry.
+
+        :returns: A json-readable dict representing this time program entry.
+        :rtype: ``dict``
+        """
+        ret = {"state": self._state}  # type: Dict[str, object]
+        ret.update(self._period.as_json())
         return ret
 
     @property
@@ -371,21 +392,48 @@ class TimeProgram:
             self._index, self._name, self._entries_a_day, self._number_of_states, self._step_size,
             self._number_of_days, "..." if any_entries else "")
 
-    def as_dict(self) -> Dict:
+    def as_dict(self, with_entries: bool = True) -> Dict[str, object]:
         """ Create a dict representation of this time program.
 
+        :param with_entries: Determines whether the single time program entries should be included or not.
+            Default is :const:`True`.
+        :type with_entries: bool
         :returns: A dict representing this time program.
         :rtype: ``dict``
         """
-        return {
+        ret = {
             "index": self._index,           # index of the time program
             "name": self._name,             # name of the time program
             "ead": self._entries_a_day,     # entries-a-day (?)
             "nos": self._number_of_states,  # number-of-states (?)
             "ste": self._step_size,         # step-size [in minutes] (?)
             "nod": self._number_of_days,    # number-of-days (?)
-            "entries": self._entries,       # the time program entries itself
         }
+        if with_entries:                    # the time program entries itself
+            ret.update({"entries": self._entries})
+        return ret
+
+    def as_json(self, with_entries: bool = True) -> Dict[str, object]:
+        """ Create a json-readable dict representation of this time program.
+
+        :param with_entries: Determines whether the single time program entries should be included or not.
+            Default is :const:`True`.
+        :type with_entries: bool
+        :returns: A json-readable dict representing this time program.
+        :rtype: ``dict``
+        """
+        ret = {
+            "index": self._index,           # index of the time program
+            "name": self._name,             # name of the time program
+            "ead": self._entries_a_day,     # entries-a-day (?)
+            "nos": self._number_of_states,  # number-of-states (?)
+            "ste": self._step_size,         # step-size [in minutes] (?)
+            "nod": self._number_of_days,    # number-of-days (?)
+        }
+        if with_entries:                    # the time program entries itself
+            ret.update({"entries": [[entry.as_json() if entry is not None else None for entry in day_entries]
+                                    for day_entries in self._entries]})
+        return ret
 
     @property
     def index(self) -> int:

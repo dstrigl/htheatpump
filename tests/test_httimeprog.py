@@ -138,8 +138,22 @@ class TestTimeProgPeriod:
     ])
     def test_as_dict(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int):
         assert TimeProgPeriod(start_hour, start_minute, end_hour, end_minute).as_dict() ==\
+            {"start": (start_hour, start_minute), "end": (end_hour, end_minute)}
+        #assert 0
+
+    @pytest.mark.parametrize("start_hour, start_minute, end_hour, end_minute", [
+        ( 0,  0,  0,  0),
+        (24,  0, 24,  0),
+        ( 3, 45,  4,  0),
+        (12, 45, 23, 15),
+        ( 2, 10,  3, 35),
+        (23, 45, 24,  0),
+        # ...
+    ])
+    def test_as_json(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int):
+        assert TimeProgPeriod(start_hour, start_minute, end_hour, end_minute).as_json() ==\
             {"start": "{:02d}:{:02d}".format(start_hour, start_minute),
-             "end"  : "{:02d}:{:02d}".format(end_hour, end_minute),
+             "end": "{:02d}:{:02d}".format(end_hour, end_minute),
              }
         #assert 0
 

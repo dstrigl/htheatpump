@@ -171,7 +171,7 @@ Simple HTTP server which provides the possibility to access the Heliotherm heat 
       query for the last fault message of the heat pump
   * http://ip:port/faultlist
       query for the whole fault list of the heat pump
-  * http://ip:port/timeprogs
+  * http://ip:port/timeprog
       query for the list of available time programs of the heat pump
   * http://ip:port/timeprog/<idx>
       query for a specific time program of the heat pump
@@ -179,6 +179,8 @@ Simple HTTP server which provides the possibility to access the Heliotherm heat 
       query and/or set specific parameter values of the heat pump
   * http://ip:port/param/
       query for all "known" parameter values of the heat pump
+  * http://ip:port/
+      query for some properties of the connected heat pump
 
   The result in the HTTP response is given in JSON format.
 

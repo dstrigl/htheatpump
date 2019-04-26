@@ -149,7 +149,7 @@ def main():
             # write time program entry to JSON file
             if args.json:
                 with open(args.json, 'w') as jsonfile:
-                    json.dump(time_prog_entry.as_dict(), jsonfile, indent=4, sort_keys=True)
+                    json.dump(time_prog_entry.as_json(), jsonfile, indent=4, sort_keys=True)
             # write time program entry to CSV file
             if args.csv:
                 with open(args.csv, 'w') as csvfile:
@@ -157,7 +157,7 @@ def main():
                     fieldnames = ["state", "start", "end"]
                     writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
                     writer.writeheader()
-                    writer.writerow(time_prog_entry.as_dict())
+                    writer.writerow(time_prog_entry.as_json())
 
         elif args.index is not None and args.day is not None:
             # query for the entries of a specific day of a time program of the heat pump
@@ -172,7 +172,7 @@ def main():
             # write time program entries of the specified day to JSON file
             if args.json:
                 with open(args.json, 'w') as jsonfile:
-                    json.dump([entry.as_dict() for entry in day_entries], jsonfile, indent=4, sort_keys=True)
+                    json.dump([entry.as_json() for entry in day_entries], jsonfile, indent=4, sort_keys=True)
             # write time program entries of the specified day to CSV file
             if args.csv:
                 with open(args.csv, 'w') as csvfile:
@@ -182,7 +182,7 @@ def main():
                     writer.writeheader()
                     for num in range(len(day_entries)):
                         row = {"day": args.day, "entry": num}
-                        row.update(day_entries[num].as_dict())
+                        row.update(day_entries[num].as_json())
                         writer.writerow(row)
 
         elif args.index is not None:
@@ -199,7 +199,7 @@ def main():
             # write time program entries to JSON file
             if args.json:
                 with open(args.json, 'w') as jsonfile:
-                    json.dump(time_prog.as_dict(), jsonfile, indent=4, sort_keys=True)
+                    json.dump(time_prog.as_json(), jsonfile, indent=4, sort_keys=True)
             # write time program entries to CSV file
             if args.csv:
                 with open(args.csv, 'w') as csvfile:
@@ -210,7 +210,7 @@ def main():
                     for day in range(time_prog.number_of_days):
                         for num in range(time_prog.entries_a_day):
                             row = {"day": day, "entry": num}
-                            row.update(time_prog.entry(day, num).as_dict())
+                            row.update(time_prog.entry(day, num).as_json())
                             writer.writerow(row)
 
         else:
@@ -224,7 +224,7 @@ def main():
             keys = ["index", "name", "ead", "nos", "ste", "nod"]
             data = []
             for time_prog in time_progs:
-                data.append({n: time_prog.as_dict()[n] for n in keys})
+                data.append(time_prog.as_json(with_entries=False))
             # write time programs to JSON file
             if args.json:
                 with open(args.json, 'w') as jsonfile:
