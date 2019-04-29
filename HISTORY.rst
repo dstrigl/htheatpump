@@ -4,6 +4,7 @@ History
 1.2.0 (2019-xx-xx)
 ------------------
 
+* extended the sample scripts ``hthttp.py`` to query for time programs of the heat pump
 * added new sample ``samples/httimeprog.py`` to read the time programs of the heat pump
 * added new functions to write/change time program entries of the heat pump
 * added new functions to read the time program of the heat pump (see ``HtHeatpump.get_time_prog...``)

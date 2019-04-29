@@ -20,7 +20,7 @@
 """ Tests for code in `htheatpump.httimeprog`. """
 
 import pytest
-from htheatpump.httimeprog import TimeProgPeriod, TimeProgEntry  # , TimeProgram
+from htheatpump.httimeprog import TimeProgPeriod, TimeProgEntry, TimeProgram
 
 
 class TestTimeProgPeriod:
@@ -273,6 +273,86 @@ class TestTimeProgEntry:
         entry.period = period
         assert entry.period == period
         assert entry.period is not period  # entry.period should be a "deepcopy" of period
+        #assert 0
+
+
+class TestTimeProgram:
+
+    def test_init(self):
+        time_prog = TimeProgram(0, "Name", 10, 3, 10, 7)
+        assert time_prog.index == 0
+        assert time_prog.name == "Name"
+        assert time_prog.entries_a_day == 10
+        assert time_prog.number_of_states == 3
+        assert time_prog.step_size == 10
+        assert time_prog.number_of_days == 7
+        #assert 0
+
+    def test_str(self):
+        time_prog = TimeProgram(0, "Name", 10, 3, 10, 7)
+        assert str(time_prog) ==\
+            "idx={:d}, name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}, entries=[{}]".format(
+                0, "Name", 10, 3, 10, 7, "")
+        time_prog.set_entry(0, 0, TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)))
+        assert str(time_prog) ==\
+            "idx={:d}, name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}, entries=[{}]".format(
+                0, "Name", 10, 3, 10, 7, "...")
+        #assert 0
+
+    def test_as_dict(self):
+        time_prog = TimeProgram(0, "Name", 10, 3, 10, 7)
+        assert time_prog.as_dict(False) == {"index": 0, "name": "Name", "ead": 10, "nos": 3, "ste": 10, "nod": 7}
+        assert time_prog.as_dict(True) == {"index": 0, "name": "Name", "ead": 10, "nos": 3, "ste": 10, "nod": 7,
+                                           "entries": [[None for _ in range(time_prog.entries_a_day)]
+                                                       for _ in range(time_prog.number_of_days)]}
+        #assert 0
+
+    def test_as_json(self):
+        time_prog = TimeProgram(0, "Name", 10, 3, 10, 7)
+        assert time_prog.as_json(False) == {"index": 0, "name": "Name", "ead": 10, "nos": 3, "ste": 10, "nod": 7}
+        assert time_prog.as_json(True) == {"index": 0, "name": "Name", "ead": 10, "nos": 3, "ste": 10, "nod": 7,
+                                           "entries": [[None for _ in range(time_prog.entries_a_day)]
+                                                       for _ in range(time_prog.number_of_days)]}
+        #assert 0
+
+    def test_properties(self):
+        time_prog = TimeProgram(0, "Name", 10, 3, 10, 7)
+        assert time_prog.index == 0
+        assert time_prog.name == "Name"
+        assert time_prog.entries_a_day == 10
+        assert time_prog.number_of_states == 3
+        assert time_prog.step_size == 10
+        assert time_prog.number_of_days == 7
+        #assert 0
+
+    def test_entry(self):
+        time_prog = TimeProgram(0, "Name", 10, 3, 10, 7)
+        assert time_prog.entry(0, 0) is None
+        entry = TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0))
+        time_prog.set_entry(0, 0, entry)
+        assert time_prog.entry(0, 0) == entry
+        assert time_prog.entry(0, 0) is not entry  # time_prog.entry() should be a "deepcopy" of entry
+        #assert 0
+
+    def test_entries_of_day(self):
+        time_prog = TimeProgram(0, "Name", 10, 3, 10, 7)
+        assert time_prog.entries_of_day(0) == [None for _ in range(time_prog.entries_a_day)]
+        #assert 0
+
+    @pytest.mark.parametrize("state, start_hour, start_minute, end_hour, end_minute", [
+        # -- should raise a 'ValueError':
+        (-1,  0,  0, 24,  0),
+        ( 3,  0,  0, 24,  0),
+        ( 0,  0,  1, 24,  0),
+        ( 0,  0,  0,  0, 59),
+        # ...
+    ])
+    def test_set_entry_raises_ValueError(self, state: int,
+                                         start_hour: int, start_minute: int, end_hour: int, end_minute: int):
+        time_prog = TimeProgram(0, "Name", 10, 3, 15, 7)
+        with pytest.raises(ValueError):
+            time_prog.set_entry(0, 0,
+                                TimeProgEntry(state, TimeProgPeriod(start_hour, start_minute, end_hour, end_minute)))
         #assert 0
 
 
