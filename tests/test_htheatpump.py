@@ -25,6 +25,7 @@ import datetime
 import random
 from htheatpump.htparams import HtParam, HtParams
 from htheatpump.htheatpump import HtHeatpump
+from htheatpump.httimeprog import TimeProgEntry, TimeProgram
 from typing import List
 
 
@@ -291,7 +292,45 @@ class TestHtHeatpump:
             assert HtParams[n].in_limits(v)
         #assert 0
 
-    # TODO add test(s) for get_time_prog...
+    @pytest.mark.run_if_connected
+    @pytest.mark.usefixtures("reconnect")
+    def test_get_time_progs(self, hthp: HtHeatpump):
+        ret = hthp.get_time_progs()
+        assert isinstance(ret, List), "'ret' must be of type list"
+        assert all([isinstance(time_prog, TimeProgram) for time_prog in ret])
+        # TODO
+        #assert 0
+
+    @pytest.mark.run_if_connected
+    @pytest.mark.usefixtures("reconnect")
+    @pytest.mark.parametrize("index", range(4))  # TODO range(4) -> range(len(hthp.get_time_progs()))
+    def test_get_time_prog(self, hthp: HtHeatpump, index: int):
+        ret = hthp.get_time_prog(index, with_entries=False)
+        assert isinstance(ret, TimeProgram), "'ret' must be of type TimeProgram"
+        ret = hthp.get_time_prog(index, with_entries=True)
+        assert isinstance(ret, TimeProgram), "'ret' must be of type TimeProgram"
+        # TODO
+        #assert 0
+
+    @pytest.mark.run_if_connected
+    @pytest.mark.usefixtures("reconnect")
+    @pytest.mark.parametrize("index, day, num", [
+        (0, 0, 0),
+        (0, 1, 1),
+        (0, 2, 2),
+        (0, 3, 3),
+        (0, 4, 4),
+        (0, 5, 5),
+        (0, 6, 6),
+        # ... TODO
+    ])
+    def test_get_time_prog_entry(self, hthp: HtHeatpump, index: int, day: int, num: int):
+        ret = hthp.get_time_prog_entry(index, day, num)
+        assert isinstance(ret, TimeProgEntry), "'ret' must be of type TimeProgEntry"
+        # TODO
+        #assert 0
+
+    # TODO add test which raises an error for an invalid get_time_prog_entry() call
 
 
 # TODO: add some more tests here
