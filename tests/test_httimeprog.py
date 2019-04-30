@@ -286,6 +286,8 @@ class TestTimeProgram:
         assert time_prog.number_of_states == 3
         assert time_prog.step_size == 10
         assert time_prog.number_of_days == 7
+        assert len(time_prog._entries) == time_prog.number_of_days
+        assert all([len(entries_of_day) == time_prog.entries_a_day for entries_of_day in time_prog._entries])
         #assert 0
 
     def test_str(self):
@@ -325,18 +327,32 @@ class TestTimeProgram:
         assert time_prog.number_of_days == 7
         #assert 0
 
-    def test_entry(self):
+    @pytest.mark.parametrize("day, num", [(day, num) for day in range(7) for num in range(7)])
+    def test_entry(self, day: int, num: int):
         time_prog = TimeProgram(0, "Name", 10, 3, 10, 7)
-        assert time_prog.entry(0, 0) is None
+        assert time_prog.entry(day, num) is None
         entry = TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0))
-        time_prog.set_entry(0, 0, entry)
-        assert time_prog.entry(0, 0) == entry
-        assert time_prog.entry(0, 0) is not entry  # time_prog.entry() should be a "deepcopy" of entry
+        time_prog.set_entry(day, num, entry)
+        assert time_prog.entry(day, num) == entry
+        assert time_prog.entry(day, num) is not entry  # time_prog.entry() should be a "deepcopy" of entry
         #assert 0
 
-    def test_entries_of_day(self):
+    def test_entry_raises_IndexError(self):
         time_prog = TimeProgram(0, "Name", 10, 3, 10, 7)
-        assert time_prog.entries_of_day(0) == [None for _ in range(time_prog.entries_a_day)]
+        with pytest.raises(IndexError):
+            time_prog.entry(time_prog.number_of_days, 0)
+        with pytest.raises(IndexError):
+            time_prog.entry(0, time_prog.entries_a_day)
+        with pytest.raises(IndexError):
+            time_prog.entry(time_prog.number_of_days, time_prog.entries_a_day)
+        #assert 0
+
+    @pytest.mark.parametrize("day", range(7))
+    def test_entries_of_day(self, day: int):
+        time_prog = TimeProgram(0, "Name", 10, 3, 10, 7)
+        entries_of_day = time_prog.entries_of_day(day)
+        assert len(entries_of_day) == time_prog.entries_a_day
+        assert entries_of_day == [None for _ in range(time_prog.entries_a_day)]
         #assert 0
 
     @pytest.mark.parametrize("state, start_hour, start_minute, end_hour, end_minute", [
@@ -353,6 +369,15 @@ class TestTimeProgram:
         period = TimeProgPeriod(start_hour, start_minute, end_hour, end_minute)
         with pytest.raises(ValueError):
             time_prog.set_entry(0, 0, TimeProgEntry(state, period))
+        #assert 0
+
+    def test_set_entry_raises_IndexError(self):
+        time_prog = TimeProgram(0, "Name", 10, 3, 15, 7)
+        entry = TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0))
+        with pytest.raises(IndexError):
+            time_prog.set_entry(time_prog.number_of_days, 0, entry)
+        with pytest.raises(IndexError):
+            time_prog.set_entry(0, time_prog.entries_a_day, entry)
         #assert 0
 
 
