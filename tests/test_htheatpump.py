@@ -371,7 +371,7 @@ class TestHtHeatpump:
     @pytest.mark.usefixtures("reconnect")
     def test_get_time_prog_entry_raises_IOError(self, hthp: HtHeatpump):
         with pytest.raises(IOError):
-            hthp.get_time_prog_entry(5, 7, 0)  # index=5 is invalid
+            hthp.get_time_prog_entry(5, 0, 0)  # index=5 is invalid
         with pytest.raises(IOError):
             hthp.get_time_prog_entry(0, 7, 0)  # day=7 is invalid
         with pytest.raises(IOError):
