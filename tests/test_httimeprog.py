@@ -350,9 +350,9 @@ class TestTimeProgram:
     def test_set_entry_raises_ValueError(self, state: int,
                                          start_hour: int, start_minute: int, end_hour: int, end_minute: int):
         time_prog = TimeProgram(0, "Name", 10, 3, 15, 7)
+        period = TimeProgPeriod(start_hour, start_minute, end_hour, end_minute)
         with pytest.raises(ValueError):
-            time_prog.set_entry(0, 0,
-                                TimeProgEntry(state, TimeProgPeriod(start_hour, start_minute, end_hour, end_minute)))
+            time_prog.set_entry(0, 0, TimeProgEntry(state, period))
         #assert 0
 
 
