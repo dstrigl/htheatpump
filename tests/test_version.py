@@ -23,6 +23,6 @@ from htheatpump.version import Version
 
 
 def test_VersionClass():
-    version = Version('package-name', 1, 2, 3)
-    assert version.short() == '1.2.3'
-    assert str(version) == '[package-name, version 1.2.3]'
+    version = Version("package-name", 1, 2, 3)
+    assert version.short() == "1.2.3"
+    assert str(version) == "[package-name, version 1.2.3]"
