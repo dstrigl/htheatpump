@@ -343,8 +343,8 @@ class TestHtHeatpump:
     def test_get_time_progs(self, hthp: HtHeatpump):
         time_progs = hthp.get_time_progs()
         assert isinstance(time_progs, List), "'time_progs' must be of type list"
-        assert all([isinstance(time_prog, TimeProgram) for time_prog in time_progs])
         assert len(time_progs) > 0
+        assert all([isinstance(time_prog, TimeProgram) for time_prog in time_progs])
         #assert 0
 
     @pytest.mark.run_if_connected
@@ -359,6 +359,16 @@ class TestHtHeatpump:
 
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
+    @pytest.mark.parametrize("index", [-1, 5])
+    def test_get_time_prog_raises_IOError(self, hthp: HtHeatpump, index: int):
+        with pytest.raises(IOError):
+            hthp.get_time_prog(index, with_entries=False)
+        with pytest.raises(IOError):
+            hthp.get_time_prog(index, with_entries=True)
+        #assert 0
+
+    @pytest.mark.run_if_connected
+    @pytest.mark.usefixtures("reconnect")
     @pytest.mark.parametrize("index, day, num", [  # for ALL time program entries
         (index, day, num) for index in range(5) for day in range(7) for num in range(7)
     ])
@@ -369,13 +379,14 @@ class TestHtHeatpump:
 
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
-    def test_get_time_prog_entry_raises_IOError(self, hthp: HtHeatpump):
+    @pytest.mark.parametrize("index, day, num", [
+        (5, 0, 0),  # index=5 is invalid
+        (0, 7, 0),  # day=7 is invalid
+        (0, 0, 7),  # num=7 is invalid
+    ])
+    def test_get_time_prog_entry_raises_IOError(self, hthp: HtHeatpump, index: int, day: int, num: int):
         with pytest.raises(IOError):
-            hthp.get_time_prog_entry(5, 0, 0)  # index=5 is invalid
-        with pytest.raises(IOError):
-            hthp.get_time_prog_entry(0, 7, 0)  # day=7 is invalid
-        with pytest.raises(IOError):
-            hthp.get_time_prog_entry(0, 0, 7)  # num=7 is invalid
+            hthp.get_time_prog_entry(index, day, num)
         #assert 0
 
     @pytest.mark.run_if_connected

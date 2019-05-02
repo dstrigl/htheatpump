@@ -9,4 +9,11 @@ Development Lead
 Contributors
 ------------
 
-None yet. Why not be the first?
+Thanks to
+
+* Kilian,
+* Hans,
+* Alois and
+* Simon
+
+for their contribution with testing the functionality of this module.
