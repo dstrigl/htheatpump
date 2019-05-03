@@ -205,7 +205,10 @@ class TestHtHeatpump:
         assert isinstance(size, int), "'size' must be of type int"
         assert size >= 0
         for i in range(size):
-            entry = hthp.get_fault_list(i)
+            fault_list = hthp.get_fault_list(i)
+            assert isinstance(fault_list, list), "'fault_list' must be of type list"
+            assert len(fault_list) == 1
+            entry = fault_list[0]
             assert isinstance(entry, dict), "'entry' must be of type dict"
             index = entry["index"]
             assert isinstance(index, int), "'index' must be of type int"
