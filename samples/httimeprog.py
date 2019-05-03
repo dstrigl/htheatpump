@@ -23,9 +23,12 @@
 
     .. code-block:: shell
 
-       $ python3 httimeprog.py --device /dev/ttyUSB1 --baudrate 9600 1
-       TODO
-       ...
+       $ python3 httimeprog.py --device /dev/ttyUSB1 --baudrate 9600
+       idx=0, name='Warmwasser', ead=7, nos=2, ste=15, nod=7, entries=[]
+       idx=1, name='Zirkulationspumpe', ead=7, nos=2, ste=15, nod=7, entries=[]
+       idx=2, name='Heizung', ead=7, nos=3, ste=15, nod=7, entries=[]
+       idx=3, name='Mischer 1', ead=7, nos=3, ste=15, nod=7, entries=[]
+       idx=4, name='Mischer 2', ead=7, nos=3, ste=15, nod=7, entries=[]
 """
 
 import sys
@@ -47,9 +50,12 @@ def main():
 
             Example:
 
-              $ python3 %(prog)s --device /dev/ttyUSB1 1
-              TODO
-              ...
+              $ python3 %(prog)s --device /dev/ttyUSB1 --baudrate 9600
+              idx=0, name='Warmwasser', ead=7, nos=2, ste=15, nod=7, entries=[]
+              idx=1, name='Zirkulationspumpe', ead=7, nos=2, ste=15, nod=7, entries=[]
+              idx=2, name='Heizung', ead=7, nos=3, ste=15, nod=7, entries=[]
+              idx=3, name='Mischer 1', ead=7, nos=3, ste=15, nod=7, entries=[]
+              idx=4, name='Mischer 2', ead=7, nos=3, ste=15, nod=7, entries=[]
             '''),
         formatter_class = argparse.RawDescriptionHelpFormatter,
         epilog = textwrap.dedent('''\

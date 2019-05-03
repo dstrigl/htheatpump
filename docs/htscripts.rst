@@ -252,6 +252,12 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/httimeprog.py
 
 .. code-block:: shell
 
-    $ python3 python3 httimeprog.py --device /dev/ttyUSB1 --csv timeprog.csv 1
-    TODO
-    ...
+    $ python3 python3 httimeprog.py --device /dev/ttyUSB1 --csv timeprog.csv 1 1
+    [idx=1]: idx=1, name='Zirkulationspumpe', ead=7, nos=2, ste=15, nod=7, entries=[...]
+    [day=1, entry=0]: state=0, time=00:00-06:00
+    [day=1, entry=1]: state=1, time=06:00-08:00
+    [day=1, entry=2]: state=0, time=08:00-11:30
+    [day=1, entry=3]: state=1, time=11:30-14:00
+    [day=1, entry=4]: state=0, time=14:00-18:00
+    [day=1, entry=5]: state=1, time=18:00-20:00
+    [day=1, entry=6]: state=0, time=20:00-24:00
