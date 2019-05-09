@@ -60,7 +60,7 @@ class Version:
         return "{:d}.{:d}.{:d}".format(self.major, self.minor, self.patch)
 
     def __str__(self) -> str:
-        """ Returns a string representation of the object.
+        """ Return a string representation of the object.
 
         :returns: A string representation of this object.
         :rtype: ``str``

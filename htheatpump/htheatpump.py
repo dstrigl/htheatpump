@@ -1351,17 +1351,16 @@ class HtHeatpump:
                 idx, name, ead, nos, ste, nod))
             time_prog = TimeProgram(idx, name, ead, nos, ste, nod)
             # read the single time program entries for each day
-            for day in range(nod):
-                for num in range(ead):
-                    resp = self.read_response()  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
-                    m = re.match(PRD_RESP[1].format(idx, day, num), resp)
-                    if not m:
-                        raise IOError("invalid response for PRD command [{!r}]".format(resp))
-                    # extract data (ST, BEG, END)
-                    st, beg, end = m.group(1, 2, 3)
-                    _logger.debug("[idx={:d}, day={:d}, entry={:d}]: st={}, beg={}, end={}".format(
-                        idx, day, num, st, beg, end))
-                    time_prog.set_entry(day, num, TimeProgEntry.from_str(st, beg, end))
+            for (day, num) in [(day, num) for day in range(nod) for num in range(ead)]:
+                resp = self.read_response()  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
+                m = re.match(PRD_RESP[1].format(idx, day, num), resp)
+                if not m:
+                    raise IOError("invalid response for PRD command [{!r}]".format(resp))
+                # extract data (ST, BEG, END)
+                st, beg, end = m.group(1, 2, 3)
+                _logger.debug("[idx={:d}, day={:d}, entry={:d}]: st={}, beg={}, end={}".format(
+                    idx, day, num, st, beg, end))
+                time_prog.set_entry(day, num, TimeProgEntry.from_str(st, beg, end))
             return time_prog
         except Exception as e:
             _logger.error("query for time program with entries failed: {!s}".format(e))
@@ -1479,15 +1478,15 @@ class HtHeatpump:
         """
         assert isinstance(time_prog, TimeProgram)
         ret = copy.deepcopy(time_prog)
-        for day in range(time_prog.number_of_days):
-            for num in range(time_prog.entries_a_day):
-                entry = time_prog.entry(day, num)
-                _logger.debug("[idx={:d}, day={:d}, entry={:d}]: {!s}".format(time_prog.index, day, num, entry))
-                if entry is not None:
-                    entry = self.set_time_prog_entry(time_prog.index, day, num, entry)
-                else:
-                    entry = self.get_time_prog_entry(time_prog.index, day, num)
-                ret.set_entry(day, num, entry)
+        for (day, num) in [(day, num) for day in range(time_prog.number_of_days)
+                           for num in range(time_prog.entries_a_day)]:
+            entry = time_prog.entry(day, num)
+            _logger.debug("[idx={:d}, day={:d}, entry={:d}]: {!s}".format(time_prog.index, day, num, entry))
+            if entry is not None:
+                entry = self.set_time_prog_entry(time_prog.index, day, num, entry)
+            else:
+                entry = self.get_time_prog_entry(time_prog.index, day, num)
+            ret.set_entry(day, num, entry)
         return ret
 
 

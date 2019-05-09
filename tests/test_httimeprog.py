@@ -128,6 +128,9 @@ class TestTimeProgPeriod:
         #assert 0
 
     def test_eq(self):
+        assert TimeProgPeriod(0, 0, 0, 0) != None  # noqa: E711
+        with pytest.raises(TypeError):
+            TimeProgPeriod(0, 0, 0, 0) != 123
         assert TimeProgPeriod(0, 0, 0, 0) == TimeProgPeriod(0, 0, 0, 0)
         assert TimeProgPeriod(0, 0, 0, 0) != TimeProgPeriod(0, 0, 0, 1)
         assert TimeProgPeriod(0, 0, 0, 0) != TimeProgPeriod(0, 0, 1, 0)
@@ -238,6 +241,9 @@ class TestTimeProgEntry:
         #assert 0
 
     def test_eq(self):
+        assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) != None  # noqa: E711
+        with pytest.raises(TypeError):
+            TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) != 123
         assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) == TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0))
         assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) != TimeProgEntry(1, TimeProgPeriod(0, 0, 0, 0))
         assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) != TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 1))

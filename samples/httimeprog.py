@@ -197,10 +197,10 @@ def main():
                 time_prog = hp.get_time_prog(args.index, with_entries=True)
             exec_time = timer.elapsed
             print("[idx={:d}]: {!s}".format(args.index, time_prog))
-            for day in range(time_prog.number_of_days):
-                for num in range(time_prog.entries_a_day):
-                    entry = time_prog.entry(day, num)
-                    print("[day={:d}, entry={:d}]: {!s}".format(day, num, entry))
+            for (day, num) in [(day, num) for day in range(time_prog.number_of_days)
+                               for num in range(time_prog.entries_a_day)]:
+                entry = time_prog.entry(day, num)
+                print("[day={:d}, entry={:d}]: {!s}".format(day, num, entry))
 
             # write time program entries to JSON file
             if args.json:
@@ -213,11 +213,11 @@ def main():
                     fieldnames = ["day", "entry", "state", "start", "end"]
                     writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
                     writer.writeheader()
-                    for day in range(time_prog.number_of_days):
-                        for num in range(time_prog.entries_a_day):
-                            row = {"day": day, "entry": num}
-                            row.update(time_prog.entry(day, num).as_json())
-                            writer.writerow(row)
+                    for (day, num) in [(day, num) for day in range(time_prog.number_of_days)
+                                       for num in range(time_prog.entries_a_day)]:
+                        row = {"day": day, "entry": num}
+                        row.update(time_prog.entry(day, num).as_json())
+                        writer.writerow(row)
 
         else:
             # query for all available time programs of the heat pump

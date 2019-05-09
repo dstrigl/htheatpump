@@ -131,11 +131,26 @@ class TimeProgPeriod:
         self._end_hour, self._end_minute = end_hour, end_minute
 
     def __str__(self) -> str:
+        """ Return a string representation of this time program period.
+
+        :returns: A string representation of this time program period.
+        :rtype: ``str``
+        """
         return "{:02d}:{:02d}-{:02d}:{:02d}".format(self._start_hour, self.start_minute,
                                                     self.end_hour, self._end_minute)
 
     def __eq__(self, other):
-        assert isinstance(other, TimeProgPeriod)
+        """ Implement the equal operator.
+
+        :param other: Another instance of :class:`~TimeProgPeriod` to check against.
+        :returns: :const:`True` if we check against the same subclass and the raw values matches,
+            :const:`False` otherwise.
+        :rtype: ``bool``
+        """
+        if other is None:
+            return False
+        if not isinstance(other, self.__class__):
+            raise TypeError()
         return self._start_hour == other.start_hour and self._start_minute == other.start_minute\
             and self._end_hour == other.end_hour and self._end_minute == other.end_minute
 
@@ -298,10 +313,25 @@ class TimeProgEntry:
         self._period = copy.deepcopy(period)
 
     def __str__(self) -> str:
+        """ Return a string representation of this time program entry.
+
+        :returns: A string representation of this time program entry.
+        :rtype: ``str``
+        """
         return "state={:d}, time={!s}".format(self._state, self._period)
 
     def __eq__(self, other):
-        assert isinstance(other, TimeProgEntry)
+        """ Implement the equal operator.
+
+        :param other: Another instance of :class:`~TimeProgEntry` to check against.
+        :returns: :const:`True` if we check against the same subclass and the raw values matches,
+            :const:`False` otherwise.
+        :rtype: ``bool``
+        """
+        if other is None:
+            return False
+        if not isinstance(other, self.__class__):
+            raise TypeError()
         return self._state == other.state and self._period == other.period
 
     def as_dict(self) -> Dict[str, object]:
@@ -396,6 +426,11 @@ class TimeProgram:
                 entry.period.end_str, self._step_size))
 
     def __str__(self) -> str:
+        """ Return a string representation of this time program.
+
+        :returns: A string representation of this time program.
+        :rtype: ``str``
+        """
         any_entries = sum([1 for entry in chain.from_iterable(self._entries) if entry is not None]) > 0
         return "idx={:d}, name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}, entries=[{}]".format(
             self._index, self._name, self._entries_a_day, self._number_of_states, self._step_size,
