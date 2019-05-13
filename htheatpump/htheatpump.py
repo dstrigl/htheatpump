@@ -78,12 +78,18 @@ class VerifyAction(enum.Enum):
         temp = hp.get_param("Temp. Aussen")
         ...
     """
-    NONE = set()  # type: Set
     NAME = 1
     MIN = 2
     MAX = 3
     VALUE = 4
-    ALL = {NAME, MIN, MAX, VALUE}
+
+    @staticmethod
+    def NONE() -> Set["VerifyAction"]:
+        return set()
+
+    @staticmethod
+    def ALL() -> Set["VerifyAction"]:
+        return {VerifyAction.NAME, VerifyAction.MIN, VerifyAction.MAX, VerifyAction.VALUE}
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -342,6 +348,13 @@ class HtHeatpump:
         # close the connection if still established
         if self._ser and self._ser.is_open:
             self._ser.close()
+
+    def __enter__(self) -> "HtHeatpump":
+        self.open_connection()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        self.close_connection()
 
     def open_connection(self) -> None:
         """ Open the serial connection with the defined settings.

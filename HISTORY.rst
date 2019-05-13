@@ -4,6 +4,7 @@ History
 1.2.0 (2019-xx-xx)
 ------------------
 
+* added support for Python's "with" statement for the ``HtHeatpump`` class
 * added some more unit-tests
 * extended the sample scripts ``hthttp.py`` to query for time programs of the heat pump
 * added new sample ``samples/httimeprog.py`` to read the time programs of the heat pump

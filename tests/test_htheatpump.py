@@ -23,8 +23,8 @@ import pytest
 import re
 import datetime
 import random
-from htheatpump.htparams import HtParam, HtParams
-from htheatpump.htheatpump import HtHeatpump
+from htheatpump.htparams import HtDataTypes, HtParam, HtParams
+from htheatpump.htheatpump import HtHeatpump, VerifyAction
 from htheatpump.httimeprog import TimeProgEntry, TimeProgram
 from typing import List
 
@@ -81,6 +81,26 @@ def test_create_request(cmd: str, result: bytes):
     #assert 0
 
 
+@pytest.mark.run_if_connected
+def test_HtHeatpump_init_del(cmdopt_device: str, cmdopt_baudrate: int):
+    hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
+    assert not hp.is_open
+    hp.open_connection()
+    assert hp.is_open
+    del hp  # HtHeatpump.__del__ should be executed here!
+    #assert 0
+
+
+@pytest.mark.run_if_connected
+def test_HtHeatpump_enter_exit(cmdopt_device: str, cmdopt_baudrate: int):
+    with HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate) as hp:
+        assert hp is not None
+        assert hp.is_open
+    assert hp is not None
+    assert not hp.is_open
+    #assert 0
+
+
 @pytest.fixture(scope="class")
 def hthp(cmdopt_device: str, cmdopt_baudrate: int):
     hthp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
@@ -100,6 +120,41 @@ def reconnect(hthp: HtHeatpump):
 
 
 class TestHtHeatpump:
+    @pytest.mark.run_if_connected
+    def test_open_connection(self, hthp: HtHeatpump):
+        assert hthp.is_open
+        with pytest.raises(IOError):
+            hthp.open_connection()
+        #assert 0
+
+    def test_verify_param_action(self, cmdopt_device: str, cmdopt_baudrate: int):
+        hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
+        val = hp.verify_param_action
+        assert isinstance(val, set)
+        hp.verify_param_action = VerifyAction.NONE()
+        hp.verify_param_action = VerifyAction.ALL()
+        hp.verify_param_action = val
+        #assert 0
+
+    def test_verify_param_error(self, cmdopt_device: str, cmdopt_baudrate: int):
+        hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
+        val = hp.verify_param_error
+        assert isinstance(val, bool)
+        hp.verify_param_error = val
+        #assert 0
+
+    def test_send_request(self, cmdopt_device: str, cmdopt_baudrate: int):
+        hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
+        with pytest.raises(IOError):
+            hp.send_request(r"LIN")
+        #assert 0
+
+    def test_read_response(self, cmdopt_device: str, cmdopt_baudrate: int):
+        hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
+        with pytest.raises(IOError):
+            hp.read_response()
+        #assert 0
+
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
     def test_get_serial_number(self, hthp: HtHeatpump):
@@ -146,6 +201,12 @@ class TestHtHeatpump:
     @pytest.mark.usefixtures("reconnect")
     def test_set_date_time(self, hthp: HtHeatpump):
         pass  # TODO
+        #assert 0
+
+    def test_set_date_time_raises_TypeError(self, cmdopt_device: str, cmdopt_baudrate: int):
+        hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
+        with pytest.raises(TypeError):
+            hp.set_date_time(123)  # type: ignore
         #assert 0
 
     @pytest.mark.run_if_connected
@@ -262,11 +323,33 @@ class TestHtHeatpump:
         assert param.in_limits(value)
         #assert 0
 
+    def test_get_param_raises_KeyError(self, cmdopt_device: str, cmdopt_baudrate: int):
+        hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
+        with pytest.raises(KeyError):
+            hp.get_param("BlaBlaBla")
+        #assert 0
+
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
     @pytest.mark.parametrize("name, param", HtParams.items())
     def test_set_param(self, hthp: HtHeatpump, name: str, param: HtParam):
         pass  # TODO
+        #assert 0
+
+    def test_set_param_raises_KeyError(self, cmdopt_device: str, cmdopt_baudrate: int):
+        hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
+        with pytest.raises(KeyError):
+            hp.set_param("BlaBlaBla", 123)
+        #assert 0
+
+    @pytest.mark.parametrize("name, param", [(name, param) for name, param in HtParams.items()
+                                             if param.data_type in (HtDataTypes.INT, HtDataTypes.FLOAT)])
+    def test_set_param_raises_ValueError(self, cmdopt_device: str, cmdopt_baudrate: int, name: str, param: HtParam):
+        hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
+        with pytest.raises(ValueError):
+            hp.set_param(name, param.min_val - 1, ignore_limits=False)  # type: ignore
+        with pytest.raises(ValueError):
+            hp.set_param(name, param.max_val + 1, ignore_limits=False)  # type: ignore
         #assert 0
 
     @pytest.mark.run_if_connected
@@ -339,6 +422,20 @@ class TestHtHeatpump:
             assert not names or n in names
             assert v is not None
             assert HtParams[n].in_limits(v)
+        #assert 0
+
+    def test_fast_query_with_names_raises_KeyError(self, cmdopt_device: str, cmdopt_baudrate: int):
+        hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
+        with pytest.raises(KeyError):
+            hp.fast_query("BlaBlaBla")
+        #assert 0
+
+    @pytest.mark.parametrize("names", [random.sample(HtParams.of_type("SP").keys(), cnt)
+                                       for cnt in range(1, len(HtParams.of_type("SP")) + 1)])
+    def test_fast_query_with_names_raises_ValueError(self, cmdopt_device: str, cmdopt_baudrate: int, names: List[str]):
+        hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
+        with pytest.raises(ValueError):
+            hp.fast_query(*names)
         #assert 0
 
     @pytest.mark.run_if_connected
