@@ -57,12 +57,10 @@ _login_retries = 2   # type: int
 class VerifyAction(enum.Enum):
     """ Possible actions for the parameter verification:
 
-    * ``NONE``  No verification, shortcut for ``{}`` (empty set).
     * ``NAME``  Verification of the parameter name.
     * ``MIN``   Verification of the minimal value of the parameter.
     * ``MAX``   Verification of the maximal value of the parameter.
     * ``VALUE`` Verification of the current parameter value.
-    * ``ALL``   All of the above actions, shortcut for ``{NAME, MIN, MAX, VALUE}``.
 
     The above enum entries can be used to specify the steps which should be performed
     during a parameter verification, e.g.::
@@ -85,10 +83,12 @@ class VerifyAction(enum.Enum):
 
     @staticmethod
     def NONE() -> Set["VerifyAction"]:
+        """ No verification, shortcut for ``{}`` (empty set). """
         return set()
 
     @staticmethod
     def ALL() -> Set["VerifyAction"]:
+        """ Verification of all possible actions, shortcut for ``{NAME, MIN, MAX, VALUE}``. """
         return {VerifyAction.NAME, VerifyAction.MIN, VerifyAction.MAX, VerifyAction.VALUE}
 
 
