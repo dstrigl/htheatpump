@@ -8,7 +8,7 @@ Tested with:
   * Heliotherm HP08S10W-WEB, SW 3.0.20
   * Heliotherm HP10S12W-WEB, SW 3.0.8
   * Heliotherm HP08E-K-BC, SW 3.0.7B
-  * Heliotherm HP05S07W-WEB, SW 3.0.17
+  * Heliotherm HP05S07W-WEB, SW 3.0.17 (and SW 3.0.37)  # TODO: same type?
   * Heliotherm HP12L-M-BC, SW 3.0.21
 
 
