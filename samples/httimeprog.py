@@ -159,9 +159,9 @@ def main():
             # write time program entry to CSV file
             if args.csv:
                 with open(args.csv, 'w') as csvfile:
-                    csvfile.write("# idx={:d}, day={:d}, entry={:d}".format(args.index, args.day, args.entry))
+                    csvfile.write("# idx={:d}, day={:d}, entry={:d}".format(args.index, args.day, args.entry))  # TODO
                     fieldnames = ["state", "start", "end"]
-                    writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
+                    writer = csv.DictWriter(csvfile, delimiter=',', fieldnames=fieldnames)
                     writer.writeheader()
                     writer.writerow(time_prog_entry.as_json())
 
@@ -182,9 +182,9 @@ def main():
             # write time program entries of the specified day to CSV file
             if args.csv:
                 with open(args.csv, 'w') as csvfile:
-                    csvfile.write("# {!s}\n".format(time_prog))
+                    csvfile.write("# {!s}\n".format(time_prog))  # TODO
                     fieldnames = ["day", "entry", "state", "start", "end"]
-                    writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
+                    writer = csv.DictWriter(csvfile, delimiter=',', fieldnames=fieldnames)
                     writer.writeheader()
                     for num in range(len(day_entries)):
                         row = {"day": args.day, "entry": num}
@@ -209,9 +209,9 @@ def main():
             # write time program entries to CSV file
             if args.csv:
                 with open(args.csv, 'w') as csvfile:
-                    csvfile.write("# {!s}\n".format(time_prog))
+                    csvfile.write("# {!s}\n".format(time_prog))  # TODO
                     fieldnames = ["day", "entry", "state", "start", "end"]
-                    writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
+                    writer = csv.DictWriter(csvfile, delimiter=',', fieldnames=fieldnames)
                     writer.writeheader()
                     for (day, num) in [(day, num) for day in range(time_prog.number_of_days)
                                        for num in range(time_prog.entries_a_day)]:
@@ -238,7 +238,7 @@ def main():
             # write time programs to CSV file
             if args.csv:
                 with open(args.csv, 'w') as csvfile:
-                    writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=keys)
+                    writer = csv.DictWriter(csvfile, delimiter=',', fieldnames=keys)
                     writer.writeheader()
                     writer.writerows(data)
 

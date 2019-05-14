@@ -194,7 +194,7 @@ def main():
         if args.csv:  # write result to CSV file
             with open(args.csv, 'w') as csvfile:
                 fieldnames = ["type", "number", "name", "value", "min", "max"]
-                writer = csv.DictWriter(csvfile, delimiter='\t', fieldnames=fieldnames)
+                writer = csv.DictWriter(csvfile, delimiter=',', fieldnames=fieldnames)
                 writer.writeheader()
                 for dp_type, content in sorted(result.items(), reverse=True):
                     for i, data in content.items():
