@@ -5,10 +5,10 @@ History
 ------------------
 
 * added support for Python's "with" statement for the ``HtHeatpump`` class
-* added some more unit-tests
+* added some more unit-tests (especially for the time program functions)
 * extended the sample scripts ``hthttp.py`` to query for time programs of the heat pump
 * added new sample ``samples/httimeprog.py`` to read the time programs of the heat pump
-* added new functions to write/change time program entries of the heat pump
+* added new functions to write/change time program entries of the heat pump (see ``HtHeatpump.set_time_prog...``)
 * added new functions to read the time program of the heat pump (see ``HtHeatpump.get_time_prog...``)
 * added type annotations and hints for static type checking (using ``mypy``)
 * splitted up property ``HtHeatpump.verify_param`` to ``HtHeatpump.verify_param_action``

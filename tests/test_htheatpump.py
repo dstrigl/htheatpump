@@ -127,12 +127,21 @@ class TestHtHeatpump:
             hthp.open_connection()
         #assert 0
 
-    def test_verify_param_action(self, cmdopt_device: str, cmdopt_baudrate: int):
+    @pytest.mark.parametrize("action", [VerifyAction.NONE(),
+                                        {VerifyAction.NAME},
+                                        {VerifyAction.NAME, VerifyAction.MIN},
+                                        {VerifyAction.NAME, VerifyAction.MIN, VerifyAction.MAX},
+                                        {VerifyAction.NAME, VerifyAction.MIN, VerifyAction.MAX, VerifyAction.VALUE},
+                                        {VerifyAction.MIN, VerifyAction.MAX, VerifyAction.VALUE},
+                                        {VerifyAction.MAX, VerifyAction.VALUE},
+                                        {VerifyAction.VALUE},
+                                        VerifyAction.ALL()])
+    def test_verify_param_action(self, cmdopt_device: str, cmdopt_baudrate: int, action: set):
         hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
         val = hp.verify_param_action
         assert isinstance(val, set)
-        hp.verify_param_action = VerifyAction.NONE()
-        hp.verify_param_action = VerifyAction.ALL()
+        hp.verify_param_action = action
+        assert hp.verify_param_action == action
         hp.verify_param_action = val
         #assert 0
 
@@ -140,6 +149,10 @@ class TestHtHeatpump:
         hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
         val = hp.verify_param_error
         assert isinstance(val, bool)
+        hp.verify_param_error = True
+        assert hp.verify_param_error is True
+        hp.verify_param_error = False
+        assert hp.verify_param_error is False
         hp.verify_param_error = val
         #assert 0
 
