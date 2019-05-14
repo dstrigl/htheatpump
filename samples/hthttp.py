@@ -103,7 +103,6 @@ class HttpGetHandler(BaseHTTPRequestHandler):
         parsed_path = urlparse.urlparse(self.path)
         _logger.info(parsed_path.path.lower())
 
-        result = None
         try:
             hp.reconnect()
             hp.login()
