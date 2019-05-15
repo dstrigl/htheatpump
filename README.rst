@@ -31,6 +31,7 @@ Introduction
 This library provides a pure Python interface to access `Heliotherm <http://www.heliotherm.com/>`_ heat pumps
 over a serial connection. It's compatible with Python version 3.5, 3.6 and 3.7.
 
+
 Features
 ~~~~~~~~
 
@@ -42,16 +43,7 @@ Features
 * query for several parameters of the heat pump
 * change parameter values of the heat pump
 * fast query of MP data points / parameters ("Web-Online")
-* read and write time programs of the heat pump
-
-
-Todo
-~~~~
-
-* check access right for writing parameters of the heat pump
-* add some (more) examples
-* add some (more) unit tests
-* cleanup/extend documentation
+* read and write the time programs of the heat pump
 
 
 Tested with [*]_
@@ -60,7 +52,7 @@ Tested with [*]_
 * Heliotherm HP08S10W-WEB, SW 3.0.20
 * Heliotherm HP10S12W-WEB, SW 3.0.8
 * Heliotherm HP08E-K-BC, SW 3.0.7B
-* Heliotherm HP05S07W-WEB, SW 3.0.17 (and SW 3.0.37)  # TODO: same type?
+* Heliotherm HP05S07W-WEB, SW 3.0.17 and SW 3.0.37
 * Heliotherm HP12L-M-BC, SW 3.0.21
 
   .. [*] thanks to Kilian, Hans, Alois and Simon for contribution
