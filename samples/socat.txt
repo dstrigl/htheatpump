@@ -1,3 +1,10 @@
-socat pty,link=$HOME/dev/ttyUSB0,raw,echo=0 tcp:192.168.11.90:4001
-4001:raw:0:/dev/ttyUSB0:115200 8DATABITS NONE 1STOPBIT XONOFF
+/etc/ser2net.conf (on the remote device, e.g. RPi)
+==================================================
 
+  4001:raw:0:/dev/ttyUSB0:115200 8DATABITS NONE 1STOPBIT XONOFF
+
+
+socat call (on the local device, e.g. Ubuntu)
+=============================================
+
+  socat pty,link=$HOME/dev/ttyUSB0,raw,echo=0 tcp:192.168.11.90:4001
