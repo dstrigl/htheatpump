@@ -151,13 +151,16 @@ class HtParam:
         return (self.min_val is None or self.min_val <= val) and (self.max_val is None or val <= self.max_val)
 
     @staticmethod
-    def _from_str(value: str, data_type: HtDataTypes) -> HtParamValueType:
+    def _from_str(value: str, data_type: HtDataTypes, strict: bool) -> HtParamValueType:
         """ Convert the passed value (in form of a string) to the expected data type.
 
         :param value: The passed value (in form of a string).
         :type value: str
         :param data_type: The expected data type, see :class:`HtDataTypes`.
         :type data_type: HtDataTypes
+        :param strict: Determines whether the conversion to ``float`` should be strict
+            (if :const:`False` also integers are accepted, e.g. ``'328'``).
+        :type strict: bool
         :returns: The passed value which data type matches the expected one.
         :rtype: ``bool``, ``int`` or ``float``
         :raises ValueError:
@@ -179,16 +182,18 @@ class HtParam:
         elif data_type == HtDataTypes.FLOAT:
             value = value.strip()
             ret = float(value)  # convert to floating point number
-            try:  # to be more strict, the passed string shouldn't look like an integer!
-                int(value)  # try to convert to integer -> should fail!
-            except Exception:
-                return ret
-            else:
-                raise ValueError("invalid representation for data type FLOAT ({!r})".format(value))
+            if strict:
+                try:  # to be more strict, the passed string shouldn't look like an integer!
+                    int(value)  # try to convert to integer -> should fail!
+                except Exception:
+                    pass  # ok
+                else:
+                    raise ValueError("invalid representation for data type FLOAT ({!r})".format(value))
+            return ret
         else:
             assert 0, "unsupported data type ({!r})".format(data_type)  # pragma: no cover
 
-    def from_str(self: Union["HtParam", str], arg: Union[str, HtDataTypes]) -> HtParamValueType:
+    def from_str(self: Union["HtParam", str], arg: Union[str, HtDataTypes], strict: bool = True) -> HtParamValueType:
         """ Convert the passed value (in form of a string) to the expected data type.
 
         This method can be called as a *static method*, e.g.::
@@ -198,12 +203,14 @@ class HtParam:
         or as a *member method* of :class:`HtParam`, e.g.::
 
             param = HtParams["Temp. Aussen"]
-            val = param.from_str(s)
+            val = param.from_str(s, strict=False)
 
         If the method is called as a member method of :class:`HtParam`, the expected data
         type don't have to be specified. It will be automatically determined from the
         :class:`HtParam` instance.
 
+        :param strict: Determines whether the conversion to ``float`` should be strict
+            (if :const:`False` also integers are accepted, e.g. ``'328'``).
         :returns: The passed value which data type matches the expected one.
         :rtype: ``bool``, ``int`` or ``float``
         :raises ValueError:
@@ -211,11 +218,11 @@ class HtParam:
         """
         if isinstance(self, HtParam):  # called as a member method of HtParam
             assert isinstance(arg, str)
-            return HtParam._from_str(arg, self.data_type)
+            return HtParam._from_str(arg, self.data_type, strict)
         else:  # called as a static method of HtParam
             assert isinstance(self, str)
             assert isinstance(arg, HtDataTypes)
-            return HtParam._from_str(self, arg)
+            return HtParam._from_str(self, arg, strict)
 
     @staticmethod
     def _to_str(value: HtParamValueType, data_type: HtDataTypes) -> str:

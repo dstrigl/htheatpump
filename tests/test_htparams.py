@@ -50,44 +50,45 @@ class TestHtDataTypes:
 
 
 class TestHtParam:
-    @pytest.mark.parametrize("s, data_type, exp_value", [
-        ("0", HtDataTypes.BOOL, False),
-        ("1", HtDataTypes.BOOL, True),
-        ("123", HtDataTypes.INT, 123),
-        ("-321", HtDataTypes.INT, -321),
-        ("123.456", HtDataTypes.FLOAT, 123.456),
-        ("-321.456", HtDataTypes.FLOAT, -321.456),
+    @pytest.mark.parametrize("s, data_type, exp_value, strict", [
+        ("0", HtDataTypes.BOOL, False, False),
+        ("1", HtDataTypes.BOOL, True, False),
+        ("123", HtDataTypes.INT, 123, False),
+        ("-321", HtDataTypes.INT, -321, False),
+        ("123.456", HtDataTypes.FLOAT, 123.456, False),
+        ("-321.456", HtDataTypes.FLOAT, -321.456, False),
+        ("789", HtDataTypes.FLOAT, 789.0, False),
         # -- should raise a 'ValueError':
-        ("True", HtDataTypes.BOOL, None),
-        ("False", HtDataTypes.BOOL, None),
-        ("true", HtDataTypes.BOOL, None),
-        ("false", HtDataTypes.BOOL, None),
-        ("yes", HtDataTypes.BOOL, None),
-        ("no", HtDataTypes.BOOL, None),
-        ("y", HtDataTypes.BOOL, None),
-        ("n", HtDataTypes.BOOL, None),
-        ("TRUE", HtDataTypes.BOOL, None),
-        ("FALSE", HtDataTypes.BOOL, None),
-        ("YES", HtDataTypes.BOOL, None),
-        ("NO", HtDataTypes.BOOL, None),
-        ("Y", HtDataTypes.BOOL, None),
-        ("N", HtDataTypes.BOOL, None),
-        ("abc", HtDataTypes.BOOL, None),
-        ("def", HtDataTypes.INT, None),
-        ("--99", HtDataTypes.INT, None),
-        ("12+55", HtDataTypes.INT, None),
-        ("ghi", HtDataTypes.FLOAT, None),
-        ("--99.0", HtDataTypes.FLOAT, None),
-        ("12.3+55.9", HtDataTypes.FLOAT, None),
-        ("789", HtDataTypes.FLOAT, None),
+        ("True", HtDataTypes.BOOL, None, False),
+        ("False", HtDataTypes.BOOL, None, False),
+        ("true", HtDataTypes.BOOL, None, False),
+        ("false", HtDataTypes.BOOL, None, False),
+        ("yes", HtDataTypes.BOOL, None, False),
+        ("no", HtDataTypes.BOOL, None, False),
+        ("y", HtDataTypes.BOOL, None, False),
+        ("n", HtDataTypes.BOOL, None, False),
+        ("TRUE", HtDataTypes.BOOL, None, False),
+        ("FALSE", HtDataTypes.BOOL, None, False),
+        ("YES", HtDataTypes.BOOL, None, False),
+        ("NO", HtDataTypes.BOOL, None, False),
+        ("Y", HtDataTypes.BOOL, None, False),
+        ("N", HtDataTypes.BOOL, None, False),
+        ("abc", HtDataTypes.BOOL, None, False),
+        ("def", HtDataTypes.INT, None, False),
+        ("--99", HtDataTypes.INT, None, False),
+        ("12+55", HtDataTypes.INT, None, False),
+        ("ghi", HtDataTypes.FLOAT, None, False),
+        ("--99.0", HtDataTypes.FLOAT, None, False),
+        ("12.3+55.9", HtDataTypes.FLOAT, None, False),
+        ("789", HtDataTypes.FLOAT, None, True),
         # ...
     ])
-    def test_from_str_static(self, s: str, data_type: HtDataTypes, exp_value: Optional[HtParamValueType]):
+    def test_from_str_static(self, s: str, data_type: HtDataTypes, exp_value: Optional[HtParamValueType], strict: bool):
         if exp_value is None:
             with pytest.raises(ValueError):
-                HtParam.from_str(s, data_type)
+                HtParam.from_str(s, data_type, strict)
         else:
-            assert HtParam.from_str(s, data_type) == exp_value
+            assert HtParam.from_str(s, data_type, strict) == exp_value
         #assert 0
 
     def test_from_str_static_assert(self):
