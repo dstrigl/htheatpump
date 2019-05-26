@@ -29,7 +29,11 @@ from htheatpump.httimeprog import TimeProgEntry, TimeProgram
 from typing import List
 
 
-@pytest.mark.parametrize("s, checksum", [(b"", 0x0)])  # TODO add some more samples
+@pytest.mark.parametrize("s, checksum", [(b"", 0x0),
+                                         (b"\x02\xfd\xd0\xe0\x00\x00\x05~LIN;", 0x4c),
+                                         (b"\x02\xfd\xd0\xe0\x00\x00\x06~LOUT;", 0x92),
+                                         (b"\x02\xfd\xe0\xd0\x00\x00\x06~OK;\r\n", 0x91),
+                                         (b"\x02\xfd\xd0\xe0\x00\x00\t~SP,NR=9;", 0xdc)])
 def test_calc_checksum(s: bytes, checksum: int):
     from htheatpump.htheatpump import calc_checksum
     assert calc_checksum(s) == checksum
@@ -44,7 +48,11 @@ def test_verify_checksum_raises_ValueError(s: bytes):
     #assert 0
 
 
-@pytest.mark.parametrize("s, result", [(b"\x00\x00", True)])  # TODO add some more samples
+@pytest.mark.parametrize("s, result", [(b"\x00\x00", True),
+                                       (b"\x02\xfd\xd0\xe0\x00\x00\x05~LIN;\x4c", True),
+                                       (b"\x02\xfd\xd0\xe0\x00\x00\x06~LOUT;\x92", True),
+                                       (b"\x02\xfd\xe0\xd0\x00\x00\x06~OK;\r\n\x91", True),
+                                       (b"\x02\xfd\xd0\xe0\x00\x00\t~SP,NR=9;\xdc", True)])
 def test_verify_checksum(s: bytes, result: bool):
     from htheatpump.htheatpump import verify_checksum
     assert verify_checksum(s) == result
@@ -59,7 +67,15 @@ def test_add_checksum_raises_ValueError(s: bytes):
     #assert 0
 
 
-@pytest.mark.parametrize("s, result", [(b"\x00", b"\x00\x00")])  # TODO add some more samples
+@pytest.mark.parametrize("s, result", [(b"\x00", b"\x00\x00"),
+                                       (b"\x02\xfd\xd0\xe0\x00\x00\x05~LIN;",
+                                        b"\x02\xfd\xd0\xe0\x00\x00\x05~LIN;\x4c"),
+                                       (b"\x02\xfd\xd0\xe0\x00\x00\x06~LOUT;",
+                                        b"\x02\xfd\xd0\xe0\x00\x00\x06~LOUT;\x92"),
+                                       (b"\x02\xfd\xe0\xd0\x00\x00\x06~OK;\r\n",
+                                        b"\x02\xfd\xe0\xd0\x00\x00\x06~OK;\r\n\x91"),
+                                       (b"\x02\xfd\xd0\xe0\x00\x00\t~SP,NR=9;",
+                                        b"\x02\xfd\xd0\xe0\x00\x00\t~SP,NR=9;\xdc")])
 def test_add_checksum(s: bytes, result: bytes):
     from htheatpump.htheatpump import add_checksum
     assert add_checksum(s) == result
@@ -74,7 +90,10 @@ def test_create_request_raises_ValueError(cmd: str):
     #assert 0
 
 
-@pytest.mark.parametrize("cmd, result", [("", b"\x02\xfd\xd0\xe0\x00\x00\x02~;\x98")])  # TODO add some more samples
+@pytest.mark.parametrize("cmd, result", [("", b"\x02\xfd\xd0\xe0\x00\x00\x02~;\x98"),
+                                         ("LIN", b"\x02\xfd\xd0\xe0\x00\x00\x05~LIN;\x4c"),
+                                         ("LOUT", b"\x02\xfd\xd0\xe0\x00\x00\x06~LOUT;\x92"),
+                                         ("SP,NR=9", b"\x02\xfd\xd0\xe0\x00\x00\t~SP,NR=9;\xdc")])
 def test_create_request(cmd: str, result: bytes):
     from htheatpump.htheatpump import create_request
     assert create_request(cmd) == result
