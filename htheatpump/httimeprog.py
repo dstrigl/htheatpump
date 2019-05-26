@@ -412,7 +412,7 @@ class TimeProgram:
         self._number_of_days = nod
         self._entries = [[None for _ in range(self._entries_a_day)] for _ in range(self._number_of_days)] \
             # type: List[List[Optional[TimeProgEntry]]]
-        # TODO verify args!
+        # TODO verify args?!
 
     def _verify_entry(self, entry: TimeProgEntry) -> None:
         if entry.state not in range(0, self._number_of_states):
