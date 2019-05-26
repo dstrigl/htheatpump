@@ -159,7 +159,7 @@ def main():
             # write time program entry to CSV file
             if args.csv:
                 with open(args.csv, 'w') as csvfile:
-                    csvfile.write("# idx={:d}, day={:d}, entry={:d}".format(args.index, args.day, args.entry))  # TODO
+                    csvfile.write("# idx={:d}, day={:d}, entry={:d}".format(args.index, args.day, args.entry))
                     fieldnames = ["state", "start", "end"]
                     writer = csv.DictWriter(csvfile, delimiter=',', fieldnames=fieldnames)
                     writer.writeheader()
@@ -182,7 +182,7 @@ def main():
             # write time program entries of the specified day to CSV file
             if args.csv:
                 with open(args.csv, 'w') as csvfile:
-                    csvfile.write("# {!s}\n".format(time_prog))  # TODO
+                    csvfile.write("# {!s}\n".format(time_prog))
                     fieldnames = ["day", "entry", "state", "start", "end"]
                     writer = csv.DictWriter(csvfile, delimiter=',', fieldnames=fieldnames)
                     writer.writeheader()
@@ -209,7 +209,7 @@ def main():
             # write time program entries to CSV file
             if args.csv:
                 with open(args.csv, 'w') as csvfile:
-                    csvfile.write("# {!s}\n".format(time_prog))  # TODO
+                    csvfile.write("# {!s}\n".format(time_prog))
                     fieldnames = ["day", "entry", "state", "start", "end"]
                     writer = csv.DictWriter(csvfile, delimiter=',', fieldnames=fieldnames)
                     writer.writeheader()
