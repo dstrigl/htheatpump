@@ -1,7 +1,7 @@
 History
 =======
 
-1.2.0 (2019-xx-xx)
+1.2.0 (2019-06-10)
 ------------------
 
 * added support for Python's "with" statement for the ``HtHeatpump`` class
