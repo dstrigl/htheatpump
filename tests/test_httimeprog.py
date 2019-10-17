@@ -217,7 +217,7 @@ class TestTimeProgEntry:
         #assert 0
 
     @pytest.mark.parametrize("state", range(-10, 10))
-    def test_from_str(self, state: str):
+    def test_from_str(self, state: int):
         entry = TimeProgEntry.from_str(str(state), "00:00", "00:00")
         assert entry.state == state
         #assert 0
@@ -235,7 +235,7 @@ class TestTimeProgEntry:
         #assert 0
 
     @pytest.mark.parametrize("state", range(-10, 10))
-    def test_str(self, state: str):
+    def test_str(self, state: int):
         assert str(TimeProgEntry.from_str(str(state), "00:00", "00:00")) ==\
             "state={:d}, time={!s}".format(state, TimeProgPeriod.from_str("00:00", "00:00"))
         #assert 0
