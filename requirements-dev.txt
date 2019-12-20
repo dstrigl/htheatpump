@@ -1,6 +1,6 @@
 pip==19.3.1
 pyserial==3.4
-mypy==0.750
+mypy==0.760
 pytest==5.3.2
 pytest-cov==2.8.1
 pytest-runner==5.2
