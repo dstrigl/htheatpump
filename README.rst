@@ -17,7 +17,8 @@ HtHeatpump
      :alt: Updates
 
 
-Easy-to-use Python communication module for `Heliotherm <http://www.heliotherm.com/>`_ heat pumps.
+Easy-to-use Python communication module for `Heliotherm <http://www.heliotherm.com/>`_ and `Brötje BSW NEO <https://www.broetje.de/>`_
+heat pumps.
 
 
 * GitHub repo: https://github.com/dstrigl/htheatpump
@@ -28,7 +29,8 @@ Easy-to-use Python communication module for `Heliotherm <http://www.heliotherm.c
 Introduction
 ------------
 
-This library provides a pure Python interface to access `Heliotherm <http://www.heliotherm.com/>`_ heat pumps
+This library provides a pure Python interface to access `Heliotherm <http://www.heliotherm.com/>`_ and
+`Brötje BSW NEO <https://www.broetje.de/>`_ heat pumps
 over a serial connection. It's compatible with Python version 3.5, 3.6 and 3.7.
 
 
@@ -54,6 +56,7 @@ Tested with [*]_
 * Heliotherm HP08E-K-BC, SW 3.0.7B
 * Heliotherm HP05S07W-WEB, SW 3.0.17 and SW 3.0.37
 * Heliotherm HP12L-M-BC, SW 3.0.21
+* Brötje BSW NEO 8 SW 3.0.38
 
   .. [*] thanks to Kilian, Hans, Alois and Simon for contribution
 
