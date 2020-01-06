@@ -20,6 +20,7 @@
 """ Tests for code in `htheatpump.httimeprog`. """
 
 import pytest
+from typing import Dict
 from htheatpump.httimeprog import TimeProgPeriod, TimeProgEntry, TimeProgram
 
 
@@ -82,6 +83,19 @@ class TestTimeProgPeriod:
     ])
     def test_from_str(self, start_str: str, end_str: str):
         TimeProgPeriod.from_str(start_str, end_str)
+        #assert 0
+
+    @pytest.mark.parametrize("json_dict", [
+        {"start": "00:00", "end": "00:00"},
+        {"start": "24:00", "end": "24:00"},
+        {"start":  "3:45", "end":  "4:00"},
+        {"start": "12:45", "end": "23:15"},
+        {"start": "02:10", "end": "03:35"},
+        {"start": "23:45", "end": "24:00"},
+        # ...
+    ])
+    def test_from_json(self, json_dict: Dict[str, str]):
+        TimeProgPeriod.from_json(json_dict)
         #assert 0
 
     @pytest.mark.parametrize("start_hour, start_minute, end_hour, end_minute", [
@@ -219,6 +233,12 @@ class TestTimeProgEntry:
     @pytest.mark.parametrize("state", range(-10, 10))
     def test_from_str(self, state: int):
         entry = TimeProgEntry.from_str(str(state), "00:00", "00:00")
+        assert entry.state == state
+        #assert 0
+
+    @pytest.mark.parametrize("state", range(-10, 10))
+    def test_from_json(self, state: int):
+        entry = TimeProgEntry.from_json({"state": state, "start": "00:00", "end": "00:00"})
         assert entry.state == state
         #assert 0
 

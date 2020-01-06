@@ -110,6 +110,18 @@ class TimeProgPeriod:
         end_hour, end_minute = [int(v) for v in m_end.group(1, 2)]
         return cls(start_hour, start_minute, end_hour, end_minute)
 
+    @classmethod
+    def from_json(cls: Type[TimeProgPeriodT], json_dict: Dict[str, str]) -> TimeProgPeriodT:
+        """ Create a :class:`~TimeProgPeriod` instance from a JSON representation.
+
+        :param json_dict: The JSON representation of the time program period as :obj:`dict`.
+        :type json_dict: dict
+        :rtype: ``TimeProgPeriod``
+        :raises ValueError:
+            Will be raised for any invalid argument.
+        """
+        return cls.from_str(json_dict["start"], json_dict["end"])
+
     def set(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
         """ Set the start- and end-time of this time program period.
 
@@ -300,6 +312,13 @@ class TimeProgEntry:
         :rtype: ``TimeProgEntry``
         """
         return cls(int(state), TimeProgPeriod.from_str(start_str, end_str))
+
+    @classmethod
+    def from_json(cls: Type[TimeProgEntryT], json_dict: Dict[str, object]) -> TimeProgEntryT:
+        """ TODO doc
+        """
+        # TODO mypy errors
+        return cls(int(json_dict["state"]), TimeProgPeriod.from_str(json_dict["start"], json_dict["end"]))
 
     def set(self, state: int, period: TimeProgPeriod) -> None:
         """ Set the state and period of this time program entry.
