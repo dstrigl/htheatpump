@@ -316,6 +316,7 @@ class TimeProgEntry:
     @classmethod
     def from_json(cls: Type[TimeProgEntryT], json_dict: Dict[str, Any]) -> TimeProgEntryT:
         """ Create a :class:`~TimeProgEntry` instance from a JSON representation.
+
         :param json_dict: The JSON representation of the time program entry as :obj:`dict`.
         :type json_dict: dict
         :rtype: ``TimeProgEntry``
@@ -410,6 +411,9 @@ class TimeProgEntry:
 # TimeProgram class
 # ------------------------------------------------------------------------------------------------------------------- #
 
+TimeProgramT = TypeVar("TimeProgramT", bound="TimeProgram")
+
+
 class TimeProgram:
     """ Representation of a time program of the Heliotherm heat pump.
 
@@ -447,6 +451,31 @@ class TimeProgram:
         if entry.period.end_minute % self._step_size != 0:
             raise ValueError("the provided end time must be a multiple of the given step size [{}, {:d}]".format(
                 entry.period.end_str, self._step_size))
+
+    @classmethod
+    def from_json(cls: Type[TimeProgramT], json_dict: Dict[str, Any]) -> TimeProgramT:
+        """ Create a :class:`~TimeProgram` instance from a JSON representation.
+
+        :param json_dict: The JSON representation of the time program as :obj:`dict`.
+        :type json_dict: dict
+        :rtype: ``TimeProgram``
+        :raises ValueError:
+            Will be raised for any invalid argument.
+        """
+        idx = int(json_dict["index"])  # type: int
+        name = json_dict["name"]       # type: str
+        ead = int(json_dict["ead"])    # type: int
+        nos = int(json_dict["nos"])    # type: int
+        ste = int(json_dict["ste"])    # type: int
+        nod = int(json_dict["nod"])    # type: int
+        time_prog = cls(idx, name, ead, nos, ste, nod)
+        entries = json_dict.get("entries")  # type: Optional[List[List[Optional[Dict[str, Any]]]]]
+        if entries is not None:
+            for day_num, day_entries in enumerate(entries):
+                for entry_num, entry in enumerate(day_entries):
+                    if entry is not None:
+                        time_prog.set_entry(day_num, entry_num, TimeProgEntry.from_json(entry))
+        return time_prog
 
     def __str__(self) -> str:
         """ Return a string representation of this time program.

@@ -316,6 +316,41 @@ class TestTimeProgram:
         assert all([len(entries_of_day) == time_prog.entries_a_day for entries_of_day in time_prog._entries])
         #assert 0
 
+    def test_from_json(self):
+        time_prog = TimeProgram.from_json({"index": 0, "name": "Name", "ead": 10, "nos": 3, "ste": 10, "nod": 7})
+        assert time_prog.index == 0
+        assert time_prog.name == "Name"
+        assert time_prog.entries_a_day == 10
+        assert time_prog.number_of_states == 3
+        assert time_prog.step_size == 10
+        assert time_prog.number_of_days == 7
+        assert len(time_prog._entries) == time_prog.number_of_days
+        assert all([len(entries_of_day) == time_prog.entries_a_day for entries_of_day in time_prog._entries])
+        time_prog = TimeProgram.from_json({"index": 0, "name": "Name", "ead": 10, "nos": 3, "ste": 10, "nod": 7,
+                                           "entries": [[
+                                               None for _ in range(time_prog.entries_a_day)
+                                           ] for _ in range(time_prog.number_of_days)]
+                                           })
+        assert len(time_prog._entries) == time_prog.number_of_days
+        assert all([len(entries_of_day) == time_prog.entries_a_day for entries_of_day in time_prog._entries])
+        assert all(time_prog.entry(day, num) is None
+                   for num in range(time_prog.entries_a_day)
+                   for day in range(time_prog.number_of_days)
+                   )
+        time_prog = TimeProgram.from_json({"index": 0, "name": "Name", "ead": 10, "nos": 3, "ste": 10, "nod": 7,
+                                           "entries": [[
+                                               {"state": 1, "start": "00:00", "end": "23:50"}
+                                               for _ in range(time_prog.entries_a_day)
+                                           ] for _ in range(time_prog.number_of_days)]
+                                           })
+        assert len(time_prog._entries) == time_prog.number_of_days
+        assert all([len(entries_of_day) == time_prog.entries_a_day for entries_of_day in time_prog._entries])
+        assert all(time_prog.entry(day, num) == TimeProgEntry(1, TimeProgPeriod(0, 0, 23, 50))
+                   for num in range(time_prog.entries_a_day)
+                   for day in range(time_prog.number_of_days)
+                   )
+        #assert 0
+
     def test_str(self):
         time_prog = TimeProgram(0, "Name", 10, 3, 10, 7)
         assert str(time_prog) ==\
