@@ -19,7 +19,7 @@
 
 """ Classes representing the time programs of the Heliotherm heat pump. """
 
-from typing import Optional, List, Dict, Tuple, Type, TypeVar
+from typing import Any, Optional, List, Dict, Tuple, Type, TypeVar
 from itertools import chain
 
 import re
@@ -314,10 +314,9 @@ class TimeProgEntry:
         return cls(int(state), TimeProgPeriod.from_str(start_str, end_str))
 
     @classmethod
-    def from_json(cls: Type[TimeProgEntryT], json_dict: Dict[str, object]) -> TimeProgEntryT:
+    def from_json(cls: Type[TimeProgEntryT], json_dict: Dict[str, Any]) -> TimeProgEntryT:
         """ TODO doc
         """
-        # TODO mypy errors
         return cls(int(json_dict["state"]), TimeProgPeriod.from_str(json_dict["start"], json_dict["end"]))
 
     def set(self, state: int, period: TimeProgPeriod) -> None:
