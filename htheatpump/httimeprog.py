@@ -315,7 +315,12 @@ class TimeProgEntry:
 
     @classmethod
     def from_json(cls: Type[TimeProgEntryT], json_dict: Dict[str, Any]) -> TimeProgEntryT:
-        """ TODO doc
+        """ Create a :class:`~TimeProgEntry` instance from a JSON representation.
+        :param json_dict: The JSON representation of the time program entry as :obj:`dict`.
+        :type json_dict: dict
+        :rtype: ``TimeProgEntry``
+        :raises ValueError:
+            Will be raised for any invalid argument.
         """
         return cls(int(json_dict["state"]), TimeProgPeriod.from_str(json_dict["start"], json_dict["end"]))
 
