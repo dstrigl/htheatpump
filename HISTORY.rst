@@ -4,7 +4,8 @@ History
 1.2.1 (2020-01-??)
 ------------------
 
-* TODO: httimeprog -> .from_json()
+* updated copyright statements
+* added factory function ``from_json`` to classes ``TimeProgPeriod``, ``TimeProgEntry`` and ``TimeProgram``
 
 1.2.0 (2019-06-10)
 ------------------
