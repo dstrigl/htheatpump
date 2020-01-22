@@ -1,4 +1,4 @@
-pip==20.0
+pip==20.0.1
 pyserial==3.4
 mypy==0.761
 pytest==5.3.4
