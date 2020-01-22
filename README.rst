@@ -61,8 +61,8 @@ Tested with [*]_
   .. [*] thanks to Kilian, Hans, Alois and Simon for contribution
 
 
-Installing
-----------
+Installation
+------------
 
 You can install or upgrade ``htheatpump`` with:
 
