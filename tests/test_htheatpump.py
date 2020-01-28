@@ -277,6 +277,35 @@ class TestHtHeatpump:
         #   # ...
         #   ]
         assert isinstance(fault_list, list), "'fault_list' must be of type list"
+        assert len(fault_list) == hthp.get_fault_list_size()
+        for entry in fault_list:
+            assert isinstance(entry, dict), "'entry' must be of type dict"
+            index = entry["index"]
+            assert isinstance(index, int), "'index' must be of type int"
+            assert 0 <= index < hthp.get_fault_list_size()
+            error = entry["error"]
+            assert isinstance(error, int), "'error' must be of type int"
+            assert error >= 0
+            dt = entry["datetime"]
+            assert isinstance(dt, datetime.datetime), "'dt' must be of type datetime"
+            msg = entry["message"]
+            assert isinstance(msg, str), "'msg' must be of type str"
+        #assert 0
+
+    @pytest.mark.run_if_connected
+    @pytest.mark.usefixtures("reconnect")
+    def test_get_fault_list_in_several_pieces(self, hthp: HtHeatpump):
+        args = (i for _ in range(100) for i in range(hthp.get_fault_list_size()))
+        fault_list = hthp.get_fault_list(*args)
+        # [ { "index": 29,  # fault list index
+        #     "error": 20,  # error code
+        #     "datetime": datetime.datetime(...),  # date and time of the entry
+        #     "message": "EQ_Spreizung",  # error message
+        #     },
+        #   # ...
+        #   ]
+        assert isinstance(fault_list, list), "'fault_list' must be of type list"
+        assert len(fault_list) == hthp.get_fault_list_size() * 100
         for entry in fault_list:
             assert isinstance(entry, dict), "'entry' must be of type dict"
             index = entry["index"]
@@ -319,9 +348,9 @@ class TestHtHeatpump:
     @pytest.mark.usefixtures("reconnect")
     def test_get_fault_list_with_index_raises_IOError(self, hthp: HtHeatpump):
         with pytest.raises(IOError):
-            hthp.get_fault_list(-1)    # index=-1 is invalid
+            hthp.get_fault_list(-1)
         with pytest.raises(IOError):
-            hthp.get_fault_list(9999)  # index=9999 is invalid
+            hthp.get_fault_list(hthp.get_fault_list_size())
         #assert 0
 
     @pytest.mark.run_if_connected
@@ -332,6 +361,7 @@ class TestHtHeatpump:
             indices = random.sample(range(size), cnt)
             fault_list = hthp.get_fault_list(*indices)
             assert isinstance(fault_list, list), "'fault_list' must be of type list"
+            assert len(fault_list) == (cnt if cnt > 0 else size)
             for entry in fault_list:
                 assert isinstance(entry, dict), "'entry' must be of type dict"
                 index = entry["index"]
