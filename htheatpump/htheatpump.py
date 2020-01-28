@@ -895,11 +895,11 @@ class HtHeatpump:
                         raise IOError(
                             "fault list index doesn't match [{:d}, should be {:d}]".format(idx, args[n - cnt + i]))
                     # add the received fault list entry to the result list
-                    fault_list.append({ "index"   : idx,  # fault list index
-                                        "error"   : err,  # error code
-                                        "datetime": dt,   # date and time of the entry
-                                        "message" : msg,  # error message
-                                        })
+                    fault_list.append({"index"   : idx,  # fault list index
+                                       "error"   : err,  # error code
+                                       "datetime": dt,   # date and time of the entry
+                                       "message" : msg,  # error message
+                                       })
             except Exception as e:
                 _logger.error("query for fault list failed: {!s}".format(e))
                 raise
