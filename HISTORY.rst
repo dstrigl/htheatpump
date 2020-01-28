@@ -6,6 +6,8 @@ History
 
 * updated copyright statements
 * added factory function ``from_json`` to classes ``TimeProgPeriod``, ``TimeProgEntry`` and ``TimeProgram``
+* fixed issue with fault lists with larger number of entries (in ``HtHeatpump.get_fault_list()``);
+  thanks to Alois for reporting
 
 1.2.0 (2019-06-10)
 ------------------

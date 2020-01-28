@@ -96,6 +96,8 @@ class VerifyAction(enum.Enum):
 # Protocol constants
 # ------------------------------------------------------------------------------------------------------------------- #
 
+MAX_CMD_LENGTH = 253  # 253 = 255 - 1 byte for header - 1 byte for trailer
+
 REQUEST_HEADER = b"\x02\xfd\xd0\xe0\x00\x00"
 RESPONSE_HEADER_LEN = 6  # response header length
 RESPONSE_HEADER = {
@@ -182,7 +184,7 @@ ALC_RESP     = (r"^AA,(\d+),(\d+)"                                              
                 r",(.*)$")                                                         # error message, e.g. 'EQ_Spreizung'
 ALS_CMD      = r"ALS"                                                  # query for the fault list size of the heat pump
 ALS_RESP     = r"^SUM=(\d+)$"                                                                         # e.g. 'SUM=2757'
-AR_CMD       = r"AR,{}"                                                  # query for specific entries of the fault list
+AR_CMD       = r"AR"                                                     # query for specific entries of the fault list
 AR_RESP      = (r"^AA,(\d+),(\d+)"                                                # fault list index and error code (?)
                 r",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d\d)"                            # date, e.g. '14.09.14'
                 r"-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                                        # time, e.g. '11:52:08'
@@ -269,7 +271,7 @@ def create_request(cmd: str) -> bytes:
         Will be raised for an invalid byte array with length greater than 253 byte.
     """
     assert isinstance(cmd, str)
-    if len(cmd) > 253:  # = 255 - 1 byte for header - 1 byte for trailer
+    if len(cmd) > MAX_CMD_LENGTH:
         raise ValueError("command must be lesser than 254 characters")
     cmd = "~" + cmd + ";"  # add header '~' and trailer ';'
     return add_checksum(REQUEST_HEADER + bytes([len(cmd)]) + cmd.encode("ascii"))
@@ -855,15 +857,27 @@ class HtHeatpump:
         if not args:
             args = range(self.get_fault_list_size())  # type: ignore
         fault_list = []
-        if args:
+        # request fault list entries in several pieces (if required)
+        n = 0
+        while n < len(args):
+            cnt = 0
+            cmd = AR_CMD
+            while n < len(args):
+                item = ",{}".format(str(args[n]))
+                if len(cmd + item) <= MAX_CMD_LENGTH:
+                    cmd += item
+                    cnt += 1
+                    n += 1
+                else:
+                    break
+            assert cnt > 0
             # send AR request to the heat pump
-            cmd = AR_CMD.format(','.join(map(lambda i: str(i), args)))
             self.send_request(cmd)
             # ... and wait for the response
             try:
                 resp = []
                 # read all requested fault list entries
-                for _ in args:
+                for _ in range(cnt):
                     resp.append(self.read_response())  # e.g. "AA,29,20,14.09.14-11:52:08,EQ_Spreizung"
                 # extract data (fault list index, error code, date, time and message)
                 for i, r in enumerate(resp):
@@ -877,8 +891,9 @@ class HtHeatpump:
                     dt = datetime.datetime(year, month, day, hour, minute, second)
                     msg = m.group(9).strip()
                     _logger.debug("(idx: {:03d}, err: {:05d})[{}]: {}".format(idx, err, dt.isoformat(), msg))
-                    if idx != args[i]:
-                        raise IOError("fault list index doesn't match [{:d}, should be {:d}]".format(idx, args[i]))
+                    if idx != args[n - cnt + i]:
+                        raise IOError(
+                            "fault list index doesn't match [{:d}, should be {:d}]".format(idx, args[n - cnt + i]))
                     # add the received fault list entry to the result list
                     fault_list.append({ "index"   : idx,  # fault list index
                                         "error"   : err,  # error code
