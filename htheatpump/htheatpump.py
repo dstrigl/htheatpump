@@ -903,7 +903,6 @@ class HtHeatpump:
             except Exception as e:
                 _logger.error("query for fault list failed: {!s}".format(e))
                 raise
-        assert len(fault_list) == len(args)
         return fault_list
 
     def _extract_param_data(self, name: str, resp: str) -> Tuple[str, HtParamValueType, HtParamValueType,
