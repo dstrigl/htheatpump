@@ -238,9 +238,9 @@ class HtParam:
             Will be raised if the passed value could not be converted to the expected data type.
         """
         if isinstance(self, HtParam):  # called as a member method of HtParam
-            return HtParam._from_str(arg, self.data_type, strict)
+            return HtParam._from_str(arg, self.data_type, strict)  # type: ignore
         else:  # called as a static method of HtParam
-            return HtParam._from_str(self, arg, strict)
+            return HtParam._from_str(self, arg, strict)  # type: ignore
 
     @staticmethod
     def _check_value_type(value: HtParamValueType, data_type: HtDataTypes) -> None:
@@ -285,9 +285,9 @@ class HtParam:
             Will be raised if the passed value has an invalid type.
         """
         if isinstance(self, HtParam):  # called as a member method of HtParam
-            HtParam._check_value_type(arg, self.data_type)
+            HtParam._check_value_type(arg, self.data_type)  # type: ignore
         else:  # called as a static method of HtParam
-            HtParam._check_value_type(self, arg)
+            HtParam._check_value_type(self, arg)  # type: ignore
 
     @staticmethod
     def _to_str(value: HtParamValueType, data_type: HtDataTypes) -> str:
@@ -335,9 +335,9 @@ class HtParam:
         :rtype: ``str``
         """
         if isinstance(self, HtParam):  # called as a member method of HtParam
-            return HtParam._to_str(arg, self.data_type)
+            return HtParam._to_str(arg, self.data_type)  # type: ignore
         else:  # called as a static method of HtParam
-            return HtParam._to_str(self, arg)
+            return HtParam._to_str(self, arg)  # type: ignore
 
 
 class HtParamsMeta(type):  # pragma: no cover
