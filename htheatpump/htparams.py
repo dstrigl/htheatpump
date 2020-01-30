@@ -257,10 +257,10 @@ class HtParam:
             if not isinstance(value, bool):
                 raise TypeError("value has incompatible type {!s}; expected 'bool'".format(type(value)))
         elif data_type == HtDataTypes.INT:
-            if not isinstance(value, int):
+            if not isinstance(value, int) and not isinstance(value, bool):
                 raise TypeError("value has incompatible type {!s}; expected 'int'".format(type(value)))
         elif data_type == HtDataTypes.FLOAT:
-            if not isinstance(value, (int, float)):
+            if not isinstance(value, (int, float)) and not isinstance(value, bool):
                 raise TypeError("value has incompatible type {!s}; expected 'int' or 'float'".format(type(value)))
         else:
             assert 0, "unsupported data type ({!r})".format(data_type)  # pragma: no cover
