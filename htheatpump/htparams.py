@@ -186,7 +186,7 @@ class HtParam:
         """
         assert isinstance(data_type, HtDataTypes)
         if not isinstance(value, str):
-            raise TypeError("value must be a str, not {!s}".format(type(value)))
+            raise TypeError("value has incompatible type {!s}; expected 'str'".format(type(value)))
         if data_type == HtDataTypes.BOOL:
             value = value.strip()
             # convert to bool ('0' = False, '1' = True)
@@ -255,13 +255,13 @@ class HtParam:
         """
         if data_type == HtDataTypes.BOOL:
             if not isinstance(value, bool):
-                raise TypeError("value must be a bool, not {!s}".format(type(value)))
+                raise TypeError("value has incompatible type {!s}; expected 'bool'".format(type(value)))
         elif data_type == HtDataTypes.INT:
             if not isinstance(value, int):
-                raise TypeError("value must be a bool, not {!s}".format(type(value)))
+                raise TypeError("value has incompatible type {!s}; expected 'int'".format(type(value)))
         elif data_type == HtDataTypes.FLOAT:
             if not isinstance(value, (int, float)):
-                raise TypeError("value must be a int or float, not {!s}".format(type(value)))
+                raise TypeError("value has incompatible type {!s}; expected 'int' or 'float'".format(type(value)))
         else:
             assert 0, "unsupported data type ({!r})".format(data_type)  # pragma: no cover
 
