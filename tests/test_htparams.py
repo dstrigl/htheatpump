@@ -107,7 +107,7 @@ class TestHtParam:
             assert HtParam.from_str(s, data_type, strict) == exp_value
         #assert 0
 
-    @pytest.mark.parametrize("data_type", [0, None, 123, 123.123, True, False])
+    @pytest.mark.parametrize("data_type", [None, 0, 123, 123.123, True, False])
     def test_from_str_static_assert(self, data_type):
         with pytest.raises(AssertionError):
             HtParam.from_str("", data_type)
