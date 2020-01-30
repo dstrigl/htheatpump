@@ -96,10 +96,16 @@ class HtParam:
     :type min_val: bool, int, float or None
     :param max_val: The maximal value (default :const:`None`, which means "doesn't matter").
     :type max_val: bool, int, float or None
+        :raises TypeError:
+            Will be raised if the passed minimal or maximal value has an invalid type.
     """
 
     def __init__(self, dp_type: str, dp_number: int, acl: str, data_type: HtDataTypes,
                  min_val: Optional[HtParamValueType] = None, max_val: Optional[HtParamValueType] = None) -> None:
+        if min_val is not None:
+            self.check_value_type(min_val)
+        if max_val is not None:
+            self.check_value_type(max_val)
         self.dp_type = dp_type
         self.dp_number = dp_number
         self.acl = acl
@@ -131,7 +137,13 @@ class HtParam:
         :returns: :const:`True` if the passed min- and/or max-value differed from the old one,
                     :const:`False` otherwise.
         :rtype: ``bool``
+        :raises TypeError:
+            Will be raised if the passed minimal or maximal value has an invalid type.
         """
+        if min_val is not None:
+            self.check_value_type(min_val)
+        if max_val is not None:
+            self.check_value_type(max_val)
         ret = (self.min_val != min_val) or (self.max_val != max_val)
         self.min_val = min_val
         self.max_val = max_val
@@ -144,10 +156,14 @@ class HtParam:
         :type val: bool, int or float
         :returns: :const:`True` if the passed value is in between the limits, :const:`False` otherwise.
         :rtype: ``bool``
+        :raises TypeError:
+            Will be raised if the passed value has an invalid type.
         """
         if val is None:
             return True
-        # check the passed value against the defined limits (if given; 'None' means "doesn't matter")
+        # check the type of the passed value
+        self.check_value_type(val)
+        # ... and against the defined limits (if given; 'None' means "doesn't matter")
         return (self.min_val is None or self.min_val <= val) and (self.max_val is None or val <= self.max_val)
 
     @staticmethod
@@ -163,11 +179,14 @@ class HtParam:
         :type strict: bool
         :returns: The passed value which data type matches the expected one.
         :rtype: ``bool``, ``int`` or ``float``
+        :raises TypeError:
+            Will be raised if the passed value has an invalid type.
         :raises ValueError:
             Will be raised if the passed value could not be converted to the expected data type.
         """
-        assert isinstance(value, str)
         assert isinstance(data_type, HtDataTypes)
+        if not isinstance(value, str):
+            raise TypeError("value must be a str, not {!s}".format(type(value)))
         if data_type == HtDataTypes.BOOL:
             value = value.strip()
             # convert to bool ('0' = False, '1' = True)
@@ -213,16 +232,62 @@ class HtParam:
             (if :const:`False` also integers are accepted, e.g. ``'328'``).
         :returns: The passed value which data type matches the expected one.
         :rtype: ``bool``, ``int`` or ``float``
+        :raises TypeError:
+            Will be raised if the passed value has an invalid type.
         :raises ValueError:
             Will be raised if the passed value could not be converted to the expected data type.
         """
         if isinstance(self, HtParam):  # called as a member method of HtParam
-            assert isinstance(arg, str)
             return HtParam._from_str(arg, self.data_type, strict)
         else:  # called as a static method of HtParam
-            assert isinstance(self, str)
-            assert isinstance(arg, HtDataTypes)
             return HtParam._from_str(self, arg, strict)
+
+    @staticmethod
+    def _check_value_type(value: HtParamValueType, data_type: HtDataTypes) -> None:
+        """ Check the type of the passed value against the given parameter data type.
+
+        :param value: The passed value.
+        :type value: bool, int or float
+        :param data_type: The data type of the passed value, see :class:`HtDataTypes`.
+        :type data_type: HtDataTypes
+        :raises TypeError:
+            Will be raised if the passed value has an invalid type.
+        """
+        if data_type == HtDataTypes.BOOL:
+            if not isinstance(value, bool):
+                raise TypeError("value must be a bool, not {!s}".format(type(value)))
+        elif data_type == HtDataTypes.INT:
+            if not isinstance(value, int):
+                raise TypeError("value must be a bool, not {!s}".format(type(value)))
+        elif data_type == HtDataTypes.FLOAT:
+            if not isinstance(value, (int, float)):
+                raise TypeError("value must be a int or float, not {!s}".format(type(value)))
+        else:
+            assert 0, "unsupported data type ({!r})".format(data_type)  # pragma: no cover
+
+    def check_value_type(self: Union["HtParam", HtParamValueType], arg: Union[HtParamValueType, HtDataTypes]) -> None:
+        """ Check the type of the passed value against the given parameter data type.
+
+        This method can be called as a *static method*, e.g.::
+
+            s = HtParam.check_value_type(123, HtDataTypes.FLOAT)
+
+        or as a *member method* of :class:`HtParam`, e.g.::
+
+            param = HtParams["Temp. Aussen"]
+            s = param.check_value_type(3.2)
+
+        If the method is called as a member method of :class:`HtParam`, the data type of the
+        passed value don't have to be specified. It will be automatically determined from the
+        :class:`HtParam` instance.
+
+        :raises TypeError:
+            Will be raised if the passed value has an invalid type.
+        """
+        if isinstance(self, HtParam):  # called as a member method of HtParam
+            HtParam._check_value_type(arg, self.data_type)
+        else:  # called as a static method of HtParam
+            HtParam._check_value_type(self, arg)
 
     @staticmethod
     def _to_str(value: HtParamValueType, data_type: HtDataTypes) -> str:
@@ -234,18 +299,18 @@ class HtParam:
         :type data_type: HtDataTypes
         :returns: The string representation of the passed value.
         :rtype: ``str``
+        :raises TypeError:
+            Will be raised if the passed value has an invalid type.
         """
-        assert isinstance(value, (bool, int, float))
         assert isinstance(data_type, HtDataTypes)
+        # check the type of the passed value
+        HtParam._check_value_type(value, data_type)
         if data_type == HtDataTypes.BOOL:
-            assert isinstance(value, bool)
             # convert to "0" for False and "1" for True
             return "1" if value is True else "0"
         elif data_type == HtDataTypes.INT:
-            assert isinstance(value, int)
             return str(value)
         elif data_type == HtDataTypes.FLOAT:
-            assert isinstance(value, (int, float))
             return str(float(value))
         else:
             assert 0, "unsupported data type ({!r})".format(data_type)  # pragma: no cover
@@ -270,11 +335,8 @@ class HtParam:
         :rtype: ``str``
         """
         if isinstance(self, HtParam):  # called as a member method of HtParam
-            assert isinstance(arg, (bool, int, float))
             return HtParam._to_str(arg, self.data_type)
         else:  # called as a static method of HtParam
-            assert isinstance(self, (bool, int, float))
-            assert isinstance(arg, HtDataTypes)
             return HtParam._to_str(self, arg)
 
 
