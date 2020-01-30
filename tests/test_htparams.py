@@ -122,6 +122,16 @@ class TestHtParam:
     @pytest.mark.parametrize("val, data_type, exp_str", [
         (False, HtDataTypes.BOOL, "0"),
         (True, HtDataTypes.BOOL, "1"),
+        (0, HtDataTypes.BOOL, "0"),
+        (1, HtDataTypes.BOOL, "1"),
+        (-1, HtDataTypes.BOOL, "1"),
+        (123, HtDataTypes.BOOL, "1"),
+        (-123, HtDataTypes.BOOL, "1"),
+        (0, HtDataTypes.BOOL, "0"),
+        (1.0, HtDataTypes.BOOL, "1"),
+        (-1.0, HtDataTypes.BOOL, "1"),
+        (0.123, HtDataTypes.BOOL, "1"),
+        (-0.123, HtDataTypes.BOOL, "1"),
         (123, HtDataTypes.INT, "123"),
         (-321, HtDataTypes.INT, "-321"),
         (123.456, HtDataTypes.FLOAT, "123.456"),
@@ -137,14 +147,10 @@ class TestHtParam:
         (123.123, HtDataTypes.BOOL, None),
         (None, HtDataTypes.INT, None),
         ("abc", HtDataTypes.INT, None),
-        (True, HtDataTypes.INT, None),
-        (False, HtDataTypes.INT, None),
         (123.123, HtDataTypes.INT, None),
         (None, HtDataTypes.FLOAT, None),
         ("abc", HtDataTypes.FLOAT, None),
-        (True, HtDataTypes.FLOAT, None),
-        (False, HtDataTypes.FLOAT, None),
-        # ... add some more samples here!
+        # ...
     ])
     def test_to_str_static(self, val: HtParamValueType, data_type: HtDataTypes, exp_str: str):
         if exp_str is None:

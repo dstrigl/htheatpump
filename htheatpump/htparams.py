@@ -307,7 +307,7 @@ class HtParam:
         HtParam._check_value_type(value, data_type)
         if data_type == HtDataTypes.BOOL:
             # convert to "0" for False and "1" for True
-            return "1" if value is True else "0"
+            return "1" if value else "0"
         elif data_type == HtDataTypes.INT:
             return str(value)
         elif data_type == HtDataTypes.FLOAT:
