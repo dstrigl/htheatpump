@@ -102,15 +102,15 @@ class HtParam:
 
     def __init__(self, dp_type: str, dp_number: int, acl: str, data_type: HtDataTypes,
                  min_val: Optional[HtParamValueType] = None, max_val: Optional[HtParamValueType] = None) -> None:
-        if min_val is not None:
-            self.check_value_type(min_val)
-        if max_val is not None:
-            self.check_value_type(max_val)
         self.dp_type = dp_type
         self.dp_number = dp_number
         self.acl = acl
         self.data_type = data_type
+        if min_val is not None:
+            self.check_value_type(min_val)
         self.min_val = min_val
+        if max_val is not None:
+            self.check_value_type(max_val)
         self.max_val = max_val
 
     def __repr__(self) -> str:
