@@ -1,7 +1,7 @@
 History
 =======
 
-1.2.1 (2020-01-??)
+1.2.1 (2020-02-??)
 ------------------
 
 * updated copyright statements
