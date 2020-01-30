@@ -130,10 +130,28 @@ class TestHtParam:
         (-789, HtDataTypes.FLOAT, "-789.0"),
         (789.0, HtDataTypes.FLOAT, "789.0"),
         (-789.0, HtDataTypes.FLOAT, "-789.0"),
+        # -- should raise a 'TypeError':
+        (None, HtDataTypes.BOOL, None),
+        ("abc", HtDataTypes.BOOL, None),
+        (123, HtDataTypes.BOOL, None),
+        (123.123, HtDataTypes.BOOL, None),
+        (None, HtDataTypes.INT, None),
+        ("abc", HtDataTypes.INT, None),
+        (True, HtDataTypes.INT, None),
+        (False, HtDataTypes.INT, None),
+        (123.123, HtDataTypes.INT, None),
+        (None, HtDataTypes.FLOAT, None),
+        ("abc", HtDataTypes.FLOAT, None),
+        (True, HtDataTypes.FLOAT, None),
+        (False, HtDataTypes.FLOAT, None),
         # ... add some more samples here!
     ])
     def test_to_str_static(self, val: HtParamValueType, data_type: HtDataTypes, exp_str: str):
-        assert HtParam.to_str(val, data_type) == exp_str
+        if exp_str is None:
+            with pytest.raises(TypeError):
+                HtParam.to_str(val, data_type)
+        else:
+            assert HtParam.to_str(val, data_type) == exp_str
         #assert 0
 
     @pytest.mark.parametrize("param", HtParams.values())
