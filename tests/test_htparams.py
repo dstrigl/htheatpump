@@ -81,19 +81,36 @@ class TestHtParam:
         ("--99.0", HtDataTypes.FLOAT, None, False),
         ("12.3+55.9", HtDataTypes.FLOAT, None, False),
         ("789", HtDataTypes.FLOAT, None, True),
+        # -- should raise a 'TypeError':
+        (123, HtDataTypes.BOOL, None, False),
+        (123, HtDataTypes.INT, None, False),
+        (123, HtDataTypes.FLOAT, None, False),
+        (123.123, HtDataTypes.BOOL, None, False),
+        (123.123, HtDataTypes.INT, None, False),
+        (123.123, HtDataTypes.FLOAT, None, False),
+        (True, HtDataTypes.BOOL, None, False),
+        (True, HtDataTypes.INT, None, False),
+        (True, HtDataTypes.FLOAT, None, False),
+        (False, HtDataTypes.BOOL, None, False),
+        (False, HtDataTypes.INT, None, False),
+        (False, HtDataTypes.FLOAT, None, False),
+        (None, HtDataTypes.BOOL, None, False),
+        (None, HtDataTypes.INT, None, False),
+        (None, HtDataTypes.FLOAT, None, False),
         # ...
     ])
     def test_from_str_static(self, s: str, data_type: HtDataTypes, exp_value: Optional[HtParamValueType], strict: bool):
         if exp_value is None:
-            with pytest.raises(ValueError):
+            with pytest.raises((TypeError, ValueError)):
                 HtParam.from_str(s, data_type, strict)
         else:
             assert HtParam.from_str(s, data_type, strict) == exp_value
         #assert 0
 
-    def test_from_str_static_assert(self):
+    @pytest.mark.parametrize("data_type", [0, None, 123, 123.123, True, False])
+    def test_from_str_static_assert(self, data_type):
         with pytest.raises(AssertionError):
-            HtParam.from_str("", 0)
+            HtParam.from_str("", data_type)
         #assert 0
 
     @pytest.mark.parametrize("param", HtParams.values())
