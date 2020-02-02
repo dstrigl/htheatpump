@@ -107,7 +107,7 @@ class TestHtParam:
             assert HtParam.from_str(s, data_type, strict) == exp_value
         #assert 0
 
-    @pytest.mark.parametrize("data_type", [None, 0, 123, 123.123, True, False])
+    @pytest.mark.parametrize("data_type", [None, "", 123, 123.123, True, False])
     def test_from_str_static_assert(self, data_type):
         with pytest.raises(AssertionError):
             HtParam.from_str("", data_type)
@@ -182,6 +182,41 @@ class TestHtParam:
     @pytest.mark.parametrize("param", HtParams.values())
     def test_in_limits_None(self, param: HtParam):
         assert param.in_limits(None)
+        #assert 0
+
+    @pytest.mark.parametrize("val, data_type", [
+        (False, HtDataTypes.BOOL),
+        (True, HtDataTypes.BOOL),
+        (123, HtDataTypes.INT),
+        (-321, HtDataTypes.INT),
+        (123.456, HtDataTypes.FLOAT),
+        (-321.456, HtDataTypes.FLOAT),
+        (789, HtDataTypes.FLOAT),
+        (-789, HtDataTypes.FLOAT),
+        (789.0, HtDataTypes.FLOAT),
+        (-789.0, HtDataTypes.FLOAT),
+        # ...
+    ])
+    def test_check_value_type(self, val, data_type):
+        HtParam.check_value_type(val, data_type)
+        #assert 0
+
+    @pytest.mark.parametrize("val, data_type", [
+        # -- should raise a 'TypeError':
+        (None, HtDataTypes.BOOL),
+        ("abc", HtDataTypes.BOOL),
+        (123, HtDataTypes.BOOL),
+        (123.123, HtDataTypes.BOOL),
+        (None, HtDataTypes.INT),
+        ("abc", HtDataTypes.INT),
+        (123.123, HtDataTypes.INT),
+        (None, HtDataTypes.FLOAT),
+        ("abc", HtDataTypes.FLOAT),
+        # ...
+    ])
+    def test_check_value_type_raises_TypeError(self, val, data_type):
+        with pytest.raises(TypeError):
+            HtParam.check_value_type(val, data_type)
         #assert 0
 
 
