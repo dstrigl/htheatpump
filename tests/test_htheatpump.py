@@ -407,7 +407,7 @@ class TestHtHeatpump:
     @pytest.mark.parametrize("name, param", [(name, param) for name, param in HtParams.items()
                                              if param.data_type in (HtDataTypes.INT, HtDataTypes.FLOAT)])
     def test_set_param_raises_ValueError(self, cmdopt_device: str, cmdopt_baudrate: int, name: str, param: HtParam):
-        hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
+        #hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
         #with pytest.raises(ValueError):
         #    hp.set_param(name, param.min_val - 1, ignore_limits=False)  # type: ignore
         #with pytest.raises(ValueError):
