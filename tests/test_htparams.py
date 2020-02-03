@@ -173,6 +173,50 @@ class TestHtParam:
         assert not param.set_limits(param.min_val, param.max_val)
         #assert 0
 
+    @pytest.mark.parametrize("data_type, min_val, max_val", [
+        # -- should raise a 'TypeError':
+        (HtDataTypes.BOOL, False, 123),
+        (HtDataTypes.BOOL, False, 123.123),
+        (HtDataTypes.BOOL, 123, True),
+        (HtDataTypes.BOOL, 123.123, True),
+        (HtDataTypes.BOOL, False, ""),
+        (HtDataTypes.BOOL, "", True),
+        (HtDataTypes.BOOL, "", ""),
+        (HtDataTypes.BOOL, None, 123),
+        (HtDataTypes.BOOL, 123, None),
+        (HtDataTypes.INT, 123, 123.123),
+        (HtDataTypes.INT, 122.123, 123),
+        (HtDataTypes.INT, 122.123, 123.123),
+        (HtDataTypes.INT, 123, ""),
+        (HtDataTypes.INT, "", 123),
+        (HtDataTypes.INT, "", ""),
+        (HtDataTypes.INT, 123, True),
+        (HtDataTypes.INT, False, 123),
+        (HtDataTypes.INT, True, False),
+        (HtDataTypes.INT, False, True),
+        (HtDataTypes.INT, None, 123.123),
+        (HtDataTypes.INT, 123.123, None),
+        (HtDataTypes.FLOAT, 123, ""),
+        (HtDataTypes.FLOAT, "", 123),
+        (HtDataTypes.FLOAT, 123.123, ""),
+        (HtDataTypes.FLOAT, "", 123.123),
+        (HtDataTypes.FLOAT, "", ""),
+        (HtDataTypes.FLOAT, 123, True),
+        (HtDataTypes.FLOAT, False, 123),
+        (HtDataTypes.FLOAT, 123.123, True),
+        (HtDataTypes.FLOAT, False, 123.123),
+        (HtDataTypes.FLOAT, True, False),
+        (HtDataTypes.FLOAT, False, True),
+        (HtDataTypes.FLOAT, None, True),
+        (HtDataTypes.FLOAT, True, None),
+        # ...
+    ])
+    def test_set_limits_raises_TypeError(self, data_type, min_val, max_val):
+        param = HtParam("MP", 123, "r-", data_type)
+        with pytest.raises(TypeError):
+            param.set_limits(min_val, max_val)
+        #assert 0
+
     @pytest.mark.parametrize("name, param", HtParams.items())
     def test_in_limits(self, name: str, param: HtParam):
         assert param.in_limits(param.min_val)
