@@ -254,13 +254,13 @@ class HtParam:
             Will be raised if the passed value has an invalid type.
         """
         if data_type == HtDataTypes.BOOL:
-            if not type(value) is bool:
+            if type(value) is not bool:
                 raise TypeError("value has invalid type {!s}; expected 'bool'".format(type(value)))
         elif data_type == HtDataTypes.INT:
-            if not type(value) is int:
+            if type(value) is not int:
                 raise TypeError("value has invalid type {!s}; expected 'int'".format(type(value)))
         elif data_type == HtDataTypes.FLOAT:
-            if not type(value) in (int, float):
+            if type(value) not in (int, float):
                 raise TypeError("value has invalid type {!s}; expected 'int' or 'float'".format(type(value)))
         else:
             assert 0, "unsupported data type ({!r})".format(data_type)  # pragma: no cover
