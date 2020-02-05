@@ -146,12 +146,11 @@ You can also help by `reporting bugs <https://github.com/dstrigl/htheatpump/issu
 Wanna support me?
 -----------------
 
-.. raw:: html
-
-    <a href="https://www.buymeacoffee.com/N362PLZ" target="_blank">
-    <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png"
-        alt="Buy Me A Coffee" style="height: 34px !important;width: 145px !important;" >
-    </a>
+.. image:: https://cdn.buymeacoffee.com/buttons/default-orange.png
+   :width: 217px
+   :height: 51px
+   :target: https://www.buymeacoffee.com/N362PLZ
+   :alt: Buy Me A Coffee
 
 
 Credits
