@@ -146,7 +146,8 @@ You can also help by `reporting bugs <https://github.com/dstrigl/htheatpump/issu
 Wanna support me?
 -----------------
 
-.. image:: buymeacoffee.png
+.. image:: https://cdn.buymeacoffee.com/buttons/default-orange.png
+   :width: 217
    :target: https://www.buymeacoffee.com/N362PLZ
    :alt: Buy Me A Coffee
 
