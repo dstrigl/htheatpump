@@ -143,6 +143,14 @@ to get started.
 You can also help by `reporting bugs <https://github.com/dstrigl/htheatpump/issues/new>`_.
 
 
+Wanna support me?
+-----------------
+
+.. raw:: html
+
+    <a href="https://www.buymeacoffee.com/N362PLZ" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
+
+
 Credits
 -------
 
