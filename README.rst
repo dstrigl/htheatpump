@@ -149,7 +149,6 @@ Wanna support me?
 .. image:: buymeacoffee.png
    :target: https://www.buymeacoffee.com/N362PLZ
    :alt: Buy Me A Coffee
-   :scale: 50%
 
 
 Credits
