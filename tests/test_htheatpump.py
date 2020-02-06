@@ -292,6 +292,7 @@ class TestHtHeatpump:
             assert isinstance(msg, str), "'msg' must be of type str"
         #assert 0
 
+    @pytest.mark.skip(reason="test needs a rework")  # TODO
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
     def test_get_fault_list_in_several_pieces(self, hthp: HtHeatpump):
@@ -501,6 +502,7 @@ class TestHtHeatpump:
             hp.fast_query(*names)
         #assert 0
 
+    @pytest.mark.skip(reason="test needs a rework")  # TODO
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
     def test_fast_query_in_several_pieces(self, hthp: HtHeatpump):
