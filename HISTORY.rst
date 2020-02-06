@@ -10,7 +10,7 @@ History
   thanks to Alois for reporting
 * added new function ``HtParam.check_value_type`` to verify the correct type of a passed value;
   the type of a passed value to ``HtHeatpump.set_param()`` will now be verified
-* fixed issue with passing a larger number of indices to ``Heat pump.fast query()``
+* fixed issue with passing a larger number of indices to ``Heat pump.fast_query()``
 
 1.2.0 (2019-06-10)
 ------------------
