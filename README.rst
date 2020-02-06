@@ -58,7 +58,7 @@ Tested with [*]_
 * Heliotherm HP12L-M-BC, SW 3.0.21
 * Brötje BSW NEO 8 SW 3.0.38
 
-  .. [*] thanks to Kilian, Hans, Alois and Simon for contribution
+  .. [*] thanks to Kilian, Hans, Alois, Simon and Felix (`FelixPetriconi <https://github.com/FelixPetriconi>`_) for contribution
 
 
 Installation
