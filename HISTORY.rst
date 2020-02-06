@@ -8,7 +8,8 @@ History
 * added factory function ``from_json`` to classes ``TimeProgPeriod``, ``TimeProgEntry`` and ``TimeProgram``
 * fixed issue with fault lists with larger number of entries (in ``HtHeatpump.get_fault_list()``);
   thanks to Alois for reporting
-* added new function ``HtParam.check_value_type`` to verify the correct type of a passed value
+* added new function ``HtParam.check_value_type`` to verify the correct type of a passed value;
+  the type of a passed value to ``HtHeatpump.set_param()`` will now be verified
 
 1.2.0 (2019-06-10)
 ------------------
