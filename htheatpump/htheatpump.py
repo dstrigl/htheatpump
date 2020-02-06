@@ -18,7 +18,6 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """ This module is responsible for the communication with the Heliotherm heat pump. """
-from operator import inv
 
 from htheatpump.htparams import HtParams, HtParamValueType
 from htheatpump.httimeprog import TimeProgEntry, TimeProgram
