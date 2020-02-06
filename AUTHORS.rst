@@ -13,7 +13,8 @@ Thanks to
 
 * Kilian,
 * Hans,
-* Alois and
-* Simon
+* Alois,
+* Simon and
+* Felix (`FelixPetriconi <https://github.com/FelixPetriconi>`_)
 
 for their contribution with testing the functionality of this module.
