@@ -295,7 +295,7 @@ class TestHtHeatpump:
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
     def test_get_fault_list_in_several_pieces(self, hthp: HtHeatpump):
-        args = (i for _ in range(100) for i in range(hthp.get_fault_list_size()))
+        args = (i for _ in range(256) for i in range(hthp.get_fault_list_size()))
         fault_list = hthp.get_fault_list(*args)
         # [ { "index": 29,  # fault list index
         #     "error": 20,  # error code
@@ -305,7 +305,7 @@ class TestHtHeatpump:
         #   # ...
         #   ]
         assert isinstance(fault_list, list), "'fault_list' must be of type list"
-        assert len(fault_list) == hthp.get_fault_list_size() * 100
+        assert len(fault_list) == hthp.get_fault_list_size() * 256
         for entry in fault_list:
             assert isinstance(entry, dict), "'entry' must be of type dict"
             index = entry["index"]
@@ -499,6 +499,20 @@ class TestHtHeatpump:
         hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
         with pytest.raises(ValueError):
             hp.fast_query(*names)
+        #assert 0
+
+    @pytest.mark.run_if_connected
+    @pytest.mark.usefixtures("reconnect")
+    def test_fast_query_in_several_pieces(self, hthp: HtHeatpump):
+        names = (name for _ in range(256) for name, param in HtParams.items() if param.dp_type == "MP")
+        values = hthp.fast_query(*names)
+        assert isinstance(values, dict), "'values' must be of type dict"
+        assert not names or len(values) == len(set(names))
+        for n, v in values.items():
+            assert n in HtParams
+            assert not names or n in names
+            assert v is not None
+            assert HtParams[n].in_limits(v)
         #assert 0
 
     @pytest.mark.run_if_connected

@@ -18,6 +18,7 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """ This module is responsible for the communication with the Heliotherm heat pump. """
+from operator import inv
 
 from htheatpump.htparams import HtParams, HtParamValueType
 from htheatpump.httimeprog import TimeProgEntry, TimeProgram
@@ -189,7 +190,7 @@ AR_RESP      = (r"^AA,(\d+),(\d+)"                                              
                 r",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d\d)"                            # date, e.g. '14.09.14'
                 r"-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                                        # time, e.g. '11:52:08'
                 r",(.*)$")                                                         # error message, e.g. 'EQ_Spreizung'
-MR_CMD       = r"MR,{}"                                                   # fast query for several MP data point values
+MR_CMD       = r"MR"                                                      # fast query for several MP data point values
 MR_RESP      = r"^MA,(\d+),([^,]+),(\d+)$"                     # MP data point number, value and ?; e.g. 'MA,0,-3.4,17'
 PRL_CMD      = r"PRL"                                                    # query for the time programs of the heat pump
 PRL_RESP     = (r"^SUM=(\d+)$",                                                                          # e.g. 'SUM=5'
@@ -856,6 +857,7 @@ class HtHeatpump:
         """
         if not args:
             args = range(self.get_fault_list_size())  # type: ignore
+        # TODO args = set(args) ???
         fault_list = []
         # request fault list entries in several pieces (if required)
         n = 0
@@ -1234,6 +1236,7 @@ class HtHeatpump:
         """
         if not args:
             args = (name for name, param in HtParams.items() if param.dp_type == "MP")  # type: ignore
+        # TODO args = set(args) ???
         dp_list = []
         dp_dict = {}
         for name in args:
@@ -1246,9 +1249,19 @@ class HtHeatpump:
             dp_list.append(param.dp_number)
             dp_dict.update({param.dp_number: (name, param)})
         values = {}
-        if dp_list:
+        # query for the current values of parameters in several pieces (if required)
+        n = 0
+        while n < len(dp_list):
+            cmd = MR_CMD
+            while n < len(dp_list):
+                number = ",{}".format(str(dp_list[n]))
+                if len(cmd + number) <= MAX_CMD_LENGTH:
+                    cmd += number
+                    n += 1
+                else:
+                    break
+            assert len(cmd) >= len(MR_CMD) + 2
             # send MR request to the heat pump
-            cmd = MR_CMD.format(','.join(map(lambda i: str(i), dp_list)))
             self.send_request(cmd)
             # ... and wait for the response
             try:
