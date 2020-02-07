@@ -300,7 +300,7 @@ class TestHtHeatpump:
         cmd = ""
         fault_list_size = hthp.get_fault_list_size()
         while len(cmd) < 255 * 2:  # request has do be done in 3 parts
-            item = random.randint(0, fault_list_size-1)
+            item = random.randint(0, fault_list_size - 1)
             cmd += ",{}".format(item)
             args.append(item)
         fault_list = hthp.get_fault_list(*args)
