@@ -864,7 +864,7 @@ class HtHeatpump:
             cnt = 0
             cmd = AR_CMD
             while n < len(args):
-                item = ",{}".format(str(args[n]))
+                item = ",{}".format(args[n])
                 if len(cmd + item) <= MAX_CMD_LENGTH:
                     cmd += item
                     cnt += 1
@@ -1251,22 +1251,24 @@ class HtHeatpump:
         # query for the current values of parameters in several pieces (if required)
         n = 0
         while n < len(dp_list):
+            cnt = 0
             cmd = MR_CMD
             while n < len(dp_list):
-                number = ",{}".format(str(dp_list[n]))
+                number = ",{}".format(dp_list[n])
                 if len(cmd + number) <= MAX_CMD_LENGTH:
                     cmd += number
+                    cnt += 1
                     n += 1
                 else:
                     break
-            assert len(cmd) >= len(MR_CMD) + 2
+            assert cnt > 0
             # send MR request to the heat pump
             self.send_request(cmd)
             # ... and wait for the response
             try:
                 resp = []
                 # read all requested data point (parameter) values
-                for _ in dp_list:
+                for _ in range(cnt):
                     resp.append(self.read_response())  # e.g. "MA,11,46.0,16"
                 # extract data (MP data point number, data point value and "unknown" value)
                 for r in resp:
