@@ -292,11 +292,17 @@ class TestHtHeatpump:
             assert isinstance(msg, str), "'msg' must be of type str"
         #assert 0
 
-    @pytest.mark.skip(reason="test needs a rework")  # TODO
+    #@pytest.mark.skip(reason="test needs a rework")
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
     def test_get_fault_list_in_several_pieces(self, hthp: HtHeatpump):
-        args = (i for _ in range(256) for i in range(hthp.get_fault_list_size()))
+        args = []
+        cmd = ""
+        fault_list_size = hthp.get_fault_list_size()
+        while len(cmd) < 255 * 2:  # request has do be done in 3 parts
+            item = random.randint(0, fault_list_size-1)
+            cmd += ",{}".format(item)
+            args.append(item)
         fault_list = hthp.get_fault_list(*args)
         # [ { "index": 29,  # fault list index
         #     "error": 20,  # error code
@@ -306,12 +312,12 @@ class TestHtHeatpump:
         #   # ...
         #   ]
         assert isinstance(fault_list, list), "'fault_list' must be of type list"
-        assert len(fault_list) == hthp.get_fault_list_size() * 256
+        assert len(fault_list) == len(args)
         for entry in fault_list:
             assert isinstance(entry, dict), "'entry' must be of type dict"
             index = entry["index"]
             assert isinstance(index, int), "'index' must be of type int"
-            assert 0 <= index < hthp.get_fault_list_size()
+            assert 0 <= index < fault_list_size
             error = entry["error"]
             assert isinstance(error, int), "'error' must be of type int"
             assert error >= 0
@@ -435,10 +441,10 @@ class TestHtHeatpump:
         #   }
         assert isinstance(values, dict), "'values' must be of type dict"
         assert len(values) == len(HtParams)
-        for n, v in values.items():
-            assert n in HtParams
-            assert v is not None
-            assert HtParams[n].in_limits(v)
+        for name, value in values.items():
+            assert name in HtParams
+            assert value is not None
+            assert HtParams[name].in_limits(value)
         #assert 0
 
     @pytest.mark.run_if_connected
@@ -454,11 +460,11 @@ class TestHtHeatpump:
         #   }
         assert isinstance(values, dict), "'values' must be of type dict"
         assert not names or len(values) == len(set(names))
-        for n, v in values.items():
-            assert n in HtParams
-            assert not names or n in names
-            assert v is not None
-            assert HtParams[n].in_limits(v)
+        for name, value in values.items():
+            assert name in HtParams
+            assert not names or name in names
+            assert value is not None
+            assert HtParams[name].in_limits(value)
         #assert 0
 
     @pytest.mark.run_if_connected
@@ -467,10 +473,10 @@ class TestHtHeatpump:
         values = hthp.fast_query()
         assert isinstance(values, dict), "'values' must be of type dict"
         assert len(values) == len(HtParams.of_type("MP"))
-        for n, v in values.items():
-            assert n in HtParams
-            assert v is not None
-            assert HtParams[n].in_limits(v)
+        for name, value in values.items():
+            assert name in HtParams
+            assert value is not None
+            assert HtParams[name].in_limits(value)
         #assert 0
 
     @pytest.mark.run_if_connected
@@ -481,11 +487,11 @@ class TestHtHeatpump:
         values = hthp.fast_query(*names)
         assert isinstance(values, dict), "'values' must be of type dict"
         assert not names or len(values) == len(set(names))
-        for n, v in values.items():
-            assert n in HtParams
-            assert not names or n in names
-            assert v is not None
-            assert HtParams[n].in_limits(v)
+        for name, value in values.items():
+            assert name in HtParams
+            assert not names or name in names
+            assert value is not None
+            assert HtParams[name].in_limits(value)
         #assert 0
 
     def test_fast_query_with_names_raises_KeyError(self, cmdopt_device: str, cmdopt_baudrate: int):
@@ -502,19 +508,25 @@ class TestHtHeatpump:
             hp.fast_query(*names)
         #assert 0
 
-    @pytest.mark.skip(reason="test needs a rework")  # TODO
+    #@pytest.mark.skip(reason="test needs a rework")
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
     def test_fast_query_in_several_pieces(self, hthp: HtHeatpump):
-        names = (name for _ in range(256) for name, param in HtParams.items() if param.dp_type == "MP")
-        values = hthp.fast_query(*names)
+        args = []
+        cmd = ""
+        mp_data_points = [(name, param) for name, param in HtParams.items() if param.dp_type == "MP"]
+        while len(cmd) < 255 * 2:  # request has do be done in 3 parts
+            name, param = random.choice(mp_data_points)
+            cmd += ",{}".format(param.dp_number)
+            args.append(name)
+        values = hthp.fast_query(*args)
         assert isinstance(values, dict), "'values' must be of type dict"
-        assert not names or len(values) == len(set(names))
-        for n, v in values.items():
-            assert n in HtParams
-            assert not names or n in names
-            assert v is not None
-            assert HtParams[n].in_limits(v)
+        assert not args or len(values) == len(set(args))
+        for name, value in values.items():
+            assert name in HtParams
+            assert not args or name in args
+            assert value is not None
+            assert HtParams[name].in_limits(value)
         #assert 0
 
     @pytest.mark.run_if_connected
