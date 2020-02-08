@@ -3,18 +3,18 @@ HtHeatpump
 
 
 .. image:: https://img.shields.io/pypi/v/htheatpump.svg
-        :target: https://pypi.python.org/pypi/htheatpump
+  :target: https://pypi.python.org/pypi/htheatpump
 
 .. image:: https://img.shields.io/travis/dstrigl/htheatpump.svg
-        :target: https://travis-ci.org/dstrigl/htheatpump
+  :target: https://travis-ci.org/dstrigl/htheatpump
 
 .. image:: https://readthedocs.org/projects/htheatpump/badge/?version=latest
-        :target: https://htheatpump.readthedocs.io/en/latest/?badge=latest
-        :alt: Documentation Status
+  :target: https://htheatpump.readthedocs.io/en/latest/?badge=latest
+  :alt: Documentation Status
 
 .. image:: https://pyup.io/repos/github/dstrigl/htheatpump/shield.svg
-     :target: https://pyup.io/repos/github/dstrigl/htheatpump/
-     :alt: Updates
+  :target: https://pyup.io/repos/github/dstrigl/htheatpump/
+  :alt: Updates
 
 
 Easy-to-use Python communication module for `Heliotherm <http://www.heliotherm.com/>`_ and `Brötje BSW NEO <https://www.broetje.de/>`_
