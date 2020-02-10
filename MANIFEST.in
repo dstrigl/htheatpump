@@ -18,7 +18,9 @@ include samples/htfastquery.py
 include samples/httimeprog.py
 
 recursive-include tests *
-recursive-exclude * __pycache__
-recursive-exclude * *.py[co]
-
 recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif
+
+global-exclude __pycache__
+global-exclude .coverage
+global-exclude  *.py[co]
+global-exclude  .git*
