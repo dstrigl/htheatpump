@@ -1,24 +1,29 @@
 HtHeatpump
 ==========
 
-
 .. image:: https://img.shields.io/pypi/v/htheatpump.svg
-  :target: https://pypi.python.org/pypi/htheatpump
+  :target: https://pypi.org/project/htheatpump
+  :alt: PyPI version
 
-.. image:: https://img.shields.io/travis/dstrigl/htheatpump.svg
+.. image:: https://img.shields.io/pypi/pyversions/htheatpump.svg
+  :target: https://pypi.org/project/htheatpump
+  :alt: Python versions
+
+.. image:: https://img.shields.io/travis/dstrigl/htheatpump?logo=travis
   :target: https://travis-ci.org/dstrigl/htheatpump
+  :alt: Build status
 
 .. image:: https://readthedocs.org/projects/htheatpump/badge/?version=latest
   :target: https://htheatpump.readthedocs.io/en/latest/?badge=latest
-  :alt: Documentation Status
+  :alt: Documentation status
 
 .. image:: https://pyup.io/repos/github/dstrigl/htheatpump/shield.svg
-  :target: https://pyup.io/repos/github/dstrigl/htheatpump/
+  :target: https://pyup.io/repos/github/dstrigl/htheatpump
   :alt: Updates
 
 
-Easy-to-use Python communication module for `Heliotherm <http://www.heliotherm.com/>`_ and `Brötje BSW NEO <https://www.broetje.de/>`_
-heat pumps.
+Easy-to-use Python communication module for `Heliotherm <http://www.heliotherm.com/>`_ and
+`Brötje BSW NEO <https://www.broetje.de/>`_ heat pumps.
 
 
 * GitHub repo: https://github.com/dstrigl/htheatpump
@@ -159,3 +164,9 @@ This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypack
 
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+
+
+License
+-------
+
+Distributed under the terms of the `GNU General Public License v3 <https://www.gnu.org/licenses/gpl-3.0.en.html>`_.
