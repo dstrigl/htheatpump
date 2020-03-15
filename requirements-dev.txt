@@ -5,7 +5,7 @@ pytest==5.4.1
 pytest-cov==2.8.1
 pytest-runner==5.2
 pytest-sugar==0.9.2
-pytest-mypy==0.5.0
+pytest-mypy==0.6.0
 flake8==3.7.9
 coverage==5.0.3
 tox==3.14.5
