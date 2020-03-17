@@ -1,7 +1,7 @@
 pip==20.0.2
 pyserial==3.4
 mypy==0.770
-pytest~=5.3.5  # Bug in pytest-sugar https://github.com/Teemu/pytest-sugar/issues/187
+pytest==5.4.1  # Bug in pytest-sugar https://github.com/Teemu/pytest-sugar/issues/187
 pytest-cov==2.8.1
 pytest-runner==5.2
 pytest-sugar==0.9.2
