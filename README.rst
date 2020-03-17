@@ -9,7 +9,7 @@ HtHeatpump
   :target: https://pypi.org/project/htheatpump
   :alt: Python versions
 
-.. image:: https://img.shields.io/travis/dstrigl/htheatpump?logo=travis
+.. image:: https://img.shields.io/travis/dstrigl/htheatpump/master?logo=travis
   :target: https://travis-ci.org/dstrigl/htheatpump
   :alt: Build status
 
