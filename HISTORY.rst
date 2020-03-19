@@ -4,7 +4,7 @@ History
 1.2.2 (2020-??-??)
 ------------------
 
-* changed package requirements structure; some changes in setup.py, setup.cfg, tox.ini, etc.
+* Changed package requirements structure; some changes in setup.py, setup.cfg, tox.ini, etc.
 
 1.2.1 (2020-02-07)
 ------------------
