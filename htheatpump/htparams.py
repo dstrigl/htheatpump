@@ -96,8 +96,8 @@ class HtParam:
     :type min_val: bool, int, float or None
     :param max_val: The maximal value (default :const:`None`, which means "doesn't matter").
     :type max_val: bool, int, float or None
-        :raises TypeError:
-            Will be raised if the passed minimal or maximal value has an invalid type.
+    :raises TypeError:
+        Will be raised if the passed minimal or maximal value has an invalid type.
     """
 
     def __init__(self, dp_type: str, dp_number: int, acl: str, data_type: HtDataTypes,
