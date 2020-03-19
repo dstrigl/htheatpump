@@ -2,6 +2,6 @@
 omit =
     htheatpump/__init__.py
     htheatpump/__main__.py
+    docs/*
     tests/*
     samples/*
-
