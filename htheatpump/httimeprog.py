@@ -31,6 +31,7 @@ import copy
 # ------------------------------------------------------------------------------------------------------------------- #
 
 import logging
+
 _logger = logging.getLogger(__name__)
 
 
@@ -55,11 +56,14 @@ class TimeProgPeriod:
     :raises ValueError:
         Will be raised for any invalid argument.
     """
-    TIME_PATTERN = r"^(\d?\d):(\d?\d)$"  # e.g. '23:45' or '2:5'
-    HOURS_RANGE = range(0, 25)           # 0..24
-    MINUTES_RANGE = range(0, 60)         # 0..59
 
-    def __init__(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
+    TIME_PATTERN = r"^(\d?\d):(\d?\d)$"  # e.g. '23:45' or '2:5'
+    HOURS_RANGE = range(0, 25)  # 0..24
+    MINUTES_RANGE = range(0, 60)  # 0..59
+
+    def __init__(
+        self, start_hour: int, start_minute: int, end_hour: int, end_minute: int
+    ) -> None:
         # verify the passed time values
         self._verify(start_hour, start_minute, end_hour, end_minute)
         # ... and store it
@@ -75,20 +79,36 @@ class TimeProgPeriod:
         return True
 
     @classmethod
-    def _verify(cls: Type[TimeProgPeriodT], start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
+    def _verify(
+        cls: Type[TimeProgPeriodT],
+        start_hour: int,
+        start_minute: int,
+        end_hour: int,
+        end_minute: int,
+    ) -> None:
         if not cls._is_time_valid(start_hour, start_minute):
-            raise ValueError("the provided start time does not represent a valid time value [{:02d}:{:02d}]".format(
-                start_hour, start_minute))
+            raise ValueError(
+                "the provided start time does not represent a valid time value [{:02d}:{:02d}]".format(
+                    start_hour, start_minute
+                )
+            )
         if not cls._is_time_valid(end_hour, end_minute):
-            raise ValueError("the provided end time does not represent a valid time value [{:02d}:{:02d}]".format(
-                end_hour, end_minute))
+            raise ValueError(
+                "the provided end time does not represent a valid time value [{:02d}:{:02d}]".format(
+                    end_hour, end_minute
+                )
+            )
         if (start_hour * 60 + start_minute) > (end_hour * 60 + end_minute):
             raise ValueError(
                 "the provided start time must be lesser or equal to the end time [{:02d}:{:02d}-{:02d}:{:02d}]".format(
-                    start_hour, start_minute, end_hour, end_minute))
+                    start_hour, start_minute, end_hour, end_minute
+                )
+            )
 
     @classmethod
-    def from_str(cls: Type[TimeProgPeriodT], start_str: str, end_str: str) -> TimeProgPeriodT:
+    def from_str(
+        cls: Type[TimeProgPeriodT], start_str: str, end_str: str
+    ) -> TimeProgPeriodT:
         """ Create a :class:`~TimeProgPeriod` instance from string representations of the start- and end-time.
 
         :param start_str: The start-time of the time program entry as :obj:`str`.
@@ -102,16 +122,26 @@ class TimeProgPeriod:
         """
         m_start = re.match(cls.TIME_PATTERN, start_str)
         if not m_start:
-            raise ValueError("the provided 'start_str' does not represent a valid time value [{!r}]".format(start_str))
+            raise ValueError(
+                "the provided 'start_str' does not represent a valid time value [{!r}]".format(
+                    start_str
+                )
+            )
         m_end = re.match(cls.TIME_PATTERN, end_str)
         if not m_end:
-            raise ValueError("the provided 'end_str' does not represent a valid time value [{!r}]".format(end_str))
+            raise ValueError(
+                "the provided 'end_str' does not represent a valid time value [{!r}]".format(
+                    end_str
+                )
+            )
         start_hour, start_minute = [int(v) for v in m_start.group(1, 2)]
         end_hour, end_minute = [int(v) for v in m_end.group(1, 2)]
         return cls(start_hour, start_minute, end_hour, end_minute)
 
     @classmethod
-    def from_json(cls: Type[TimeProgPeriodT], json_dict: Dict[str, str]) -> TimeProgPeriodT:
+    def from_json(
+        cls: Type[TimeProgPeriodT], json_dict: Dict[str, str]
+    ) -> TimeProgPeriodT:
         """ Create a :class:`~TimeProgPeriod` instance from a JSON representation.
 
         :param json_dict: The JSON representation of the time program period as :obj:`dict`.
@@ -122,7 +152,9 @@ class TimeProgPeriod:
         """
         return cls.from_str(json_dict["start"], json_dict["end"])
 
-    def set(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
+    def set(
+        self, start_hour: int, start_minute: int, end_hour: int, end_minute: int
+    ) -> None:
         """ Set the start- and end-time of this time program period.
 
         :param start_hour: The hour value of the start-time.
@@ -148,8 +180,9 @@ class TimeProgPeriod:
         :returns: A string representation of this time program period.
         :rtype: ``str``
         """
-        return "{:02d}:{:02d}-{:02d}:{:02d}".format(self._start_hour, self.start_minute,
-                                                    self.end_hour, self._end_minute)
+        return "{:02d}:{:02d}-{:02d}:{:02d}".format(
+            self._start_hour, self.start_minute, self.end_hour, self._end_minute
+        )
 
     def __eq__(self, other):
         """ Implement the equal operator.
@@ -163,8 +196,12 @@ class TimeProgPeriod:
             return False
         if not isinstance(other, self.__class__):
             raise TypeError()
-        return self._start_hour == other.start_hour and self._start_minute == other.start_minute\
-            and self._end_hour == other.end_hour and self._end_minute == other.end_minute
+        return (
+            self._start_hour == other.start_hour
+            and self._start_minute == other.start_minute
+            and self._end_hour == other.end_hour
+            and self._end_minute == other.end_minute
+        )
 
     def as_dict(self) -> Dict[str, object]:
         """ Create a dict representation of this time program period.
@@ -294,12 +331,15 @@ class TimeProgEntry:
     :param period: The period of the time program entry.
     :type period: TimeProgPeriod
     """
+
     def __init__(self, state: int, period: TimeProgPeriod) -> None:
         self._state = state
         self._period = copy.deepcopy(period)
 
     @classmethod
-    def from_str(cls: Type[TimeProgEntryT], state: str, start_str: str, end_str: str) -> TimeProgEntryT:
+    def from_str(
+        cls: Type[TimeProgEntryT], state: str, start_str: str, end_str: str
+    ) -> TimeProgEntryT:
         """ Create a :class:`~TimeProgEntry` instance from string representations of the state, start- and end-time.
 
         :param state: The state of the time program entry as :obj:`str`.
@@ -314,7 +354,9 @@ class TimeProgEntry:
         return cls(int(state), TimeProgPeriod.from_str(start_str, end_str))
 
     @classmethod
-    def from_json(cls: Type[TimeProgEntryT], json_dict: Dict[str, Any]) -> TimeProgEntryT:
+    def from_json(
+        cls: Type[TimeProgEntryT], json_dict: Dict[str, Any]
+    ) -> TimeProgEntryT:
         """ Create a :class:`~TimeProgEntry` instance from a JSON representation.
 
         :param json_dict: The JSON representation of the time program entry as :obj:`dict`.
@@ -323,7 +365,10 @@ class TimeProgEntry:
         :raises ValueError:
             Will be raised for any invalid argument.
         """
-        return cls(int(json_dict["state"]), TimeProgPeriod.from_str(json_dict["start"], json_dict["end"]))
+        return cls(
+            int(json_dict["state"]),
+            TimeProgPeriod.from_str(json_dict["start"], json_dict["end"]),
+        )
 
     def set(self, state: int, period: TimeProgPeriod) -> None:
         """ Set the state and period of this time program entry.
@@ -430,27 +475,41 @@ class TimeProgram:
     :param nod: The number of days of the time program.
     :type nod: int
     """
-    def __init__(self, idx: int, name: str, ead: int, nos: int, ste: int, nod: int) -> None:
+
+    def __init__(
+        self, idx: int, name: str, ead: int, nos: int, ste: int, nod: int
+    ) -> None:
         self._index = idx
         self._name = name
         self._entries_a_day = ead
         self._number_of_states = nos
         self._step_size = ste
         self._number_of_days = nod
-        self._entries = [[None for _ in range(self._entries_a_day)] for _ in range(self._number_of_days)] \
-            # type: List[List[Optional[TimeProgEntry]]]
+        self._entries = [
+            [None for _ in range(self._entries_a_day)]
+            for _ in range(self._number_of_days)
+        ]  # type: List[List[Optional[TimeProgEntry]]]
         # TODO verify args?!
 
     def _verify_entry(self, entry: TimeProgEntry) -> None:
         if entry.state not in range(0, self._number_of_states):
-            raise ValueError("the state of the provided entry is outside the allowed range [{:d}, 0..{:d}]".format(
-                entry.state, self._number_of_states))
+            raise ValueError(
+                "the state of the provided entry is outside the allowed range [{:d}, 0..{:d}]".format(
+                    entry.state, self._number_of_states
+                )
+            )
         if entry.period.start_minute % self._step_size != 0:
-            raise ValueError("the provided start time must be a multiple of the given step size [{}, {:d}]".format(
-                entry.period.start_str, self._step_size))
+            raise ValueError(
+                "the provided start time must be a multiple of the given step size [{}, {:d}]".format(
+                    entry.period.start_str, self._step_size
+                )
+            )
         if entry.period.end_minute % self._step_size != 0:
-            raise ValueError("the provided end time must be a multiple of the given step size [{}, {:d}]".format(
-                entry.period.end_str, self._step_size))
+            raise ValueError(
+                "the provided end time must be a multiple of the given step size [{}, {:d}]".format(
+                    entry.period.end_str, self._step_size
+                )
+            )
 
     @classmethod
     def from_json(cls: Type[TimeProgramT], json_dict: Dict[str, Any]) -> TimeProgramT:
@@ -463,18 +522,22 @@ class TimeProgram:
             Will be raised for any invalid argument.
         """
         idx = int(json_dict["index"])  # type: int
-        name = json_dict["name"]       # type: str
-        ead = int(json_dict["ead"])    # type: int
-        nos = int(json_dict["nos"])    # type: int
-        ste = int(json_dict["ste"])    # type: int
-        nod = int(json_dict["nod"])    # type: int
+        name = json_dict["name"]  # type: str
+        ead = int(json_dict["ead"])  # type: int
+        nos = int(json_dict["nos"])  # type: int
+        ste = int(json_dict["ste"])  # type: int
+        nod = int(json_dict["nod"])  # type: int
         time_prog = cls(idx, name, ead, nos, ste, nod)
-        entries = json_dict.get("entries")  # type: Optional[List[List[Optional[Dict[str, Any]]]]]
+        entries = json_dict.get(
+            "entries"
+        )  # type: Optional[List[List[Optional[Dict[str, Any]]]]]
         if entries is not None:
             for day_num, day_entries in enumerate(entries):
                 for entry_num, entry in enumerate(day_entries):
                     if entry is not None:
-                        time_prog.set_entry(day_num, entry_num, TimeProgEntry.from_json(entry))
+                        time_prog.set_entry(
+                            day_num, entry_num, TimeProgEntry.from_json(entry)
+                        )
         return time_prog
 
     def __str__(self) -> str:
@@ -483,10 +546,21 @@ class TimeProgram:
         :returns: A string representation of this time program.
         :rtype: ``str``
         """
-        any_entries = sum([1 for entry in chain.from_iterable(self._entries) if entry is not None]) > 0
+        any_entries = (
+            sum(
+                [1 for entry in chain.from_iterable(self._entries) if entry is not None]
+            )
+            > 0
+        )
         return "idx={:d}, name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}, entries=[{}]".format(
-            self._index, self._name, self._entries_a_day, self._number_of_states, self._step_size,
-            self._number_of_days, "..." if any_entries else "")
+            self._index,
+            self._name,
+            self._entries_a_day,
+            self._number_of_states,
+            self._step_size,
+            self._number_of_days,
+            "..." if any_entries else "",
+        )
 
     def as_dict(self, with_entries: bool = True) -> Dict[str, object]:
         """ Create a dict representation of this time program.
@@ -498,14 +572,14 @@ class TimeProgram:
         :rtype: ``dict``
         """
         ret = {
-            "index": self._index,           # index of the time program
-            "name": self._name,             # name of the time program
-            "ead": self._entries_a_day,     # entries-a-day (?)
+            "index": self._index,  # index of the time program
+            "name": self._name,  # name of the time program
+            "ead": self._entries_a_day,  # entries-a-day (?)
             "nos": self._number_of_states,  # number-of-states (?)
-            "ste": self._step_size,         # step-size [in minutes] (?)
-            "nod": self._number_of_days,    # number-of-days (?)
+            "ste": self._step_size,  # step-size [in minutes] (?)
+            "nod": self._number_of_days,  # number-of-days (?)
         }
-        if with_entries:                    # the time program entries itself
+        if with_entries:  # the time program entries itself
             ret.update({"entries": self._entries})
         return ret
 
@@ -519,16 +593,25 @@ class TimeProgram:
         :rtype: ``dict``
         """
         ret = {
-            "index": self._index,           # index of the time program
-            "name": self._name,             # name of the time program
-            "ead": self._entries_a_day,     # entries-a-day (?)
+            "index": self._index,  # index of the time program
+            "name": self._name,  # name of the time program
+            "ead": self._entries_a_day,  # entries-a-day (?)
             "nos": self._number_of_states,  # number-of-states (?)
-            "ste": self._step_size,         # step-size [in minutes] (?)
-            "nod": self._number_of_days,    # number-of-days (?)
+            "ste": self._step_size,  # step-size [in minutes] (?)
+            "nod": self._number_of_days,  # number-of-days (?)
         }
-        if with_entries:                    # the time program entries itself
-            ret.update({"entries": [[entry.as_json() if entry is not None else None for entry in day_entries]
-                                    for day_entries in self._entries]})
+        if with_entries:  # the time program entries itself
+            ret.update(
+                {
+                    "entries": [
+                        [
+                            entry.as_json() if entry is not None else None
+                            for entry in day_entries
+                        ]
+                        for day_entries in self._entries
+                    ]
+                }
+            )
         return ret
 
     @property

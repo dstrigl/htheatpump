@@ -31,6 +31,7 @@ import signal
 # Daemon class
 # ------------------------------------------------------------------------------------------------------------------- #
 
+
 class Daemon:
     """ Subclass Daemon class and override the :meth:`run()` method.
 
@@ -57,11 +58,13 @@ class Daemon:
         daemon.start()  # start the sample daemon
     """
 
-    def __init__(self, pidfile, stdin="/dev/null", stdout="/dev/null", stderr="/dev/null"):
+    def __init__(
+        self, pidfile, stdin="/dev/null", stdout="/dev/null", stderr="/dev/null"
+    ):
         self._pidfile = pidfile
         self._stdin = stdin if stdin is not None else "/dev/null"
         self._stdout = stdout if stdout is not None else "/dev/null"
-        self._stderr  = stderr if stderr is not None else "/dev/null"
+        self._stderr = stderr if stderr is not None else "/dev/null"
 
     def daemonize(self):
         """ Deamonize, do the double-fork magic.
@@ -101,9 +104,9 @@ class Daemon:
         # redirect standard file descriptors
         sys.stdout.flush()
         sys.stderr.flush()
-        si = open(self._stdin, 'r')
-        so = open(self._stdout, 'a+')
-        se = open(self._stderr, 'a+')
+        si = open(self._stdin, "r")
+        so = open(self._stdout, "a+")
+        se = open(self._stderr, "a+")
         os.dup2(si.fileno(), sys.stdin.fileno())
         os.dup2(so.fileno(), sys.stdout.fileno())
         os.dup2(se.fileno(), sys.stderr.fileno())
@@ -112,7 +115,7 @@ class Daemon:
         atexit.register(self._delpid)
 
         # write pidfile
-        with open(self._pidfile, 'w+') as f:
+        with open(self._pidfile, "w+") as f:
             f.write("{}\n".format(os.getpid()))
 
     def _delpid(self):
@@ -124,14 +127,17 @@ class Daemon:
         """
         # check pidfile to see if the daemon already runs
         try:
-            with open(self._pidfile, 'r') as f:
+            with open(self._pidfile, "r") as f:
                 pid = int(f.read().strip())
         except IOError:
             pid = None
 
         if pid:
             sys.stderr.write(
-                "pidfile {} already exist, daemon maybe already running?\n".format(self._pidfile))
+                "pidfile {} already exist, daemon maybe already running?\n".format(
+                    self._pidfile
+                )
+            )
             sys.exit(1)
 
         # start daemon
@@ -143,15 +149,17 @@ class Daemon:
         """
         # get the PID from pidfile
         try:
-            with open(self._pidfile, 'r') as f:
+            with open(self._pidfile, "r") as f:
                 pid = int(f.read().strip())
         except IOError:
-            sys.stderr.write("pidfile {} not found, daemon not running?\n".format(self._pidfile))
+            sys.stderr.write(
+                "pidfile {} not found, daemon not running?\n".format(self._pidfile)
+            )
             sys.exit(1)
 
         # look for daemon process in /proc
         try:
-            with open("/proc/{}/status".format(pid), 'r'):
+            with open("/proc/{}/status".format(pid), "r"):
                 pass
             sys.stdout.write("process with PID {} found\n".format(pid))
         except IOError:
@@ -162,10 +170,12 @@ class Daemon:
         """
         # get the PID from pidfile
         try:
-            with open(self._pidfile, 'r') as f:
+            with open(self._pidfile, "r") as f:
                 pid = int(f.read().strip())
         except IOError:
-            sys.stderr.write("pidfile {} not found, daemon not running?\n".format(self._pidfile))
+            sys.stderr.write(
+                "pidfile {} not found, daemon not running?\n".format(self._pidfile)
+            )
             sys.exit(1)
 
         # try killing the daemon process
@@ -226,8 +236,11 @@ class MySampleDaemon(Daemon):
 
 # Only for testing: starts the above example daemon
 def main():
-    daemon = MySampleDaemon("/tmp/python-daemon.pid", stdout="/tmp/python-daemon.log",
-                            stderr="/tmp/python-daemon.log")
+    daemon = MySampleDaemon(
+        "/tmp/python-daemon.pid",
+        stdout="/tmp/python-daemon.log",
+        stderr="/tmp/python-daemon.log",
+    )
     if len(sys.argv) == 2:
         cmd = sys.argv[1].lower()
         if cmd == "start":

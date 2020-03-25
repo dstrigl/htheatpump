@@ -39,14 +39,17 @@ from htheatpump.utils import Singleton
 # Constants and type aliases
 # ------------------------------------------------------------------------------------------------------------------- #
 
-CSV_FILE = "htparams.csv"                                    # CSV file with the parameter definitions of the heat pump
+CSV_FILE = "htparams.csv"  # CSV file with the parameter definitions of the heat pump
 
-HtParamValueType = Union[bool, int, float]        # a heat pump parameter value can be of type 'bool', 'int' or 'float'
+HtParamValueType = Union[
+    bool, int, float
+]  # a heat pump parameter value can be of type 'bool', 'int' or 'float'
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
 # Helper classes
 # ------------------------------------------------------------------------------------------------------------------- #
+
 
 @enum.unique
 class HtDataTypes(enum.Enum):
@@ -56,6 +59,7 @@ class HtDataTypes(enum.Enum):
     * ``INT``    The value of the parameter is given as **integer**.
     * ``FLOAT``  The value of the parameter is given as **floating point number**.
     """
+
     BOOL = 1
     INT = 2
     FLOAT = 3
@@ -100,8 +104,15 @@ class HtParam:
         Will be raised if the passed minimal or maximal value has an invalid type.
     """
 
-    def __init__(self, dp_type: str, dp_number: int, acl: str, data_type: HtDataTypes,
-                 min_val: Optional[HtParamValueType] = None, max_val: Optional[HtParamValueType] = None) -> None:
+    def __init__(
+        self,
+        dp_type: str,
+        dp_number: int,
+        acl: str,
+        data_type: HtDataTypes,
+        min_val: Optional[HtParamValueType] = None,
+        max_val: Optional[HtParamValueType] = None,
+    ) -> None:
         self.dp_type = dp_type
         self.dp_number = dp_number
         self.acl = acl
@@ -114,8 +125,14 @@ class HtParam:
         self.max_val = max_val
 
     def __repr__(self) -> str:
-        return "HtParam({},{:d},{!r},{}[{},{}])".format(self.dp_type, self.dp_number, self.acl,
-                                                        self.data_type, self.min_val, self.max_val)
+        return "HtParam({},{:d},{!r},{}[{},{}])".format(
+            self.dp_type,
+            self.dp_number,
+            self.acl,
+            self.data_type,
+            self.min_val,
+            self.max_val,
+        )
 
     def cmd(self) -> str:
         """ Return the command string, based on the data point type and number of the parameter.
@@ -125,8 +142,11 @@ class HtParam:
         """
         return "{},NR={:d}".format(self.dp_type, self.dp_number)
 
-    def set_limits(self, min_val: Optional[HtParamValueType] = None,
-                   max_val: Optional[HtParamValueType] = None) -> bool:
+    def set_limits(
+        self,
+        min_val: Optional[HtParamValueType] = None,
+        max_val: Optional[HtParamValueType] = None,
+    ) -> bool:
         """ Set the limits of the parameter and return whether the passed limit values differed
         from the old one.
 
@@ -164,7 +184,9 @@ class HtParam:
         # check the type of the passed value
         self.check_value_type(val)
         # ... and against the defined limits (if given; 'None' means "doesn't matter")
-        return (self.min_val is None or self.min_val <= val) and (self.max_val is None or val <= self.max_val)
+        return (self.min_val is None or self.min_val <= val) and (
+            self.max_val is None or val <= self.max_val
+        )
 
     @staticmethod
     def _from_str(value: str, data_type: HtDataTypes, strict: bool) -> HtParamValueType:
@@ -186,7 +208,9 @@ class HtParam:
         """
         assert isinstance(data_type, HtDataTypes)
         if not isinstance(value, str):
-            raise TypeError("value has incompatible type {!s}; expected 'str'".format(type(value)))
+            raise TypeError(
+                "value has incompatible type {!s}; expected 'str'".format(type(value))
+            )
         if data_type == HtDataTypes.BOOL:
             value = value.strip()
             # convert to bool ('0' = False, '1' = True)
@@ -195,7 +219,9 @@ class HtParam:
             elif value == "1":
                 return True
             else:
-                raise ValueError("invalid representation for data type BOOL ({!r})".format(value))
+                raise ValueError(
+                    "invalid representation for data type BOOL ({!r})".format(value)
+                )
         elif data_type == HtDataTypes.INT:
             return int(value.strip())  # convert to integer
         elif data_type == HtDataTypes.FLOAT:
@@ -207,12 +233,20 @@ class HtParam:
                 except Exception:
                     pass  # ok
                 else:
-                    raise ValueError("invalid representation for data type FLOAT ({!r})".format(value))
+                    raise ValueError(
+                        "invalid representation for data type FLOAT ({!r})".format(
+                            value
+                        )
+                    )
             return ret
         else:
-            assert 0, "unsupported data type ({!r})".format(data_type)  # pragma: no cover
+            assert 0, "unsupported data type ({!r})".format(
+                data_type
+            )  # pragma: no cover
 
-    def from_str(self: Union["HtParam", str], arg: Union[str, HtDataTypes], strict: bool = True) -> HtParamValueType:
+    def from_str(
+        self: Union["HtParam", str], arg: Union[str, HtDataTypes], strict: bool = True
+    ) -> HtParamValueType:
         """ Convert the passed value (in form of a string) to the expected data type.
 
         This method can be called as a *static method*, e.g.::
@@ -255,17 +289,30 @@ class HtParam:
         """
         if data_type == HtDataTypes.BOOL:
             if type(value) is not bool:
-                raise TypeError("value has invalid type {!s}; expected 'bool'".format(type(value)))
+                raise TypeError(
+                    "value has invalid type {!s}; expected 'bool'".format(type(value))
+                )
         elif data_type == HtDataTypes.INT:
             if type(value) is not int:
-                raise TypeError("value has invalid type {!s}; expected 'int'".format(type(value)))
+                raise TypeError(
+                    "value has invalid type {!s}; expected 'int'".format(type(value))
+                )
         elif data_type == HtDataTypes.FLOAT:
             if type(value) not in (int, float):
-                raise TypeError("value has invalid type {!s}; expected 'int' or 'float'".format(type(value)))
+                raise TypeError(
+                    "value has invalid type {!s}; expected 'int' or 'float'".format(
+                        type(value)
+                    )
+                )
         else:
-            assert 0, "unsupported data type ({!r})".format(data_type)  # pragma: no cover
+            assert 0, "unsupported data type ({!r})".format(
+                data_type
+            )  # pragma: no cover
 
-    def check_value_type(self: Union["HtParam", HtParamValueType], arg: Union[HtParamValueType, HtDataTypes]) -> None:
+    def check_value_type(
+        self: Union["HtParam", HtParamValueType],
+        arg: Union[HtParamValueType, HtDataTypes],
+    ) -> None:
         """ Check the type of the passed value against the given parameter data type.
 
         This method can be called as a *static method*, e.g.::
@@ -313,9 +360,14 @@ class HtParam:
         elif data_type == HtDataTypes.FLOAT:
             return str(float(value))
         else:
-            assert 0, "unsupported data type ({!r})".format(data_type)  # pragma: no cover
+            assert 0, "unsupported data type ({!r})".format(
+                data_type
+            )  # pragma: no cover
 
-    def to_str(self: Union["HtParam", HtParamValueType], arg: Union[HtParamValueType, HtDataTypes]) -> str:
+    def to_str(
+        self: Union["HtParam", HtParamValueType],
+        arg: Union[HtParamValueType, HtDataTypes],
+    ) -> str:
         """ Convert the passed value to a string.
 
         This method can be called as a *static method*, e.g.::
@@ -341,7 +393,6 @@ class HtParam:
 
 
 class HtParamsMeta(type):  # pragma: no cover
-
     def __contains__(cls, item):
         return item in cls._params
 
@@ -355,6 +406,7 @@ class HtParamsMeta(type):  # pragma: no cover
 # ------------------------------------------------------------------------------------------------------------------- #
 # Parameter dictionary class
 # ------------------------------------------------------------------------------------------------------------------- #
+
 
 def _load_params_from_csv() -> Dict[str, HtParam]:
     """ Helper function to load all supported heat pump parameter definitions from the CSV file.
@@ -378,24 +430,45 @@ def _load_params_from_csv() -> Dict[str, HtParam]:
     print("HTHEATPUMP: load parameter definitions from: {}".format(filename))
     params = {}
     with open(filename) as f:
-        reader = csv.reader(f, delimiter=',', skipinitialspace=True)
+        reader = csv.reader(f, delimiter=",", skipinitialspace=True)
         for row in reader:
             # continue for empty rows or comments (starts with character '#')
-            if not row or row[0].startswith('#'):
+            if not row or row[0].startswith("#"):
                 continue
-            name, dp_type, dp_number, acl, data_type, min_val, max_val = row  # type: Any, Any, Any, Any, Any, Any, Any
+            (
+                name,
+                dp_type,
+                dp_number,
+                acl,
+                data_type,
+                min_val,
+                max_val,
+            ) = row  # type: Any, Any, Any, Any, Any, Any, Any
             # convert the data point number into an int
             dp_number = int(dp_number)
             # convert the given data type into the corresponding enum value
             data_type = HtDataTypes.from_str(data_type)
             # convert the minimal value to the expected data type
-            min_val = None if min_val == "None" else HtParam.from_str(min_val, data_type)
+            min_val = (
+                None if min_val == "None" else HtParam.from_str(min_val, data_type)
+            )
             # convert the maximal value to the expected data type
-            max_val = None if max_val == "None" else HtParam.from_str(max_val, data_type)
+            max_val = (
+                None if max_val == "None" else HtParam.from_str(max_val, data_type)
+            )
             # add the parameter definition to the dictionary
-            params.update({name: HtParam(dp_type=dp_type, dp_number=dp_number,
-                                         acl=acl, data_type=data_type,
-                                         min_val=min_val, max_val=max_val)})
+            params.update(
+                {
+                    name: HtParam(
+                        dp_type=dp_type,
+                        dp_number=dp_number,
+                        acl=acl,
+                        data_type=data_type,
+                        min_val=min_val,
+                        max_val=max_val,
+                    )
+                }
+            )
     return params
 
 
@@ -428,21 +501,32 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
     @classmethod
     def get(cls, key: str, default: Optional[HtParam] = None) -> Optional[HtParam]:
         assert isinstance(key, str), "'key' must be of type str"
-        assert isinstance(default, (HtParam, type(None))), "'default' must be of type HtParam or None"
+        assert isinstance(
+            default, (HtParam, type(None))
+        ), "'default' must be of type HtParam or None"
         return cls._params.get(key, default)
 
     @classmethod
     def of_type(cls, dp_type: str) -> Dict[str, HtParam]:
         assert isinstance(dp_type, str), "'dp_type' must be of type str"
-        return {n: p for n, p in cls._params.items() if cls._params[n].dp_type == dp_type}
+        return {
+            n: p for n, p in cls._params.items() if cls._params[n].dp_type == dp_type
+        }
 
     @classmethod
     def dump(cls) -> None:
         for name, param in cls._params.items():
-            print("{!r}: dp_type = {!r}, dp_number = {:d}, acl = {!r}, data_type = {!s}, min = {!s}, max = {!s}"
-                  .format(name, param.dp_type, param.dp_number, param.acl,
-                          param.data_type if param.data_type else "<unknown>",
-                          param.min_val, param.max_val))
+            print(
+                "{!r}: dp_type = {!r}, dp_number = {:d}, acl = {!r}, data_type = {!s}, min = {!s}, max = {!s}".format(
+                    name,
+                    param.dp_type,
+                    param.dp_number,
+                    param.acl,
+                    param.data_type if param.data_type else "<unknown>",
+                    param.min_val,
+                    param.max_val,
+                )
+            )
 
     # Dictionary of the supported Heliotherm heat pump parameters
     _params = _load_params_from_csv()  # type: Dict[str, HtParam]
@@ -453,11 +537,11 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
 # ------------------------------------------------------------------------------------------------------------------- #
 
 # Only for testing: print all supported heat pump parameters
-#def main():
+# def main():
 #    HtParams.dump()
 #
 #
-#if __name__ == "__main__":
+# if __name__ == "__main__":
 #    main()
 
 

@@ -39,13 +39,15 @@ import csv
 from htheatpump.htheatpump import HtHeatpump
 from htheatpump.utils import Timer
 import logging
+
 _logger = logging.getLogger(__name__)
 
 
 # Main program
 def main():
     parser = argparse.ArgumentParser(
-        description = textwrap.dedent('''\
+        description=textwrap.dedent(
+            """\
             Command line tool to query for the time programs of the heat pump.
 
             Example:
@@ -56,9 +58,11 @@ def main():
               idx=2, name='Heizung', ead=7, nos=3, ste=15, nod=7, entries=[]
               idx=3, name='Mischer 1', ead=7, nos=3, ste=15, nod=7, entries=[]
               idx=4, name='Mischer 2', ead=7, nos=3, ste=15, nod=7, entries=[]
-            '''),
-        formatter_class = argparse.RawDescriptionHelpFormatter,
-        epilog = textwrap.dedent('''\
+            """
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=textwrap.dedent(
+            """\
             DISCLAIMER
             ----------
 
@@ -70,59 +74,74 @@ def main():
               for damage caused by this program or mentioned information.
 
               Thus, use it on your own risk!
-            ''') + "\r\n")
+            """
+        )
+        + "\r\n",
+    )
 
     parser.add_argument(
-        "-d", "--device",
-        default = "/dev/ttyUSB0",
-        type = str,
-        help = "the serial device on which the heat pump is connected, default: %(default)s")
+        "-d",
+        "--device",
+        default="/dev/ttyUSB0",
+        type=str,
+        help="the serial device on which the heat pump is connected, default: %(default)s",
+    )
 
     parser.add_argument(
-        "-b", "--baudrate",
-        default = 115200,
-        type = int,
+        "-b",
+        "--baudrate",
+        default=115200,
+        type=int,
         # the supported baudrates of the Heliotherm heat pump (HP08S10W-WEB):
-        choices = [9600, 19200, 38400, 57600, 115200],
-        help = "baudrate of the serial connection (same as configured on the heat pump), default: %(default)s")
+        choices=[9600, 19200, 38400, 57600, 115200],
+        help="baudrate of the serial connection (same as configured on the heat pump), default: %(default)s",
+    )
 
     parser.add_argument(
-        "-t", "--time",
-        action = "store_true",
-        help = "measure the execution time")
+        "-t", "--time", action="store_true", help="measure the execution time"
+    )
 
     parser.add_argument(
-        "-v", "--verbose",
-        action = "store_true",
-        help = "increase output verbosity by activating logging")
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="increase output verbosity by activating logging",
+    )
 
     parser.add_argument(
-        "-j", "--json",
-        type = str,
-        help = "write the time program entries to the specified JSON file")
+        "-j",
+        "--json",
+        type=str,
+        help="write the time program entries to the specified JSON file",
+    )
 
     parser.add_argument(
-        "-c", "--csv",
-        type = str,
-        help = "write the time program entries to the specified CSV file")
+        "-c",
+        "--csv",
+        type=str,
+        help="write the time program entries to the specified CSV file",
+    )
 
     parser.add_argument(
         "index",
-        type = int,
-        nargs = '?',
-        help = "time program index to query for (omit to get the list of available time programs of the heat pump)")
+        type=int,
+        nargs="?",
+        help="time program index to query for (omit to get the list of available time programs of the heat pump)",
+    )
 
     parser.add_argument(
         "day",
-        type = int,
-        nargs = '?',
-        help = "number of day of a specific time program to query for")
+        type=int,
+        nargs="?",
+        help="number of day of a specific time program to query for",
+    )
 
     parser.add_argument(
         "entry",
-        type = int,
-        nargs = '?',
-        help = "number of entry of a specific day of a time program to query for")
+        type=int,
+        nargs="?",
+        help="number of entry of a specific day of a time program to query for",
+    )
 
     args = parser.parse_args()
 
@@ -140,7 +159,11 @@ def main():
 
         rid = hp.get_serial_number()
         if args.verbose:
-            _logger.info("connected successfully to heat pump with serial number {:d}".format(rid))
+            _logger.info(
+                "connected successfully to heat pump with serial number {:d}".format(
+                    rid
+                )
+            )
         ver = hp.get_version()
         if args.verbose:
             _logger.info("software version = {} ({:d})".format(ver[0], ver[1]))
@@ -148,20 +171,34 @@ def main():
         if args.index is not None and args.day is not None and args.entry is not None:
             # query for a specific time program entry of the heat pump
             with Timer() as timer:
-                time_prog_entry = hp.get_time_prog_entry(args.index, args.day, args.entry)
+                time_prog_entry = hp.get_time_prog_entry(
+                    args.index, args.day, args.entry
+                )
             exec_time = timer.elapsed
-            print("[idx={:d}, day={:d}, entry={:d}]: {!s}".format(args.index, args.day, args.entry, time_prog_entry))
+            print(
+                "[idx={:d}, day={:d}, entry={:d}]: {!s}".format(
+                    args.index, args.day, args.entry, time_prog_entry
+                )
+            )
 
             # write time program entry to JSON file
             if args.json:
-                with open(args.json, 'w') as jsonfile:
-                    json.dump(time_prog_entry.as_json(), jsonfile, indent=4, sort_keys=True)
+                with open(args.json, "w") as jsonfile:
+                    json.dump(
+                        time_prog_entry.as_json(), jsonfile, indent=4, sort_keys=True
+                    )
             # write time program entry to CSV file
             if args.csv:
-                with open(args.csv, 'w') as csvfile:
-                    csvfile.write("# idx={:d}, day={:d}, entry={:d}".format(args.index, args.day, args.entry))
+                with open(args.csv, "w") as csvfile:
+                    csvfile.write(
+                        "# idx={:d}, day={:d}, entry={:d}".format(
+                            args.index, args.day, args.entry
+                        )
+                    )
                     fieldnames = ["state", "start", "end"]
-                    writer = csv.DictWriter(csvfile, delimiter=',', fieldnames=fieldnames)
+                    writer = csv.DictWriter(
+                        csvfile, delimiter=",", fieldnames=fieldnames
+                    )
                     writer.writeheader()
                     writer.writerow(time_prog_entry.as_json())
 
@@ -173,18 +210,29 @@ def main():
             print("[idx={:d}]: {!s}".format(args.index, time_prog))
             day_entries = time_prog.entries_of_day(args.day)
             for num in range(len(day_entries)):
-                print("[day={:d}, entry={:d}]: {!s}".format(args.day, num, day_entries[num]))
+                print(
+                    "[day={:d}, entry={:d}]: {!s}".format(
+                        args.day, num, day_entries[num]
+                    )
+                )
 
             # write time program entries of the specified day to JSON file
             if args.json:
-                with open(args.json, 'w') as jsonfile:
-                    json.dump([entry.as_json() for entry in day_entries], jsonfile, indent=4, sort_keys=True)
+                with open(args.json, "w") as jsonfile:
+                    json.dump(
+                        [entry.as_json() for entry in day_entries],
+                        jsonfile,
+                        indent=4,
+                        sort_keys=True,
+                    )
             # write time program entries of the specified day to CSV file
             if args.csv:
-                with open(args.csv, 'w') as csvfile:
+                with open(args.csv, "w") as csvfile:
                     csvfile.write("# {!s}\n".format(time_prog))
                     fieldnames = ["day", "entry", "state", "start", "end"]
-                    writer = csv.DictWriter(csvfile, delimiter=',', fieldnames=fieldnames)
+                    writer = csv.DictWriter(
+                        csvfile, delimiter=",", fieldnames=fieldnames
+                    )
                     writer.writeheader()
                     for num in range(len(day_entries)):
                         row = {"day": args.day, "entry": num}
@@ -197,24 +245,32 @@ def main():
                 time_prog = hp.get_time_prog(args.index, with_entries=True)
             exec_time = timer.elapsed
             print("[idx={:d}]: {!s}".format(args.index, time_prog))
-            for (day, num) in [(day, num) for day in range(time_prog.number_of_days)
-                               for num in range(time_prog.entries_a_day)]:
+            for (day, num) in [
+                (day, num)
+                for day in range(time_prog.number_of_days)
+                for num in range(time_prog.entries_a_day)
+            ]:
                 entry = time_prog.entry(day, num)
                 print("[day={:d}, entry={:d}]: {!s}".format(day, num, entry))
 
             # write time program entries to JSON file
             if args.json:
-                with open(args.json, 'w') as jsonfile:
+                with open(args.json, "w") as jsonfile:
                     json.dump(time_prog.as_json(), jsonfile, indent=4, sort_keys=True)
             # write time program entries to CSV file
             if args.csv:
-                with open(args.csv, 'w') as csvfile:
+                with open(args.csv, "w") as csvfile:
                     csvfile.write("# {!s}\n".format(time_prog))
                     fieldnames = ["day", "entry", "state", "start", "end"]
-                    writer = csv.DictWriter(csvfile, delimiter=',', fieldnames=fieldnames)
+                    writer = csv.DictWriter(
+                        csvfile, delimiter=",", fieldnames=fieldnames
+                    )
                     writer.writeheader()
-                    for (day, num) in [(day, num) for day in range(time_prog.number_of_days)
-                                       for num in range(time_prog.entries_a_day)]:
+                    for (day, num) in [
+                        (day, num)
+                        for day in range(time_prog.number_of_days)
+                        for num in range(time_prog.entries_a_day)
+                    ]:
                         row = {"day": day, "entry": num}
                         row.update(time_prog.entry(day, num).as_json())
                         writer.writerow(row)
@@ -233,12 +289,12 @@ def main():
                 data.append(time_prog.as_json(with_entries=False))
             # write time programs to JSON file
             if args.json:
-                with open(args.json, 'w') as jsonfile:
+                with open(args.json, "w") as jsonfile:
                     json.dump(data, jsonfile, indent=4, sort_keys=True)
             # write time programs to CSV file
             if args.csv:
-                with open(args.csv, 'w') as csvfile:
-                    writer = csv.DictWriter(csvfile, delimiter=',', fieldnames=keys)
+                with open(args.csv, "w") as csvfile:
+                    writer = csv.DictWriter(csvfile, delimiter=",", fieldnames=keys)
                     writer.writeheader()
                     writer.writerows(data)
 

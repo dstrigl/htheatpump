@@ -22,7 +22,9 @@ import logging
 
 
 def pytest_addoption(parser):
-    parser.addoption("--connected", action="store_true", dest="run_if_connected", default=False)
+    parser.addoption(
+        "--connected", action="store_true", dest="run_if_connected", default=False
+    )
     parser.addoption("--device", action="store", default="/dev/ttyUSB0")
     parser.addoption("--baudrate", action="store", default=115200)
     parser.addoption("--loglevel", action="store", default=logging.WARNING)

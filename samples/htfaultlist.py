@@ -46,13 +46,15 @@ import csv
 from htheatpump.htheatpump import HtHeatpump
 from htheatpump.utils import Timer
 import logging
+
 _logger = logging.getLogger(__name__)
 
 
 # Main program
 def main():
     parser = argparse.ArgumentParser(
-        description = textwrap.dedent('''\
+        description=textwrap.dedent(
+            """\
             Command line tool to query for the fault list of the heat pump.
 
             Example:
@@ -63,9 +65,11 @@ def main():
               #002 [2000-01-01T00:00:00]: 65285, Info: Initialisiert
               #003 [2000-01-01T00:00:16]: 00009, HD Schalter
               #004 [2000-01-01T00:00:20]: 00021, EQ Motorschutz
-            '''),
-        formatter_class = argparse.RawDescriptionHelpFormatter,
-        epilog = textwrap.dedent('''\
+            """
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=textwrap.dedent(
+            """\
             DISCLAIMER
             ----------
 
@@ -77,52 +81,58 @@ def main():
               for damage caused by this program or mentioned information.
 
               Thus, use it on your own risk!
-            ''') + "\r\n")
+            """
+        )
+        + "\r\n",
+    )
 
     parser.add_argument(
-        "-d", "--device",
-        default = "/dev/ttyUSB0",
-        type = str,
-        help = "the serial device on which the heat pump is connected, default: %(default)s")
+        "-d",
+        "--device",
+        default="/dev/ttyUSB0",
+        type=str,
+        help="the serial device on which the heat pump is connected, default: %(default)s",
+    )
 
     parser.add_argument(
-        "-b", "--baudrate",
-        default = 115200,
-        type = int,
+        "-b",
+        "--baudrate",
+        default=115200,
+        type=int,
         # the supported baudrates of the Heliotherm heat pump (HP08S10W-WEB):
-        choices = [9600, 19200, 38400, 57600, 115200],
-        help = "baudrate of the serial connection (same as configured on the heat pump), default: %(default)s")
+        choices=[9600, 19200, 38400, 57600, 115200],
+        help="baudrate of the serial connection (same as configured on the heat pump), default: %(default)s",
+    )
 
     parser.add_argument(
-        "-t", "--time",
-        action = "store_true",
-        help = "measure the execution time")
+        "-t", "--time", action="store_true", help="measure the execution time"
+    )
 
     parser.add_argument(
-        "-v", "--verbose",
-        action = "store_true",
-        help = "increase output verbosity by activating logging")
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="increase output verbosity by activating logging",
+    )
 
     parser.add_argument(
-        "-l", "--last",
-        action = "store_true",
-        help = "print only the last fault message of the heat pump")
+        "-l",
+        "--last",
+        action="store_true",
+        help="print only the last fault message of the heat pump",
+    )
 
     parser.add_argument(
-        "-j", "--json",
-        type = str,
-        help = "write the fault list to the specified JSON file")
+        "-j", "--json", type=str, help="write the fault list to the specified JSON file"
+    )
 
     parser.add_argument(
-        "-c", "--csv",
-        type = str,
-        help = "write the fault list to the specified CSV file")
+        "-c", "--csv", type=str, help="write the fault list to the specified CSV file"
+    )
 
     parser.add_argument(
-        "index",
-        type = int,
-        nargs = '*',
-        help = "fault list index/indices to query for")
+        "index", type=int, nargs="*", help="fault list index/indices to query for"
+    )
 
     args = parser.parse_args()
 
@@ -140,7 +150,11 @@ def main():
 
         rid = hp.get_serial_number()
         if args.verbose:
-            _logger.info("connected successfully to heat pump with serial number {:d}".format(rid))
+            _logger.info(
+                "connected successfully to heat pump with serial number {:d}".format(
+                    rid
+                )
+            )
         ver = hp.get_version()
         if args.verbose:
             _logger.info("software version = {} ({:d})".format(ver[0], ver[1]))
@@ -150,11 +164,14 @@ def main():
             with Timer() as timer:
                 idx, err, dt, msg = hp.get_last_fault()
             exec_time = timer.elapsed
-            fault_list = [{"index"   : idx,             # fault list index
-                           "error"   : err,             # error code
-                           "datetime": dt.isoformat(),  # date and time of the entry
-                           "message" : msg,             # error message
-                           }]
+            fault_list = [
+                {
+                    "index": idx,  # fault list index
+                    "error": err,  # error code
+                    "datetime": dt.isoformat(),  # date and time of the entry
+                    "message": msg,  # error message
+                }
+            ]
             print("#{:03d} [{}]: {:05d}, {}".format(idx, dt.isoformat(), err, msg))
         else:
             # query for the given fault list entries of the heat pump
@@ -162,18 +179,26 @@ def main():
                 fault_list = hp.get_fault_list(*args.index)
             exec_time = timer.elapsed
             for entry in fault_list:
-                entry["datetime"] = entry["datetime"].isoformat()  # convert "datetime" dict entry to str
-                print("#{:03d} [{}]: {:05d}, {}".format(entry["index"], entry["datetime"], entry["error"],
-                                                        entry["message"]))
+                entry["datetime"] = entry[
+                    "datetime"
+                ].isoformat()  # convert "datetime" dict entry to str
+                print(
+                    "#{:03d} [{}]: {:05d}, {}".format(
+                        entry["index"],
+                        entry["datetime"],
+                        entry["error"],
+                        entry["message"],
+                    )
+                )
 
         if args.json:  # write fault list entries to JSON file
-            with open(args.json, 'w') as jsonfile:
+            with open(args.json, "w") as jsonfile:
                 json.dump(fault_list, jsonfile, indent=4, sort_keys=True)
 
         if args.csv:  # write fault list entries to CSV file
-            with open(args.csv, 'w') as csvfile:
+            with open(args.csv, "w") as csvfile:
                 fieldnames = ["index", "datetime", "error", "message"]
-                writer = csv.DictWriter(csvfile, delimiter=',', fieldnames=fieldnames)
+                writer = csv.DictWriter(csvfile, delimiter=",", fieldnames=fieldnames)
                 writer.writeheader()
                 for entry in fault_list:
                     writer.writerow({n: entry[n] for n in fieldnames})

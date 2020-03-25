@@ -43,13 +43,15 @@ from htheatpump.htheatpump import HtHeatpump
 from htheatpump.htparams import HtDataTypes, HtParams
 from htheatpump.utils import Timer
 import logging
+
 _logger = logging.getLogger(__name__)
 
 
 # Main program
 def main():
     parser = argparse.ArgumentParser(
-        description = textwrap.dedent('''\
+        description=textwrap.dedent(
+            """\
             Command line tool to query for parameters of the Heliotherm heat pump the fast way.
             Note: Only parameters representing a "MP" data point are supported!
 
@@ -58,9 +60,11 @@ def main():
               $ python3 %(prog)s --device /dev/ttyUSB1 "Temp. Vorlauf" "Temp. Ruecklauf"
               Temp. Ruecklauf [MP,04]: 25.2
               Temp. Vorlauf   [MP,03]: 25.3
-            '''),
-        formatter_class = argparse.RawDescriptionHelpFormatter,
-        epilog = textwrap.dedent('''\
+            """
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=textwrap.dedent(
+            """\
             DISCLAIMER
             ----------
 
@@ -72,48 +76,57 @@ def main():
               for damage caused by this program or mentioned information.
 
               Thus, use it on your own risk!
-            ''') + "\r\n")
+            """
+        )
+        + "\r\n",
+    )
 
     parser.add_argument(
-        "-d", "--device",
-        default = "/dev/ttyUSB0",
-        type = str,
-        help = "the serial device on which the heat pump is connected, default: %(default)s")
+        "-d",
+        "--device",
+        default="/dev/ttyUSB0",
+        type=str,
+        help="the serial device on which the heat pump is connected, default: %(default)s",
+    )
 
     parser.add_argument(
-        "-b", "--baudrate",
-        default = 115200,
-        type = int,
+        "-b",
+        "--baudrate",
+        default=115200,
+        type=int,
         # the supported baudrates of the Heliotherm heat pump (HP08S10W-WEB):
-        choices = [9600, 19200, 38400, 57600, 115200],
-        help = "baudrate of the serial connection (same as configured on the heat pump), default: %(default)s")
+        choices=[9600, 19200, 38400, 57600, 115200],
+        help="baudrate of the serial connection (same as configured on the heat pump), default: %(default)s",
+    )
 
     parser.add_argument(
-        "-j", "--json",
-        action = "store_true",
-        help = "output will be in JSON format")
+        "-j", "--json", action="store_true", help="output will be in JSON format"
+    )
 
     parser.add_argument(
         "--bool-as-int",
-        action = "store_true",
-        help = "boolean values will be stored as '0' and '1'")
+        action="store_true",
+        help="boolean values will be stored as '0' and '1'",
+    )
 
     parser.add_argument(
-        "-t", "--time",
-        action = "store_true",
-        help = "measure the execution time")
+        "-t", "--time", action="store_true", help="measure the execution time"
+    )
 
     parser.add_argument(
-        "-v", "--verbose",
-        action = "store_true",
-        help = "increase output verbosity by activating logging")
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="increase output verbosity by activating logging",
+    )
 
     parser.add_argument(
         "name",
-        type = str,
-        nargs = '*',
-        help = "parameter name(s) to query for (as defined in htparams.csv) or omit to query for "
-               "all known parameters representing a MP data point")
+        type=str,
+        nargs="*",
+        help="parameter name(s) to query for (as defined in htparams.csv) or omit to query for "
+        "all known parameters representing a MP data point",
+    )
 
     args = parser.parse_args()
 
@@ -131,7 +144,11 @@ def main():
 
         rid = hp.get_serial_number()
         if args.verbose:
-            _logger.info("connected successfully to heat pump with serial number {:d}".format(rid))
+            _logger.info(
+                "connected successfully to heat pump with serial number {:d}".format(
+                    rid
+                )
+            )
         ver = hp.get_version()
         if args.verbose:
             _logger.info("software version = {} ({:d})".format(ver[0], ver[1]))
@@ -150,11 +167,15 @@ def main():
         else:
             if len(values) > 1:
                 for name in sorted(values.keys()):
-                    print("{:{width}} [{},{:02d}]: {}".format(name,
-                                                              HtParams[name].dp_type,
-                                                              HtParams[name].dp_number,
-                                                              values[name],
-                                                              width=len(max(values.keys(), key=len))))
+                    print(
+                        "{:{width}} [{},{:02d}]: {}".format(
+                            name,
+                            HtParams[name].dp_type,
+                            HtParams[name].dp_number,
+                            values[name],
+                            width=len(max(values.keys(), key=len)),
+                        )
+                    )
             elif len(values) == 1:
                 print(next(iter(values.values())))
 

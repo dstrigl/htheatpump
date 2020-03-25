@@ -24,12 +24,16 @@ import random
 import time
 from timeit import default_timer as timer
 import logging
-#_logger = logging.getLogger(__name__)
+
+# _logger = logging.getLogger(__name__)
 
 
 # Main program
 def main():
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s [%(name)s|%(funcName)s]: %(message)s")
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s [%(name)s|%(funcName)s]: %(message)s",
+    )
 
     hp = HtHeatpump("/dev/ttyUSB0", baudrate=115200)
     hp.open_connection()
@@ -46,17 +50,25 @@ def main():
     for i in range(10):
         start = timer()
         values = hp.query(*names)
-        t_query += (timer() - start)
+        t_query += timer() - start
         start = timer()
         values = hp.fast_query(*names)
-        t_fast_query += (timer() - start)
+        t_fast_query += timer() - start
     i += 1
     t_query = t_query / i
     t_fast_query = t_fast_query / i
 
     print("\n" + "-" * 100)
-    print("HtHeatpump.query({:d})      execution time: {:.3f} sec".format(len(names), t_query))
-    print("HtHeatpump.fast_query({:d}) execution time: {:.3f} sec".format(len(names), t_fast_query))
+    print(
+        "HtHeatpump.query({:d})      execution time: {:.3f} sec".format(
+            len(names), t_query
+        )
+    )
+    print(
+        "HtHeatpump.fast_query({:d}) execution time: {:.3f} sec".format(
+            len(names), t_fast_query
+        )
+    )
     print("-> {:.3f} x faster".format(t_query / t_fast_query))
 
     while True:
@@ -66,15 +78,17 @@ def main():
         # fast query for the given parameter(s)
         values = hp.fast_query(*rand_names)
         # print the current value(s) of the retrieved parameter(s)
-        print(", ".join(map(lambda name: "{!r} = {}".format(name, values[name]), values)))
-        #for name in sorted(values.keys()):
+        print(
+            ", ".join(map(lambda name: "{!r} = {}".format(name, values[name]), values))
+        )
+        # for name in sorted(values.keys()):
         #    print("{:{width}} [{},{:02d}]: {}".format(name,
         #                                              HtParams[name].dp_type,
         #                                              HtParams[name].dp_number,
         #                                              values[name],
         #                                              width=len(max(values.keys(), key=len))))
         for i in range(5, 0, -1):
-            #print(i)
+            # print(i)
             sys.stdout.write("\rContinue in {:d}s ...".format(i))
             sys.stdout.flush()
             time.sleep(1)

@@ -43,13 +43,15 @@ import csv
 from htheatpump.htheatpump import HtHeatpump
 from htheatpump.utils import Timer
 import logging
+
 _logger = logging.getLogger(__name__)
 
 
 # Main program
 def main():
     parser = argparse.ArgumentParser(
-        description = textwrap.dedent('''\
+        description=textwrap.dedent(
+            """\
             Command line tool to create a backup of the Heliotherm heat pump data points.
 
             Example:
@@ -59,9 +61,11 @@ def main():
               'SP,NR=1' [TBF_BIT]: VAL='0', MIN='0', MAX='1'
               'SP,NR=2' [Rueckruferlaubnis]: VAL='1', MIN='0', MAX='1'
               ...
-            '''),
-        formatter_class = argparse.RawDescriptionHelpFormatter,
-        epilog = textwrap.dedent('''\
+            """
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=textwrap.dedent(
+            """\
             DISCLAIMER
             ----------
 
@@ -73,53 +77,61 @@ def main():
               for damage caused by this program or mentioned information.
 
               Thus, use it on your own risk!
-            ''') + "\r\n")
+            """
+        )
+        + "\r\n",
+    )
 
     parser.add_argument(
-        "-d", "--device",
-        default = "/dev/ttyUSB0",
-        type = str,
-        help = "the serial device on which the heat pump is connected, default: %(default)s")
+        "-d",
+        "--device",
+        default="/dev/ttyUSB0",
+        type=str,
+        help="the serial device on which the heat pump is connected, default: %(default)s",
+    )
 
     parser.add_argument(
-        "-b", "--baudrate",
-        default = 115200,
-        type = int,
+        "-b",
+        "--baudrate",
+        default=115200,
+        type=int,
         # the supported baudrates of the Heliotherm heat pump (HP08S10W-WEB):
-        choices = [9600, 19200, 38400, 57600, 115200],
-        help = "baudrate of the serial connection (same as configured on the heat pump), default: %(default)s")
+        choices=[9600, 19200, 38400, 57600, 115200],
+        help="baudrate of the serial connection (same as configured on the heat pump), default: %(default)s",
+    )
 
     parser.add_argument(
-        "-j", "--json",
-        type = str,
-        help = "write the result to the specified JSON file")
+        "-j", "--json", type=str, help="write the result to the specified JSON file"
+    )
 
     parser.add_argument(
-        "-c", "--csv",
-        type = str,
-        help = "write the result to the specified CSV file")
+        "-c", "--csv", type=str, help="write the result to the specified CSV file"
+    )
 
     parser.add_argument(
-        "-t", "--time",
-        action = "store_true",
-        help = "measure the execution time")
+        "-t", "--time", action="store_true", help="measure the execution time"
+    )
 
     parser.add_argument(
-        "-v", "--verbose",
-        action = "store_true",
-        help = "increase output verbosity by activating logging")
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="increase output verbosity by activating logging",
+    )
 
     parser.add_argument(
         "--without-values",
-        action = "store_true",
-        help = "store heat pump data points without their current value (keep it blank)")
+        action="store_true",
+        help="store heat pump data points without their current value (keep it blank)",
+    )
 
     parser.add_argument(
         "--max-retries",
-        default = 2,
-        type = int,
-        choices = range(11),
-        help = "maximum number of retries for a data point request (0..10), default: %(default)s")
+        default=2,
+        type=int,
+        choices=range(11),
+        help="maximum number of retries for a data point request (0..10), default: %(default)s",
+    )
 
     args = parser.parse_args()
 
@@ -156,24 +168,48 @@ def main():
                         try:
                             resp = hp.read_response()
                             # search for pattern "NAME=...", "VAL=...", "MAX=..." and "MIN=..." inside the answer
-                            m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$"
-                                         .format(data_point), resp)
+                            m = re.match(
+                                r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(
+                                    data_point
+                                ),
+                                resp,
+                            )
                             if not m:
-                                raise IOError("invalid response for query of data point {!r} [{}]"
-                                              .format(data_point, resp))
+                                raise IOError(
+                                    "invalid response for query of data point {!r} [{}]".format(
+                                        data_point, resp
+                                    )
+                                )
                             # extract name, value, min and max
-                            name, value, min_val, max_val = (g.strip() for g in m.group(1, 2, 4, 3))
+                            name, value, min_val, max_val = (
+                                g.strip() for g in m.group(1, 2, 4, 3)
+                            )
                             if args.without_values:
                                 value = ""  # keep it blank (if desired)
-                            print("{!r} [{}]: VAL={!r}, MIN={!r}, MAX={!r}"
-                                  .format(data_point, name, value, min_val, max_val))
+                            print(
+                                "{!r} [{}]: VAL={!r}, MIN={!r}, MAX={!r}".format(
+                                    data_point, name, value, min_val, max_val
+                                )
+                            )
                             # store the determined data in the result dict
-                            result[dp_type].update({i: {"name": name, "value": value, "min": min_val, "max": max_val}})
+                            result[dp_type].update(
+                                {
+                                    i: {
+                                        "name": name,
+                                        "value": value,
+                                        "min": min_val,
+                                        "max": max_val,
+                                    }
+                                }
+                            )
                             success = True
                         except Exception as e:
                             retry += 1
-                            _logger.warning("try #{:d}/{:d} for query of data point {!r} failed: {!s}"
-                                            .format(retry, args.max_retries + 1, data_point, e))
+                            _logger.warning(
+                                "try #{:d}/{:d} for query of data point {!r} failed: {!s}".format(
+                                    retry, args.max_retries + 1, data_point, e
+                                )
+                            )
                             # try a reconnect, maybe this will help
                             hp.reconnect()  # perform a reconnect
                             try:
@@ -181,20 +217,24 @@ def main():
                             except Exception:
                                 pass  # ignore a potential problem
                     if not success:
-                        _logger.error("query of data point {!r} failed after {:d} try/tries".format(data_point, retry))
+                        _logger.error(
+                            "query of data point {!r} failed after {:d} try/tries".format(
+                                data_point, retry
+                            )
+                        )
                         break
                     else:
                         i += 1
         exec_time = timer.elapsed
 
         if args.json:  # write result to JSON file
-            with open(args.json, 'w') as jsonfile:
+            with open(args.json, "w") as jsonfile:
                 json.dump(result, jsonfile, indent=4, sort_keys=True)
 
         if args.csv:  # write result to CSV file
-            with open(args.csv, 'w') as csvfile:
+            with open(args.csv, "w") as csvfile:
                 fieldnames = ["type", "number", "name", "value", "min", "max"]
-                writer = csv.DictWriter(csvfile, delimiter=',', fieldnames=fieldnames)
+                writer = csv.DictWriter(csvfile, delimiter=",", fieldnames=fieldnames)
                 writer.writeheader()
                 for dp_type, content in sorted(result.items(), reverse=True):
                     for i, data in content.items():

@@ -38,46 +38,35 @@ dev_require = tests_require + pip("develop")
 setup(
     # Project name
     name="htheatpump",
-
     # Versions should comply with PEP440. For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
     version=__version__,
-
     # Project description
     description="Easy-to-use Python communication module for Heliotherm heat pumps",
     long_description=readme + "\n\n" + history,
     long_description_content_type="text/x-rst",
-
     # Choosen license
     license="GNU General Public License v3",
-
     # The project's main homepage
     url="https://github.com/dstrigl/htheatpump",
-
     # Author details
     author="Daniel Strigl",
-    #author_email="?",
-
+    # author_email="?",
     # Supported platforms
     platforms=["Linux"],
-
     # Project packages
     packages=find_packages(exclude=["tests", "tests.*"]),
     include_package_data=True,
-
     # Project requirements (used by pip to install its dependencies)
     install_requires=install_requires,
     tests_require=tests_require,
-    #dev_require=dev_require,  # UserWarning: Unknown distribution option: 'dev_require'
+    # dev_require=dev_require,  # UserWarning: Unknown distribution option: 'dev_require'
     extras_require={"test": tests_require, "doc": doc_require, "dev": dev_require},
-
     # Prevent zip archive creation
     zip_safe=False,
-
     # Keywords that describes the project
     keywords="python python3 heatpump serial protocol Heliotherm",
-
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         # How mature is this project? Common values are
@@ -85,16 +74,13 @@ setup(
         #   4 - Beta
         #   5 - Production/Stable
         "Development Status :: 5 - Production/Stable",
-
         # Indicate who your project is intended for
         "Intended Audience :: Developers",
         "Intended Audience :: Information Technology",
         "Intended Audience :: Science/Research",
         "Intended Audience :: Manufacturing",
-
         # Pick your license as you wish (should match "license" above)
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
         "Programming Language :: Python",
@@ -102,12 +88,10 @@ setup(
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
-
         # Language and Platform
         "Natural Language :: English",
         "Operating System :: POSIX",
         "Operating System :: POSIX :: Linux",
-
         # Additional topic classifier
         "Topic :: Communications",
         "Topic :: Home Automation",
@@ -117,11 +101,6 @@ setup(
         "Topic :: System :: Hardware :: Hardware Drivers",
         "Topic :: Terminals :: Serial",
     ],
-
     # Entry points specification
-    entry_points={
-        "console_scripts": [
-            "htheatpump=htheatpump.__main__:main",
-        ]
-    },
+    entry_points={"console_scripts": ["htheatpump=htheatpump.__main__:main",]},
 )

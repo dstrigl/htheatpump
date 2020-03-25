@@ -23,7 +23,11 @@ import htheatpump.version as __version
 
 # Main program
 def main():
-    print("{!s}: Easy-to-use Python communication module for Heliotherm heat pumps.".format(__version.version))
+    print(
+        "{!s}: Easy-to-use Python communication module for Heliotherm heat pumps.".format(
+            __version.version
+        )
+    )
     sys.exit(0)
 
 

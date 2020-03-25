@@ -76,6 +76,7 @@ from htheatpump.htparams import HtDataTypes, HtParams
 from daemon import Daemon
 from datetime import datetime
 import logging
+
 _logger = logging.getLogger(__name__)
 
 
@@ -91,13 +92,13 @@ class HttpGetException(Exception):
 
 class HttpGetHandler(BaseHTTPRequestHandler):
 
-    DATETIME_SYNC_PATH  = r"^\/datetime\/sync\/?$"
-    DATETIME_PATH       = r"^\/datetime\/?$"
+    DATETIME_SYNC_PATH = r"^\/datetime\/sync\/?$"
+    DATETIME_PATH = r"^\/datetime\/?$"
     FAULTLIST_LAST_PATH = r"^\/faultlist\/last\/?$"
-    FAULTLIST_PATH      = r"^\/faultlist\/?$"
-    TIMEPROG_PATH       = r"^\/timeprog\/(\d+)\/?$"
-    TIMEPROGS_PATH      = r"^\/timeprog\/?$"
-    PARAM_PATH          = r"^\/param\/?$"
+    FAULTLIST_PATH = r"^\/faultlist\/?$"
+    TIMEPROG_PATH = r"^\/timeprog\/(\d+)\/?$"
+    TIMEPROGS_PATH = r"^\/timeprog\/?$"
+    PARAM_PATH = r"^\/param\/?$"
 
     def do_GET(self):
         parsed_path = urlparse.urlparse(self.path)
@@ -122,17 +123,32 @@ class HttpGetHandler(BaseHTTPRequestHandler):
             elif re.match(self.FAULTLIST_LAST_PATH, parsed_path.path.lower()):
                 # query for the last fault message of the heat pump
                 idx, err, dt, msg = hp.get_last_fault()
-                result = {"index": idx, "error": err, "datetime": dt.isoformat(), "message": msg}
-                _logger.debug("#{:d} [{}]: {:d}, {}".format(idx, dt.isoformat(), err, msg))
+                result = {
+                    "index": idx,
+                    "error": err,
+                    "datetime": dt.isoformat(),
+                    "message": msg,
+                }
+                _logger.debug(
+                    "#{:d} [{}]: {:d}, {}".format(idx, dt.isoformat(), err, msg)
+                )
 
             elif re.match(self.FAULTLIST_PATH, parsed_path.path.lower()):
                 # query for the whole fault list of the heat pump
                 result = []
                 for entry in hp.get_fault_list():
-                    entry.update({"datetime": entry["datetime"].isoformat()})  # convert datetime dict entry to string
+                    entry.update(
+                        {"datetime": entry["datetime"].isoformat()}
+                    )  # convert datetime dict entry to string
                     result.append(entry)
-                    _logger.debug("#{:03d} [{}]: {:05d}, {}".format(
-                        entry["index"], entry["datetime"], entry["error"], entry["message"]))
+                    _logger.debug(
+                        "#{:03d} [{}]: {:05d}, {}".format(
+                            entry["index"],
+                            entry["datetime"],
+                            entry["error"],
+                            entry["message"],
+                        )
+                    )
 
             elif re.match(self.TIMEPROG_PATH, parsed_path.path.lower()):
                 # query for a specific time program of the heat pump (including all time program entries)
@@ -164,7 +180,10 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                     for name in HtParams.keys():
                         value = hp.get_param(name)
                         # convert boolean values to 0/1 (if desired)
-                        if args.bool_as_int and HtParams[name].data_type == HtDataTypes.BOOL:
+                        if (
+                            args.bool_as_int
+                            and HtParams[name].data_type == HtDataTypes.BOOL
+                        ):
                             value = 1 if value else 0
                         result.update({name: value})
                         _logger.debug("{}: {}".format(name, value))
@@ -174,7 +193,10 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                     try:
                         # check if all requested/given parameter names are known and all passed values are valid
                         for query in qsl:
-                            name, value = query  # value is '' (blank string) for non given values
+                            (
+                                name,
+                                value,
+                            ) = query  # value is '' (blank string) for non given values
                             # try to convert the passed value (if given) to the specific data type
                             value = HtParams[name].from_str(value) if value else None
                             params.update({name: value})
@@ -193,28 +215,39 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                             # set the parameter of the heat pump to the passed value
                             value = hp.set_param(name, value)
                         # convert boolean values to 0/1 (if desired)
-                        if args.bool_as_int and HtParams[name].data_type == HtDataTypes.BOOL:
+                        if (
+                            args.bool_as_int
+                            and HtParams[name].data_type == HtDataTypes.BOOL
+                        ):
                             value = 1 if value else 0
                         result.update({name: value})
                         _logger.debug("{}: {}".format(name, value))
 
             elif parsed_path.path.lower() == "/":
                 # query for some properties of the connected heat pump
-                property_id = hp.get_param("Liegenschaft") if "Liegenschaft" in HtParams else 0
+                property_id = (
+                    hp.get_param("Liegenschaft") if "Liegenschaft" in HtParams else 0
+                )
                 serial_number = hp.get_serial_number()
                 software_version, _ = hp.get_version()
                 dt, _ = hp.get_date_time()
-                result = {"property_id": property_id,
-                          "serial_number": serial_number,
-                          "software_version": software_version,
-                          "datetime": dt.isoformat(),
-                          }
-                _logger.debug("property_id: {}, serial_number: {}, software_version: {}, datetime: {}".format(
-                    property_id, serial_number, software_version, dt.isoformat()))
+                result = {
+                    "property_id": property_id,
+                    "serial_number": serial_number,
+                    "software_version": software_version,
+                    "datetime": dt.isoformat(),
+                }
+                _logger.debug(
+                    "property_id: {}, serial_number: {}, software_version: {}, datetime: {}".format(
+                        property_id, serial_number, software_version, dt.isoformat()
+                    )
+                )
 
             else:
                 # for an invalid url request: HTTP response 400 = Bad Request
-                raise HttpGetException(400, "invalid url request {!r}".format(parsed_path.path.lower()))
+                raise HttpGetException(
+                    400, "invalid url request {!r}".format(parsed_path.path.lower())
+                )
 
         except HttpGetException as ex:
             _logger.exception(ex)
@@ -249,7 +282,11 @@ class HtHttpDaemon(Daemon):
             hp.open_connection()
             hp.login()
             rid = hp.get_serial_number()
-            _logger.info("Connected successfully to heat pump with serial number: {:d}".format(rid))
+            _logger.info(
+                "Connected successfully to heat pump with serial number: {:d}".format(
+                    rid
+                )
+            )
             ver = hp.get_version()
             _logger.info("Software version: {} ({:d})".format(ver[0], ver[1]))
             hp.logout()
@@ -267,7 +304,8 @@ class HtHttpDaemon(Daemon):
 # Main program
 def main():
     parser = argparse.ArgumentParser(
-        description = textwrap.dedent('''\
+        description=textwrap.dedent(
+            """\
             Simple HTTP server which provides the possibility to access the Heliotherm heat pump via URL requests.
 
             Supported URL requests:
@@ -302,9 +340,11 @@ def main():
               ...
 
               $ python3 %(prog)s stop
-            '''),
-        formatter_class = argparse.RawDescriptionHelpFormatter,
-        epilog = textwrap.dedent('''\
+            """
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=textwrap.dedent(
+            """\
             DISCLAIMER
             ----------
 
@@ -316,58 +356,80 @@ def main():
               for damage caused by this program or mentioned information.
 
               Thus, use it on your own risk!
-            ''') + "\r\n")
+            """
+        )
+        + "\r\n",
+    )
 
     parser.add_argument(
         "cmd",
-        type = str.lower,
-        choices = ["start", "stop", "restart", "status"],
-        help = "command to be executed for the HTTP server daemon")
+        type=str.lower,
+        choices=["start", "stop", "restart", "status"],
+        help="command to be executed for the HTTP server daemon",
+    )
 
     parser.add_argument(
-        "-ip", "--ip",
-        default = "192.168.11.90",
-        type = str,
-        help = "IP address of the HTTP server, default: %(default)s")
+        "-ip",
+        "--ip",
+        default="192.168.11.90",
+        type=str,
+        help="IP address of the HTTP server, default: %(default)s",
+    )
 
     parser.add_argument(
-        "-p", "--port",
-        default = 8080,
-        type = int,
-        help = "port number of the HTTP server, default: %(default)s")
+        "-p",
+        "--port",
+        default=8080,
+        type=int,
+        help="port number of the HTTP server, default: %(default)s",
+    )
 
     parser.add_argument(
-        "-d", "--device",
-        default = "/dev/ttyUSB0",
-        type = str,
-        help = "the serial device on which the heat pump is connected, default: %(default)s")
+        "-d",
+        "--device",
+        default="/dev/ttyUSB0",
+        type=str,
+        help="the serial device on which the heat pump is connected, default: %(default)s",
+    )
 
     parser.add_argument(
-        "-b", "--baudrate",
-        default = 115200,
-        type = int,
+        "-b",
+        "--baudrate",
+        default=115200,
+        type=int,
         # the supported baudrates of the Heliotherm heat pump (HP08S10W-WEB):
-        choices = [9600, 19200, 38400, 57600, 115200],
-        help = "baudrate of the serial connection (same as configured on the heat pump), default: %(default)s")
+        choices=[9600, 19200, 38400, 57600, 115200],
+        help="baudrate of the serial connection (same as configured on the heat pump), default: %(default)s",
+    )
 
     parser.add_argument(
         "--bool-as-int",
-        action = "store_true",
-        help = "boolean values will be returned as '0' and '1'")
+        action="store_true",
+        help="boolean values will be returned as '0' and '1'",
+    )
 
     parser.add_argument(
-        "-v", "--verbose",
-        action = "store_true",
-        help = "increase output verbosity by activating logging")
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="increase output verbosity by activating logging",
+    )
 
     global args
     args = parser.parse_args()
 
     # activate logging with level DEBUG in verbose mode
     level = logging.DEBUG if args.verbose else logging.INFO
-    logging.basicConfig(level=level, format="[%(asctime)s][%(levelname)-8s][%(name)s|%(funcName)s]: %(message)s")
+    logging.basicConfig(
+        level=level,
+        format="[%(asctime)s][%(levelname)-8s][%(name)s|%(funcName)s]: %(message)s",
+    )
 
-    daemon = HtHttpDaemon("/tmp/hthttp-daemon.pid", stdout="/tmp/hthttp-daemon.log", stderr="/tmp/hthttp-daemon.log")
+    daemon = HtHttpDaemon(
+        "/tmp/hthttp-daemon.pid",
+        stdout="/tmp/hthttp-daemon.log",
+        stderr="/tmp/hthttp-daemon.log",
+    )
     if args.cmd == "start":
         daemon.start()
     elif args.cmd == "stop":

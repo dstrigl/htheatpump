@@ -45,10 +45,11 @@ class Singleton:
     .. seealso::
         https://mail.python.org/pipermail/python-list/2007-July/431423.html
     """
+
     def __new__(cls, *args, **kwargs):
         """ Create a new instance.
         """
-        if '_inst' not in vars(cls):
+        if "_inst" not in vars(cls):
             cls._inst = object.__new__(cls)
         return cls._inst
 
@@ -63,6 +64,7 @@ class Timer:
     ...
     >>> exec_time = timer.elapsed
     """
+
     def __enter__(self):
         self._start = timeit.default_timer()
         return self
@@ -81,7 +83,7 @@ class Timer:
         return self._elapsed
 
 
-#if __name__ == "__main__":
+# if __name__ == "__main__":
 #    import doctest
 #    doctest.testmod()
 

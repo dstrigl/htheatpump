@@ -30,9 +30,9 @@ import datetime
 import enum
 import copy
 
-#import sys
-#import pprint
-#from timeit import default_timer as timer
+# import sys
+# import pprint
+# from timeit import default_timer as timer
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -40,6 +40,7 @@ import copy
 # ------------------------------------------------------------------------------------------------------------------- #
 
 import logging
+
 _logger = logging.getLogger(__name__)
 
 
@@ -49,7 +50,7 @@ _logger = logging.getLogger(__name__)
 
 _serial_timeout = 5  # type: int
 """ Serial timeout value in seconds; normally no need to change it. """
-_login_retries = 2   # type: int
+_login_retries = 2  # type: int
 """ Maximum number of retries for a login attempt; 1 regular try + :const:`_login_retries` retries. """
 
 
@@ -76,6 +77,7 @@ class VerifyAction(enum.Enum):
         temp = hp.get_param("Temp. Aussen")
         ...
     """
+
     NAME = 1
     MIN = 2
     MAX = 3
@@ -89,7 +91,12 @@ class VerifyAction(enum.Enum):
     @staticmethod
     def ALL() -> Set["VerifyAction"]:
         """ Verification of all possible actions, shortcut for ``{NAME, MIN, MAX, VALUE}``. """
-        return {VerifyAction.NAME, VerifyAction.MIN, VerifyAction.MAX, VerifyAction.VALUE}
+        return {
+            VerifyAction.NAME,
+            VerifyAction.MIN,
+            VerifyAction.MAX,
+            VerifyAction.VALUE,
+        }
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -111,104 +118,124 @@ RESPONSE_HEADER = {
     #   checksum is always zero (0x0), regardless of the content.
     #
     # This behavior will be handled in the following lines. See also function HtHeatpump.read_response().
-
     # normal response header with answer
-    b"\x02\xfd\xe0\xd0\x00\x00":
-        { "payload_len": lambda payload_len: payload_len,  # no payload length correction necessary
-          # method to calculate the checksum of the response:
-          "checksum": lambda header, payload_len, payload: calc_checksum(header + bytes([payload_len]) + payload),
-          },
-
+    b"\x02\xfd\xe0\xd0\x00\x00": {
+        "payload_len": lambda payload_len: payload_len,  # no payload length correction necessary
+        # method to calculate the checksum of the response:
+        "checksum": lambda header, payload_len, payload: calc_checksum(
+            header + bytes([payload_len]) + payload
+        ),
+    },
     # response header for some of the "MR" command (HtHeatpump.fast_query) answers
     #   for this kind of answers the payload length must be corrected (for the checksum computation)
     #     so that the received checksum fits with the computed one
     #   observed on: HP08S10W-WEB, SW 3.0.20
-    b"\x02\xfd\xe0\xd0\x01\x00":
-        { "payload_len": lambda payload_len: payload_len - 1,  # payload length correction
-          # method to calculate the checksum of the response:
-          "checksum": lambda header, payload_len, payload: calc_checksum(header + bytes([payload_len]) + payload),
-          },
-
+    b"\x02\xfd\xe0\xd0\x01\x00": {
+        "payload_len": lambda payload_len: payload_len - 1,  # payload length correction
+        # method to calculate the checksum of the response:
+        "checksum": lambda header, payload_len, payload: calc_checksum(
+            header + bytes([payload_len]) + payload
+        ),
+    },
     # response header with answer
     #   for error messages (e.g. "ERR,INVALID IDX") and some "MR" command (HtHeatpump.fast_query) answers
     #   for this kind of answers the payload length must be corrected (for the checksum computation)
     #     so that the received checksum fits with the computed one
     #   observed on: HP08S10W-WEB, SW 3.0.20
-    b"\x02\xfd\xe0\xd0\x02\x00":
-        { "payload_len": lambda payload_len: payload_len - 2,  # payload length correction
-          # method to calculate the checksum of the response:
-          "checksum": lambda header, payload_len, payload: calc_checksum(header + bytes([payload_len]) + payload),
-          },
-
+    b"\x02\xfd\xe0\xd0\x02\x00": {
+        "payload_len": lambda payload_len: payload_len - 2,  # payload length correction
+        # method to calculate the checksum of the response:
+        "checksum": lambda header, payload_len, payload: calc_checksum(
+            header + bytes([payload_len]) + payload
+        ),
+    },
     # response header with answer
     #   when receiving an answer from the heat pump with this header the checksum is always 0x0 (don't ask me why!)
     #   observed on: HP08S10W-WEB, SW 3.0.20 for parameter requests ("SP"/"MP" commands)
-    b"\x02\xfd\xe0\xd0\x04\x00":
-        { "payload_len": lambda payload_len: payload_len,  # no payload length correction necessary
-          # we don't know why, but for this kind of responses the checksum is always 0x0:
-          "checksum": lambda header, payload_len, payload: 0x00,
-          },
-
+    b"\x02\xfd\xe0\xd0\x04\x00": {
+        "payload_len": lambda payload_len: payload_len,  # no payload length correction necessary
+        # we don't know why, but for this kind of responses the checksum is always 0x0:
+        "checksum": lambda header, payload_len, payload: 0x00,
+    },
     # response header with answer
     #   when receiving an answer from the heat pump with this header the checksum is always 0x0 (don't ask me why!)
     #   observed on: HP10S12W-WEB, SW 3.0.8 for parameter requests ("SP"/"MP" commands)
-    b"\x02\xfd\xe0\xd0\x08\x00":
-        { "payload_len": lambda payload_len: payload_len,  # no payload length correction necessary
-          # we don't know why, but for this kind of responses the checksum is always 0x0:
-          "checksum": lambda header, payload_len, payload: 0x00,
-          },
+    b"\x02\xfd\xe0\xd0\x08\x00": {
+        "payload_len": lambda payload_len: payload_len,  # no payload length correction necessary
+        # we don't know why, but for this kind of responses the checksum is always 0x0:
+        "checksum": lambda header, payload_len, payload: 0x00,
+    },
 }
 
 
 # special commands of the heat pump:
 # ----------------------------------
 #
-LOGIN_CMD    = r"LIN"                                                                                   # login command
-LOGIN_RESP   = r"^OK"
-LOGOUT_CMD   = r"LOUT"                                                                                 # logout command
-LOGOUT_RESP  = r"^OK"
-RID_CMD      = r"RID"                                                      # query for the manufacturer's serial number
-RID_RESP     = r"^RID,(\d+)$"                                                                 # e.g. '~RID,123456;\r\n'
-VERSION_CMD  = r"SP,NR=9"                                             # query for the software version of the heat pump
-VERSION_RESP = r"^SP,NR=9,.*NAME=([^,]+).*VAL=([^,]+).*$"            # e.g. 'SP,NR=9,ID=9,NAME=3.0.20,...,VAL=2321,...'
-CLK_CMD      = (r"CLK",                                            # get/set the current date and time of the heat pump
-                r"CLK,DA={:02d}.{:02d}.{:02d},TI={:02d}:{:02d}:{:02d},WD={:d}")
-CLK_RESP     = (r"^CLK"                                         # answer for the current date and time of the heat pump
-                r",DA=(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d\d)"                         # date, e.g. '26.11.15'
-                r",TI=([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                                     # time, e.g. '21:28:57'
-                r",WD=([1-7])$")                                                  # weekday 1-7 (Monday through Sunday)
-ALC_CMD      = r"ALC"                                               # query for the last fault message of the heat pump
-ALC_RESP     = (r"^AA,(\d+),(\d+)"                                                # fault list index and error code (?)
-                r",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d\d)"                            # date, e.g. '14.09.14'
-                r"-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                                        # time, e.g. '11:52:08'
-                r",(.*)$")                                                         # error message, e.g. 'EQ_Spreizung'
-ALS_CMD      = r"ALS"                                                  # query for the fault list size of the heat pump
-ALS_RESP     = r"^SUM=(\d+)$"                                                                         # e.g. 'SUM=2757'
-AR_CMD       = r"AR"                                                     # query for specific entries of the fault list
-AR_RESP      = (r"^AA,(\d+),(\d+)"                                                # fault list index and error code (?)
-                r",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d\d)"                            # date, e.g. '14.09.14'
-                r"-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"                                        # time, e.g. '11:52:08'
-                r",(.*)$")                                                         # error message, e.g. 'EQ_Spreizung'
-MR_CMD       = r"MR"                                                      # fast query for several MP data point values
-MR_RESP      = r"^MA,(\d+),([^,]+),(\d+)$"                     # MP data point number, value and ?; e.g. 'MA,0,-3.4,17'
-PRL_CMD      = r"PRL"                                                    # query for the time programs of the heat pump
-PRL_RESP     = (r"^SUM=(\d+)$",                                                                          # e.g. 'SUM=5'
-                r"^PRI{:d},.*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$")    # e.g. 'PRI0,...'
-PRI_CMD      = r"PRI{:d}"                                          # query for a specific time program of the heat pump
-PRI_RESP     = r"^PRI{:d},.*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$"  # e.g. 'PRI2,NAME=..'
-PRD_CMD      = r"PRD{:d}"                           # query for the entries of a specific time program of the heat pump
-PRD_RESP     = (r"^PRI{:d},*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$",     # e.g. 'PRI0,...'
-                r"^PRE,.*PR={:d},.*DAY={:d},.*EV={:d},.*ST=(\d+),"                # e.g. 'PRE,PR=0,DAY=3,EV=1,ST=1,...'
-                r".*BEG=(\d?\d:\d?\d),.*END=(\d?\d:\d?\d).*$")                               # '...BEG=03:30,END=22:00'
-PRE_CMD      = (r"PRE,PR={:d},DAY={:d},EV={:d}",               # get/set a specific time program entry of the heat pump
-                r"PRE,PR={:d},DAY={:d},EV={:d},ST={:d},BEG={},END={}")
-PRE_RESP     = (r"^PRE,.*PR={:d},.*DAY={:d},.*EV={:d},.*ST=(\d+),"                # e.g. 'PRE,PR=2,DAY=5,EV=4,ST=1,...'
-                r".*BEG=(\d?\d:\d?\d),.*END=(\d?\d:\d?\d).*$")                               # '...BEG=13:30,END=14:45'
+LOGIN_CMD = r"LIN"  # login command
+LOGIN_RESP = r"^OK"
+LOGOUT_CMD = r"LOUT"  # logout command
+LOGOUT_RESP = r"^OK"
+RID_CMD = r"RID"  # query for the manufacturer's serial number
+RID_RESP = r"^RID,(\d+)$"  # e.g. '~RID,123456;\r\n'
+VERSION_CMD = r"SP,NR=9"  # query for the software version of the heat pump
+VERSION_RESP = r"^SP,NR=9,.*NAME=([^,]+).*VAL=([^,]+).*$"  # e.g. 'SP,NR=9,ID=9,NAME=3.0.20,...,VAL=2321,...'
+CLK_CMD = (
+    r"CLK",  # get/set the current date and time of the heat pump
+    r"CLK,DA={:02d}.{:02d}.{:02d},TI={:02d}:{:02d}:{:02d},WD={:d}",
+)
+CLK_RESP = (
+    r"^CLK"  # answer for the current date and time of the heat pump
+    r",DA=(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d\d)"  # date, e.g. '26.11.15'
+    r",TI=([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"  # time, e.g. '21:28:57'
+    r",WD=([1-7])$"
+)  # weekday 1-7 (Monday through Sunday)
+ALC_CMD = r"ALC"  # query for the last fault message of the heat pump
+ALC_RESP = (
+    r"^AA,(\d+),(\d+)"  # fault list index and error code (?)
+    r",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d\d)"  # date, e.g. '14.09.14'
+    r"-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"  # time, e.g. '11:52:08'
+    r",(.*)$"
+)  # error message, e.g. 'EQ_Spreizung'
+ALS_CMD = r"ALS"  # query for the fault list size of the heat pump
+ALS_RESP = r"^SUM=(\d+)$"  # e.g. 'SUM=2757'
+AR_CMD = r"AR"  # query for specific entries of the fault list
+AR_RESP = (
+    r"^AA,(\d+),(\d+)"  # fault list index and error code (?)
+    r",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d\d)"  # date, e.g. '14.09.14'
+    r"-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"  # time, e.g. '11:52:08'
+    r",(.*)$"
+)  # error message, e.g. 'EQ_Spreizung'
+MR_CMD = r"MR"  # fast query for several MP data point values
+MR_RESP = r"^MA,(\d+),([^,]+),(\d+)$"  # MP data point number, value and ?; e.g. 'MA,0,-3.4,17'
+PRL_CMD = r"PRL"  # query for the time programs of the heat pump
+PRL_RESP = (
+    r"^SUM=(\d+)$",  # e.g. 'SUM=5'
+    r"^PRI{:d},.*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$",
+)  # e.g. 'PRI0,...'
+PRI_CMD = r"PRI{:d}"  # query for a specific time program of the heat pump
+PRI_RESP = r"^PRI{:d},.*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$"  # e.g. 'PRI2,NAME=..'
+PRD_CMD = (
+    r"PRD{:d}"  # query for the entries of a specific time program of the heat pump
+)
+PRD_RESP = (
+    r"^PRI{:d},*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$",  # e.g. 'PRI0,...'
+    r"^PRE,.*PR={:d},.*DAY={:d},.*EV={:d},.*ST=(\d+),"  # e.g. 'PRE,PR=0,DAY=3,EV=1,ST=1,...'
+    r".*BEG=(\d?\d:\d?\d),.*END=(\d?\d:\d?\d).*$",
+)  # '...BEG=03:30,END=22:00'
+PRE_CMD = (
+    r"PRE,PR={:d},DAY={:d},EV={:d}",  # get/set a specific time program entry of the heat pump
+    r"PRE,PR={:d},DAY={:d},EV={:d},ST={:d},BEG={},END={}",
+)
+PRE_RESP = (
+    r"^PRE,.*PR={:d},.*DAY={:d},.*EV={:d},.*ST=(\d+),"  # e.g. 'PRE,PR=2,DAY=5,EV=4,ST=1,...'
+    r".*BEG=(\d?\d:\d?\d),.*END=(\d?\d:\d?\d).*$"
+)  # '...BEG=13:30,END=14:45'
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
 # Helper functions
 # ------------------------------------------------------------------------------------------------------------------- #
+
 
 def calc_checksum(s: bytes) -> int:
     """ Function that calculates the checksum of a provided bytes array.
@@ -223,7 +250,7 @@ def calc_checksum(s: bytes) -> int:
     for i in range(len(s)):
         databyte = s[i]
         checksum ^= databyte
-        databyte = (databyte << 1) & 0xff
+        databyte = (databyte << 1) & 0xFF
         checksum ^= databyte
     return checksum
 
@@ -240,8 +267,12 @@ def verify_checksum(s: bytes) -> bool:
     """
     assert isinstance(s, bytes)
     if len(s) < 2:
-        raise ValueError("the provided array of bytes needs to be at least 2 bytes long")
-    return calc_checksum(s[:-1]) == s[-1]  # is the last byte of the array the correct checksum?
+        raise ValueError(
+            "the provided array of bytes needs to be at least 2 bytes long"
+        )
+    return (
+        calc_checksum(s[:-1]) == s[-1]
+    )  # is the last byte of the array the correct checksum?
 
 
 def add_checksum(s: bytes) -> bytes:
@@ -257,7 +288,9 @@ def add_checksum(s: bytes) -> bytes:
     assert isinstance(s, bytes)
     if len(s) < 1:
         raise ValueError("the provided array of bytes needs to be at least 1 byte long")
-    return s + bytes([calc_checksum(s)])  # append the checksum at the end of the bytes array
+    return s + bytes(
+        [calc_checksum(s)]
+    )  # append the checksum at the end of the bytes array
 
 
 def create_request(cmd: str) -> bytes:
@@ -281,12 +314,14 @@ def create_request(cmd: str) -> bytes:
 # Exception classes
 # ------------------------------------------------------------------------------------------------------------------- #
 
+
 class VerificationException(ValueError):  # pragma: no cover
     """ Exception which represents a verification error during parameter access.
 
     :param message: A detailed message describing the parameter verification failure.
     :type message: str
     """
+
     def __init__(self, message: str) -> None:
         super().__init__(self, message)
 
@@ -294,6 +329,7 @@ class VerificationException(ValueError):  # pragma: no cover
 # ------------------------------------------------------------------------------------------------------------------- #
 # HtHeatpump class
 # ------------------------------------------------------------------------------------------------------------------- #
+
 
 class HtHeatpump:
     """ Object which encapsulates the communication with the Heliotherm heat pump.
@@ -341,7 +377,9 @@ class HtHeatpump:
         self._ser_settings.update(kwargs)
         self._ser = None
         # default values for the parameter verification
-        self._verify_param_action = kwargs.get("verify_param_action", {VerifyAction.NAME})
+        self._verify_param_action = kwargs.get(
+            "verify_param_action", {VerifyAction.NAME}
+        )
         assert isinstance(self._verify_param_action, set)
         self._verify_param_error = kwargs.get("verify_param_error", False)
         assert isinstance(self._verify_param_error, bool)
@@ -387,15 +425,17 @@ class HtHeatpump:
         dsrdtr = self._ser_settings.get("dsrdtr", False)
         assert isinstance(dsrdtr, bool)
         # open the serial connection (must fit with the settings on the heat pump!)
-        self._ser = serial.Serial(device,
-                                  baudrate=baudrate,
-                                  bytesize=bytesize,
-                                  parity=parity,
-                                  stopbits=stopbits,
-                                  xonxoff=xonxoff,
-                                  rtscts=rtscts,
-                                  dsrdtr=dsrdtr,
-                                  timeout=_serial_timeout)
+        self._ser = serial.Serial(
+            device,
+            baudrate=baudrate,
+            bytesize=bytesize,
+            parity=parity,
+            stopbits=stopbits,
+            xonxoff=xonxoff,
+            rtscts=rtscts,
+            dsrdtr=dsrdtr,
+            timeout=_serial_timeout,
+        )
         _logger.info(self._ser)  # log serial connection properties
 
     def reconnect(self) -> None:
@@ -531,12 +571,17 @@ class HtHeatpump:
         if payload_len == 0:
             _logger.info(
                 "received response with a payload length of zero; "
-                "try to read until the occurrence of '\\r\\n' [header={}]".format(header))
+                "try to read until the occurrence of '\\r\\n' [header={}]".format(
+                    header
+                )
+            )
             payload = b""
             while payload[-2:] != b"\r\n":
                 tmp = self._ser.read(1)
                 if not tmp:
-                    raise IOError("data stream broken during reading payload ending with '\\r\\n'")
+                    raise IOError(
+                        "data stream broken during reading payload ending with '\\r\\n'"
+                    )
                 payload += tmp
             # compute the payload length by counting the number of read bytes
             payload_len = len(payload)
@@ -554,24 +599,44 @@ class HtHeatpump:
             raise IOError("data stream broken during reading checksum")
         checksum = checksum[0]
         # compute the checksum over header, payload length and the payload itself (depending on the header)
-        comp_checksum = RESPONSE_HEADER[header]["checksum"](header, payload_len, payload)
+        comp_checksum = RESPONSE_HEADER[header]["checksum"](
+            header, payload_len, payload
+        )
         if checksum != comp_checksum:
-            raise IOError("invalid checksum [{}] of response "
-                          "[header={}, payload_len={:d}({:d}), payload={}, checksum={}]"
-                          .format(hex(checksum), header, payload_len, payload_len_r, payload, hex(comp_checksum)))
+            raise IOError(
+                "invalid checksum [{}] of response "
+                "[header={}, payload_len={:d}({:d}), payload={}, checksum={}]".format(
+                    hex(checksum),
+                    header,
+                    payload_len,
+                    payload_len_r,
+                    payload,
+                    hex(comp_checksum),
+                )
+            )
         # debug log of the received response
-        _logger.debug("received response: {}".format(header + bytes([payload_len]) + payload + bytes([checksum])))
+        _logger.debug(
+            "received response: {}".format(
+                header + bytes([payload_len]) + payload + bytes([checksum])
+            )
+        )
         _logger.debug("  header = {}".format(header))
-        _logger.debug("  payload length = {:d}({:d})".format(payload_len, payload_len_r))
+        _logger.debug(
+            "  payload length = {:d}({:d})".format(payload_len, payload_len_r)
+        )
         _logger.debug("  payload = {}".format(payload))
         _logger.debug("  checksum = {}".format(hex(checksum)))
         # extract the relevant data from the payload (without header '~' and trailer ';\r\n')
         m = re.match(r"^~([^;]*);\r\n$", payload.decode("ascii"))
         if not m:
-            raise IOError("failed to extract response data from payload [{}]".format(payload))
+            raise IOError(
+                "failed to extract response data from payload [{}]".format(payload)
+            )
         return m.group(1)
 
-    def login(self, update_param_limits: bool = False, max_retries: int = _login_retries) -> None:
+    def login(
+        self, update_param_limits: bool = False, max_retries: int = _login_retries
+    ) -> None:
         """ Log in the heat pump. If :attr:`update_param_limits` is :const:`True` an update of the
         parameter limits in :class:`~htheatpump.htparams.HtParams` will be performed. This will
         be done by requesting the current value together with their limits (MIN and MAX) for all
@@ -598,7 +663,9 @@ class HtHeatpump:
                 resp = self.read_response()
                 m = re.match(LOGIN_RESP, resp)
                 if not m:
-                    raise IOError("invalid response for LOGIN command [{!r}]".format(resp))
+                    raise IOError(
+                        "invalid response for LOGIN command [{!r}]".format(resp)
+                    )
                 else:
                     success = True
             except Exception as e:
@@ -652,7 +719,9 @@ class HtHeatpump:
             _logger.debug("manufacturer's serial number = {:d}".format(rid))
             return rid  # return the received manufacturer's serial number as an int
         except Exception as e:
-            _logger.error("query for manufacturer's serial number failed: {!s}".format(e))
+            _logger.error(
+                "query for manufacturer's serial number failed: {!s}".format(e)
+            )
             raise
 
     def get_version(self) -> Tuple[str, int]:
@@ -684,7 +753,11 @@ class HtHeatpump:
             #   => software version = 3.0.20
             m = re.match(VERSION_RESP, resp)
             if not m:
-                raise IOError("invalid response for query of the software version [{!r}]".format(resp))
+                raise IOError(
+                    "invalid response for query of the software version [{!r}]".format(
+                        resp
+                    )
+                )
             ver = (m.group(1).strip(), int(m.group(2)))
             _logger.debug("software version = {} ({:d})".format(ver[0], ver[1]))
             return ver
@@ -721,13 +794,20 @@ class HtHeatpump:
             weekday = int(m.group(7))  # weekday 1-7 (Monday through Sunday)
             # create datetime object from extracted data
             dt = datetime.datetime(year, month, day, hour, minute, second)
-            _logger.debug("datetime = {}, weekday = {:d}".format(dt.isoformat(), weekday))
-            return dt, weekday  # return the heat pump's date and time as a datetime object
+            _logger.debug(
+                "datetime = {}, weekday = {:d}".format(dt.isoformat(), weekday)
+            )
+            return (
+                dt,
+                weekday,
+            )  # return the heat pump's date and time as a datetime object
         except Exception as e:
             _logger.error("query for date and time failed: {!s}".format(e))
             raise
 
-    def set_date_time(self, dt: Optional[datetime.datetime] = None) -> Tuple[datetime.datetime, int]:
+    def set_date_time(
+        self, dt: Optional[datetime.datetime] = None
+    ) -> Tuple[datetime.datetime, int]:
         """ Set the current date and time of the heat pump.
 
         :param dt: The date and time to set. If :const:`None` current date and time
@@ -749,7 +829,15 @@ class HtHeatpump:
         elif not isinstance(dt, datetime.datetime):
             raise TypeError("argument 'dt' must be None or of type datetime.datetime")
         # create CLK set command
-        cmd = CLK_CMD[1].format(dt.day, dt.month, dt.year - 2000, dt.hour, dt.minute, dt.second, dt.isoweekday())
+        cmd = CLK_CMD[1].format(
+            dt.day,
+            dt.month,
+            dt.year - 2000,
+            dt.hour,
+            dt.minute,
+            dt.second,
+            dt.isoweekday(),
+        )
         # send command to the heat pump
         self.send_request(cmd)
         # ... and wait for the response
@@ -763,8 +851,13 @@ class HtHeatpump:
             weekday = int(m.group(7))  # weekday 1-7 (Monday through Sunday)
             # create datetime object from extracted data
             dt = datetime.datetime(year, month, day, hour, minute, second)
-            _logger.debug("datetime = {}, weekday = {:d}".format(dt.isoformat(), weekday))
-            return dt, weekday  # return the heat pump's date and time as a datetime object
+            _logger.debug(
+                "datetime = {}, weekday = {:d}".format(dt.isoformat(), weekday)
+            )
+            return (
+                dt,
+                weekday,
+            )  # return the heat pump's date and time as a datetime object
         except Exception as e:
             _logger.error("set of date and time failed: {!s}".format(e))
             raise
@@ -792,17 +885,23 @@ class HtHeatpump:
         self.send_request(ALC_CMD)
         # ... and wait for the response
         try:
-            resp = self.read_response()  # e.g. "AA,29,20,14.09.14-11:52:08,EQ_Spreizung"
+            resp = (
+                self.read_response()
+            )  # e.g. "AA,29,20,14.09.14-11:52:08,EQ_Spreizung"
             m = re.match(ALC_RESP, resp)
             if not m:
                 raise IOError("invalid response for ALC command [{!r}]".format(resp))
-            idx, err = [int(g) for g in m.group(1, 2)]  # fault list index, error code (?)
+            idx, err = [
+                int(g) for g in m.group(1, 2)
+            ]  # fault list index, error code (?)
             year = 2000 + int(m.group(5))
             month, day, hour, minute, second = [int(g) for g in m.group(4, 3, 6, 7, 8)]
             # create datetime object from extracted data
             dt = datetime.datetime(year, month, day, hour, minute, second)
             msg = m.group(9).strip()
-            _logger.debug("(idx: {:d}, err: {:d})[{}]: {}".format(idx, err, dt.isoformat(), msg))
+            _logger.debug(
+                "(idx: {:d}, err: {:d})[{}]: {}".format(idx, err, dt.isoformat(), msg)
+            )
             return idx, err, dt, msg
         except Exception as e:
             _logger.error("query for last fault message failed: {!s}".format(e))
@@ -879,35 +978,54 @@ class HtHeatpump:
                 resp = []
                 # read all requested fault list entries
                 for _ in range(cnt):
-                    resp.append(self.read_response())  # e.g. "AA,29,20,14.09.14-11:52:08,EQ_Spreizung"
+                    resp.append(
+                        self.read_response()
+                    )  # e.g. "AA,29,20,14.09.14-11:52:08,EQ_Spreizung"
                 # extract data (fault list index, error code, date, time and message)
                 for i, r in enumerate(resp):
                     m = re.match(AR_RESP, r)
                     if not m:
-                        raise IOError("invalid response for AR command [{!r}]".format(r))
-                    idx, err = [int(g) for g in m.group(1, 2)]  # fault list index, error code
+                        raise IOError(
+                            "invalid response for AR command [{!r}]".format(r)
+                        )
+                    idx, err = [
+                        int(g) for g in m.group(1, 2)
+                    ]  # fault list index, error code
                     year = 2000 + int(m.group(5))
-                    month, day, hour, minute, second = [int(g) for g in m.group(4, 3, 6, 7, 8)]
+                    month, day, hour, minute, second = [
+                        int(g) for g in m.group(4, 3, 6, 7, 8)
+                    ]
                     # create datetime object from extracted data
                     dt = datetime.datetime(year, month, day, hour, minute, second)
                     msg = m.group(9).strip()
-                    _logger.debug("(idx: {:03d}, err: {:05d})[{}]: {}".format(idx, err, dt.isoformat(), msg))
+                    _logger.debug(
+                        "(idx: {:03d}, err: {:05d})[{}]: {}".format(
+                            idx, err, dt.isoformat(), msg
+                        )
+                    )
                     if idx != args[n - cnt + i]:
                         raise IOError(
-                            "fault list index doesn't match [{:d}, should be {:d}]".format(idx, args[n - cnt + i]))
+                            "fault list index doesn't match [{:d}, should be {:d}]".format(
+                                idx, args[n - cnt + i]
+                            )
+                        )
                     # add the received fault list entry to the result list
-                    fault_list.append({"index"   : idx,  # fault list index
-                                       "error"   : err,  # error code
-                                       "datetime": dt,   # date and time of the entry
-                                       "message" : msg,  # error message
-                                       })
+                    fault_list.append(
+                        {
+                            "index": idx,  # fault list index
+                            "error": err,  # error code
+                            "datetime": dt,  # date and time of the entry
+                            "message": msg,  # error message
+                        }
+                    )
             except Exception as e:
                 _logger.error("query for fault list failed: {!s}".format(e))
                 raise
         return fault_list
 
-    def _extract_param_data(self, name: str, resp: str) -> Tuple[str, HtParamValueType, HtParamValueType,
-                                                                 HtParamValueType]:
+    def _extract_param_data(
+        self, name: str, resp: str
+    ) -> Tuple[str, HtParamValueType, HtParamValueType, HtParamValueType]:
         """ Extract the parameter data like parameter name, minimal value, maximal value and the
         current value from the parameter access response string.
 
@@ -928,21 +1046,45 @@ class HtHeatpump:
             Will be raised for an incomplete/invalid response from the heat pump.
         """
         # get the corresponding definition for the given parameter
-        assert name in HtParams, "parameter definition for parameter {!r} not found".format(name)
+        assert (
+            name in HtParams
+        ), "parameter definition for parameter {!r} not found".format(name)
         param = HtParams[name]  # type: ignore
         # search for pattern "NAME=...", "VAL=...", "MAX=..." and "MIN=..." inside the response string
-        m = re.match(r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(param.cmd()), resp)
+        m = re.match(
+            r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(
+                param.cmd()
+            ),
+            resp,
+        )
         if not m:
-            raise IOError("invalid response for access of parameter {!r} [{!r}]".format(name, resp))
-        resp_name, resp_min, resp_max, resp_val = (g.strip() for g in m.group(1, 4, 3, 2))  # type: str, Any, Any, Any
-        _logger.debug("{!r}: NAME={!r}, MIN={!r}, MAX={!r}, VAL={!r}"
-                      .format(name, resp_name, resp_min, resp_max, resp_val))
-        resp_min = param.from_str(resp_min)  # convert MIN to the corresponding data type (BOOL, INT, FLOAT)
-        resp_max = param.from_str(resp_max)  # convert MAX to the corresponding data type (BOOL, INT, FLOAT)
-        resp_val = param.from_str(resp_val)  # convert VAL to the corresponding data type (BOOL, INT, FLOAT)
+            raise IOError(
+                "invalid response for access of parameter {!r} [{!r}]".format(
+                    name, resp
+                )
+            )
+        resp_name, resp_min, resp_max, resp_val = (
+            g.strip() for g in m.group(1, 4, 3, 2)
+        )  # type: str, Any, Any, Any
+        _logger.debug(
+            "{!r}: NAME={!r}, MIN={!r}, MAX={!r}, VAL={!r}".format(
+                name, resp_name, resp_min, resp_max, resp_val
+            )
+        )
+        resp_min = param.from_str(
+            resp_min
+        )  # convert MIN to the corresponding data type (BOOL, INT, FLOAT)
+        resp_max = param.from_str(
+            resp_max
+        )  # convert MAX to the corresponding data type (BOOL, INT, FLOAT)
+        resp_val = param.from_str(
+            resp_val
+        )  # convert VAL to the corresponding data type (BOOL, INT, FLOAT)
         return resp_name, resp_min, resp_max, resp_val  # return (name, min, max, value)
 
-    def _get_param(self, name: str) -> Tuple[str, HtParamValueType, HtParamValueType, HtParamValueType]:
+    def _get_param(
+        self, name: str
+    ) -> Tuple[str, HtParamValueType, HtParamValueType, HtParamValueType]:
         """ Read the data (NAME, MIN, MAX, VAL) of a specific parameter of the heat pump.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
@@ -960,7 +1102,9 @@ class HtHeatpump:
             Will be raised for an incomplete/invalid response from the heat pump.
         """
         # get the corresponding definition for the requested parameter
-        assert name in HtParams, "parameter definition for parameter {!r} not found".format(name)
+        assert (
+            name in HtParams
+        ), "parameter definition for parameter {!r} not found".format(name)
         param = HtParams[name]  # type: ignore
         # send command to the heat pump
         self.send_request(param.cmd())
@@ -972,10 +1116,14 @@ class HtHeatpump:
             _logger.error("query of parameter {!r} failed: {!s}".format(name, e))
             raise
 
-    def _verify_param_resp(self, name: str, resp_name: str,
-                           resp_min: Optional[HtParamValueType] = None,
-                           resp_max: Optional[HtParamValueType] = None,
-                           resp_val: Optional[HtParamValueType] = None) -> Optional[HtParamValueType]:
+    def _verify_param_resp(
+        self,
+        name: str,
+        resp_name: str,
+        resp_min: Optional[HtParamValueType] = None,
+        resp_max: Optional[HtParamValueType] = None,
+        resp_val: Optional[HtParamValueType] = None,
+    ) -> Optional[HtParamValueType]:
         """ Perform a verification of the parameter access response data (NAME, MIN, MAX, VAL). Check whether
         the name, min and max value matches with the parameter definition in :class:`~htheatpump.htparams.HtParams`
         and warn if the current value is beyond the limits.
@@ -1001,34 +1149,55 @@ class HtHeatpump:
             :attr:`~HtHeatpump.verify_param_action`.
         """
         # get the corresponding definition for the given parameter
-        assert name in HtParams, "parameter definition for parameter {!r} not found".format(name)
+        assert (
+            name in HtParams
+        ), "parameter definition for parameter {!r} not found".format(name)
         param = HtParams[name]  # type: ignore
         try:
             # verify 'NAME'
             if (VerifyAction.NAME in self._verify_param_action) and (resp_name != name):
-                raise VerificationException("parameter name doesn't match with {!r} [{!r}]"
-                                            .format(name, resp_name))
+                raise VerificationException(
+                    "parameter name doesn't match with {!r} [{!r}]".format(
+                        name, resp_name
+                    )
+                )
             # verify 'MIN' (None for min value means "doesn't matter")
-            if (VerifyAction.MIN in self._verify_param_action) and (resp_min is not None and param.min_val is not None):
+            if (VerifyAction.MIN in self._verify_param_action) and (
+                resp_min is not None and param.min_val is not None
+            ):
                 if resp_min != param.min_val:
-                    raise VerificationException("parameter min value doesn't match with {!r} [{!r}]"
-                                                .format(param.min_val, resp_min))
+                    raise VerificationException(
+                        "parameter min value doesn't match with {!r} [{!r}]".format(
+                            param.min_val, resp_min
+                        )
+                    )
 
             # verify 'MAX' (None for max value means "doesn't matter")
-            if (VerifyAction.MAX in self._verify_param_action) and (resp_max is not None and param.max_val is not None):
+            if (VerifyAction.MAX in self._verify_param_action) and (
+                resp_max is not None and param.max_val is not None
+            ):
                 if resp_max != param.max_val:
-                    raise VerificationException("parameter max value doesn't match with {!r} [{!r}]"
-                                                .format(param.max_val, resp_max))
+                    raise VerificationException(
+                        "parameter max value doesn't match with {!r} [{!r}]".format(
+                            param.max_val, resp_max
+                        )
+                    )
             # check 'VAL' against the limits and write a WARNING if necessary
-            if (VerifyAction.VALUE in self._verify_param_action)\
-                    and (resp_val is not None and not param.in_limits(resp_val)):
-                _logger.warning("value {!r} of parameter {!r} is beyond the limits [{}, {}]"
-                                .format(resp_val, name, param.min_val, param.max_val))
+            if (VerifyAction.VALUE in self._verify_param_action) and (
+                resp_val is not None and not param.in_limits(resp_val)
+            ):
+                _logger.warning(
+                    "value {!r} of parameter {!r} is beyond the limits [{}, {}]".format(
+                        resp_val, name, param.min_val, param.max_val
+                    )
+                )
         except Exception as e:
             if self._verify_param_error:  # interpret as error?
                 raise
             else:  # ... or only as a warning?
-                _logger.warning("response verification of param {!r} failed: {!s}".format(name, e))
+                _logger.warning(
+                    "response verification of param {!r} failed: {!s}".format(name, e)
+                )
         return resp_val
 
     def update_param_limits(self) -> List[str]:
@@ -1051,8 +1220,16 @@ class HtHeatpump:
             # update the limit values in the HtParams database and count the number of updated entries
             if HtParams[name].set_limits(resp_min, resp_max):
                 updated_params.append(name)
-                _logger.debug("updated param {!r}: MIN={}, MAX={}".format(name, resp_min, resp_max))
-        _logger.info("updated {:d} (of {:d}) parameter limits".format(len(updated_params), len(HtParams)))
+                _logger.debug(
+                    "updated param {!r}: MIN={}, MAX={}".format(
+                        name, resp_min, resp_max
+                    )
+                )
+        _logger.info(
+            "updated {:d} (of {:d}) parameter limits".format(
+                len(updated_params), len(HtParams)
+            )
+        )
         return updated_params
 
     def get_param(self, name: str) -> HtParamValueType:
@@ -1084,7 +1261,9 @@ class HtHeatpump:
         """
         # find the corresponding definition for the parameter
         if name not in HtParams:
-            raise KeyError("parameter definition for parameter {!r} not found".format(name))
+            raise KeyError(
+                "parameter definition for parameter {!r} not found".format(name)
+            )
         try:
             resp = self._get_param(name)
             val = self._verify_param_resp(name, *resp)
@@ -1094,7 +1273,9 @@ class HtHeatpump:
             _logger.error("get parameter {!r} failed: {!s}".format(name, e))
             raise
 
-    def set_param(self, name: str, val: HtParamValueType, ignore_limits: bool = False) -> HtParamValueType:
+    def set_param(
+        self, name: str, val: HtParamValueType, ignore_limits: bool = False
+    ) -> HtParamValueType:
         """ Set the value of a specific parameter of the heat pump. If :attr:`ignore_limits` is :const:`False`
         and the passed value is beyond the parameter limits a :exc:`ValueError` will be raised.
 
@@ -1134,11 +1315,17 @@ class HtHeatpump:
         assert val is not None, "'val' must not be None"
         # find the corresponding definition for the parameter
         if name not in HtParams:
-            raise KeyError("parameter definition for parameter {!r} not found".format(name))
+            raise KeyError(
+                "parameter definition for parameter {!r} not found".format(name)
+            )
         param = HtParams[name]  # type: ignore
         # check the passed value against the defined limits (if desired)
         if not ignore_limits and not param.in_limits(val):
-            raise ValueError("value {!r} is beyond the limits [{}, {}]".format(val, param.min_val, param.max_val))
+            raise ValueError(
+                "value {!r} is beyond the limits [{}, {}]".format(
+                    val, param.min_val, param.max_val
+                )
+            )
         # send command to the heat pump
         val = param.to_str(val)
         self.send_request("{},VAL={}".format(param.cmd(), val))
@@ -1240,11 +1427,16 @@ class HtHeatpump:
         dp_dict = {}
         for name in args:
             if name not in HtParams:
-                raise KeyError("parameter definition for parameter {!r} not found".format(name))
+                raise KeyError(
+                    "parameter definition for parameter {!r} not found".format(name)
+                )
             param = HtParams[name]  # type: ignore
             if param.dp_type != "MP":
-                raise ValueError("invalid parameter {!r}; only parameters representing a 'MP' data point are allowed"
-                                 .format(name))
+                raise ValueError(
+                    "invalid parameter {!r}; only parameters representing a 'MP' data point are allowed".format(
+                        name
+                    )
+                )
             dp_list.append(param.dp_number)
             dp_dict.update({param.dp_number: (name, param)})
         values = {}
@@ -1274,19 +1466,30 @@ class HtHeatpump:
                 for r in resp:
                     m = re.match(MR_RESP, r)
                     if not m:
-                        raise IOError("invalid response for MR command [{!r}]".format(r))
+                        raise IOError(
+                            "invalid response for MR command [{!r}]".format(r)
+                        )
                     # MP data point number, value and ?
-                    dp_number, dp_value, unknown_val = m.group(1, 2, 3)  # type: Any, str, str
+                    dp_number, dp_value, unknown_val = m.group(
+                        1, 2, 3
+                    )  # type: Any, str, str
                     dp_number = int(dp_number)
                     if dp_number not in dp_dict:
-                        raise IOError("non requested data point value received [MP,{:d}]".format(dp_number))
+                        raise IOError(
+                            "non requested data point value received [MP,{:d}]".format(
+                                dp_number
+                            )
+                        )
                     name, param = dp_dict[dp_number]
                     val = param.from_str(dp_value)
                     _logger.debug("{!r} = {!s} ({})".format(name, val, unknown_val))
                     # check the received value against the limits and write a WARNING if necessary
                     if not param.in_limits(val):
-                        _logger.warning("value {!r} of parameter {!r} is beyond the limits [{}, {}]"
-                                        .format(val, name, param.min_val, param.max_val))
+                        _logger.warning(
+                            "value {!r} of parameter {!r} is beyond the limits [{}, {}]".format(
+                                val, name, param.min_val, param.max_val
+                            )
+                        )
                     values.update({name: val})
             except Exception as e:
                 _logger.error("fast query of parameter(s) failed: {!s}".format(e))
@@ -1314,15 +1517,22 @@ class HtHeatpump:
             sum = int(m.group(1))
             _logger.debug("number of time programs = {:d}".format(sum))
             for idx in range(sum):
-                resp = self.read_response()  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
+                resp = (
+                    self.read_response()
+                )  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
                 m = re.match(PRL_RESP[1].format(idx), resp)
                 if not m:
-                    raise IOError("invalid response for PRL command [{!r}]".format(resp))
+                    raise IOError(
+                        "invalid response for PRL command [{!r}]".format(resp)
+                    )
                 # extract data (NAME, EAD, NOS, STE and NOD)
                 name = m.group(1)
                 ead, nos, ste, nod = [int(g) for g in m.group(2, 3, 4, 5)]
-                _logger.debug("[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
-                    idx, name, ead, nos, ste, nod))
+                _logger.debug(
+                    "[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
+                        idx, name, ead, nos, ste, nod
+                    )
+                )
                 time_progs.append(TimeProgram(idx, name, ead, nos, ste, nod))
         except Exception as e:
             _logger.error("query for time programs failed: {!s}".format(e))
@@ -1348,15 +1558,20 @@ class HtHeatpump:
         self.send_request(PRI_CMD.format(idx))
         # ... and wait for the response
         try:
-            resp = self.read_response()  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
+            resp = (
+                self.read_response()
+            )  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
             m = re.match(PRI_RESP.format(idx), resp)
             if not m:
                 raise IOError("invalid response for PRI command [{!r}]".format(resp))
             # extract data (NAME, EAD, NOS, STE and NOD)
             name = m.group(1)
             ead, nos, ste, nod = [int(g) for g in m.group(2, 3, 4, 5)]
-            _logger.debug("[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
-                idx, name, ead, nos, ste, nod))
+            _logger.debug(
+                "[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
+                    idx, name, ead, nos, ste, nod
+                )
+            )
             time_prog = TimeProgram(idx, name, ead, nos, ste, nod)
             return time_prog
         except Exception as e:
@@ -1382,26 +1597,38 @@ class HtHeatpump:
         self.send_request(PRD_CMD.format(idx))
         # ... and wait for the response
         try:
-            resp = self.read_response()  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
+            resp = (
+                self.read_response()
+            )  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
             m = re.match(PRD_RESP[0].format(idx), resp)
             if not m:
                 raise IOError("invalid response for PRD command [{!r}]".format(resp))
             # extract data (NAME, EAD, NOS, STE and NOD)
             name = m.group(1)
             ead, nos, ste, nod = [int(g) for g in m.group(2, 3, 4, 5)]
-            _logger.debug("[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
-                idx, name, ead, nos, ste, nod))
+            _logger.debug(
+                "[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
+                    idx, name, ead, nos, ste, nod
+                )
+            )
             time_prog = TimeProgram(idx, name, ead, nos, ste, nod)
             # read the single time program entries for each day
             for (day, num) in [(day, num) for day in range(nod) for num in range(ead)]:
-                resp = self.read_response()  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
+                resp = (
+                    self.read_response()
+                )  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
                 m = re.match(PRD_RESP[1].format(idx, day, num), resp)
                 if not m:
-                    raise IOError("invalid response for PRD command [{!r}]".format(resp))
+                    raise IOError(
+                        "invalid response for PRD command [{!r}]".format(resp)
+                    )
                 # extract data (ST, BEG, END)
                 st, beg, end = m.group(1, 2, 3)
-                _logger.debug("[idx={:d}, day={:d}, entry={:d}]: st={}, beg={}, end={}".format(
-                    idx, day, num, st, beg, end))
+                _logger.debug(
+                    "[idx={:d}, day={:d}, entry={:d}]: st={}, beg={}, end={}".format(
+                        idx, day, num, st, beg, end
+                    )
+                )
                 time_prog.set_entry(day, num, TimeProgEntry.from_str(st, beg, end))
             return time_prog
         except Exception as e:
@@ -1426,7 +1653,11 @@ class HtHeatpump:
         """
         assert isinstance(idx, int)
         assert isinstance(with_entries, bool)
-        return self._get_time_prog_with_entries(idx) if with_entries else self._get_time_prog(idx)
+        return (
+            self._get_time_prog_with_entries(idx)
+            if with_entries
+            else self._get_time_prog(idx)
+        )
 
     def get_time_prog_entry(self, idx: int, day: int, num: int) -> TimeProgEntry:
         """ Return a specific time program entry (specified by time program index, day and entry-of-day)
@@ -1452,19 +1683,27 @@ class HtHeatpump:
         self.send_request(PRE_CMD[0].format(idx, day, num))
         # ... and wait for the response
         try:
-            resp = self.read_response()  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
+            resp = (
+                self.read_response()
+            )  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
             m = re.match(PRE_RESP.format(idx, day, num), resp)
             if not m:
                 raise IOError("invalid response for PRE command [{!r}]".format(resp))
             # extract data (ST, BEG, END)
             st, beg, end = m.group(1, 2, 3)
-            _logger.debug("[idx={:d}, day={:d}, entry={:d}]: st={}, beg={}, end={}".format(idx, day, num, st, beg, end))
+            _logger.debug(
+                "[idx={:d}, day={:d}, entry={:d}]: st={}, beg={}, end={}".format(
+                    idx, day, num, st, beg, end
+                )
+            )
             return TimeProgEntry.from_str(st, beg, end)
         except Exception as e:
             _logger.error("query for time program entry failed: {!s}".format(e))
             raise
 
-    def set_time_prog_entry(self, idx: int, day: int, num: int, entry: TimeProgEntry) -> TimeProgEntry:
+    def set_time_prog_entry(
+        self, idx: int, day: int, num: int, entry: TimeProgEntry
+    ) -> TimeProgEntry:
         """ Set a specific time program entry (specified by time program index, day and entry-of-day)
         of the heat pump.
 
@@ -1488,16 +1727,26 @@ class HtHeatpump:
         assert isinstance(num, int)
         assert isinstance(entry, TimeProgEntry)
         # send PRE command to the heat pump
-        self.send_request(PRE_CMD[1].format(idx, day, num, entry.state, entry.period.start_str, entry.period.end_str))
+        self.send_request(
+            PRE_CMD[1].format(
+                idx, day, num, entry.state, entry.period.start_str, entry.period.end_str
+            )
+        )
         # ... and wait for the response
         try:
-            resp = self.read_response()  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
+            resp = (
+                self.read_response()
+            )  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
             m = re.match(PRE_RESP.format(idx, day, num), resp)
             if not m:
                 raise IOError("invalid response for PRE command [{!r}]".format(resp))
             # extract data (ST, BEG, END)
             st, beg, end = m.group(1, 2, 3)
-            _logger.debug("[idx={:d}, day={:d}, entry={:d}]: st={}, beg={}, end={}".format(idx, day, num, st, beg, end))
+            _logger.debug(
+                "[idx={:d}, day={:d}, entry={:d}]: st={}, beg={}, end={}".format(
+                    idx, day, num, st, beg, end
+                )
+            )
             return TimeProgEntry.from_str(st, beg, end)
         except Exception as e:
             _logger.error("set time program entry failed: {!s}".format(e))
@@ -1520,10 +1769,17 @@ class HtHeatpump:
         """
         assert isinstance(time_prog, TimeProgram)
         ret = copy.deepcopy(time_prog)
-        for (day, num) in [(day, num) for day in range(time_prog.number_of_days)
-                           for num in range(time_prog.entries_a_day)]:
+        for (day, num) in [
+            (day, num)
+            for day in range(time_prog.number_of_days)
+            for num in range(time_prog.entries_a_day)
+        ]:
             entry = time_prog.entry(day, num)
-            _logger.debug("[idx={:d}, day={:d}, entry={:d}]: {!s}".format(time_prog.index, day, num, entry))
+            _logger.debug(
+                "[idx={:d}, day={:d}, entry={:d}]: {!s}".format(
+                    time_prog.index, day, num, entry
+                )
+            )
             if entry is not None:
                 entry = self.set_time_prog_entry(time_prog.index, day, num, entry)
             else:
@@ -1537,7 +1793,7 @@ class HtHeatpump:
 # ------------------------------------------------------------------------------------------------------------------- #
 
 # Only for testing: request for parameter values and print it
-#def main():
+# def main():
 #    if len(sys.argv) == 2:
 #        logging.basicConfig(level=logging.DEBUG)
 #    names = sys.argv[1:] if len(sys.argv) > 1 else HtParams.keys()
@@ -1564,7 +1820,7 @@ class HtHeatpump:
 #    print("query took {:.2f} sec".format(end - start))
 #
 #
-#if __name__ == "__main__":
+# if __name__ == "__main__":
 #    main()
 
 

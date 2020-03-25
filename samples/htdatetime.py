@@ -36,16 +36,26 @@ import datetime
 from htheatpump.htheatpump import HtHeatpump
 from htheatpump.utils import Timer
 import logging
+
 _logger = logging.getLogger(__name__)
 
 
-WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+WEEKDAYS = (
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+)
 
 
 # Main program
 def main():
     parser = argparse.ArgumentParser(
-        description = textwrap.dedent('''\
+        description=textwrap.dedent(
+            """\
             Command line tool to get and set date and time on the Heliotherm heat pump.
 
             To change date and/or time on the heat pump the date and time has to be passed
@@ -60,9 +70,11 @@ def main():
               Tuesday, 2017-11-21T21:48:04
               $ python3 %(prog)s -d /dev/ttyUSB1 -b 9600 "2008-09-03T20:56:35"
               Wednesday, 2008-09-03T20:56:35
-            '''),
-        formatter_class = argparse.RawDescriptionHelpFormatter,
-        epilog = textwrap.dedent('''\
+            """
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=textwrap.dedent(
+            """\
             DISCLAIMER
             ----------
 
@@ -74,38 +86,47 @@ def main():
               for damage caused by this program or mentioned information.
 
               Thus, use it on your own risk!
-            ''') + "\r\n")
+            """
+        )
+        + "\r\n",
+    )
 
     parser.add_argument(
-        "-d", "--device",
-        default = "/dev/ttyUSB0",
-        type = str,
-        help = "the serial device on which the heat pump is connected, default: %(default)s")
+        "-d",
+        "--device",
+        default="/dev/ttyUSB0",
+        type=str,
+        help="the serial device on which the heat pump is connected, default: %(default)s",
+    )
 
     parser.add_argument(
-        "-b", "--baudrate",
-        default = 115200,
-        type = int,
+        "-b",
+        "--baudrate",
+        default=115200,
+        type=int,
         # the supported baudrates of the Heliotherm heat pump (HP08S10W-WEB):
-        choices = [9600, 19200, 38400, 57600, 115200],
-        help = "baudrate of the serial connection (same as configured on the heat pump), default: %(default)s")
+        choices=[9600, 19200, 38400, 57600, 115200],
+        help="baudrate of the serial connection (same as configured on the heat pump), default: %(default)s",
+    )
 
     parser.add_argument(
-        "-t", "--time",
-        action = "store_true",
-        help = "measure the execution time")
+        "-t", "--time", action="store_true", help="measure the execution time"
+    )
 
     parser.add_argument(
-        "-v", "--verbose",
-        action = "store_true",
-        help = "increase output verbosity by activating logging")
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="increase output verbosity by activating logging",
+    )
 
     parser.add_argument(
         "datetime",
-        type = str,
-        nargs = '?',
-        help = "date and time in ISO 8601 format (YYYY-MM-DDTHH:MM:SS), if empty current date and time will be used, "
-               "if not specified current date and time on the heat pump will be returned")
+        type=str,
+        nargs="?",
+        help="date and time in ISO 8601 format (YYYY-MM-DDTHH:MM:SS), if empty current date and time will be used, "
+        "if not specified current date and time on the heat pump will be returned",
+    )
 
     args = parser.parse_args()
 
@@ -123,7 +144,11 @@ def main():
 
         rid = hp.get_serial_number()
         if args.verbose:
-            _logger.info("connected successfully to heat pump with serial number {:d}".format(rid))
+            _logger.info(
+                "connected successfully to heat pump with serial number {:d}".format(
+                    rid
+                )
+            )
         ver = hp.get_version()
         if args.verbose:
             _logger.info("software version = {} ({:d})".format(ver[0], ver[1]))

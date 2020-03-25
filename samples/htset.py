@@ -34,6 +34,7 @@ from htheatpump.htheatpump import HtHeatpump
 from htheatpump.htparams import HtParams
 from htheatpump.utils import Timer
 import logging
+
 _logger = logging.getLogger(__name__)
 
 
@@ -48,16 +49,19 @@ class ParamNameAction(argparse.Action):
 # Main program
 def main():
     parser = argparse.ArgumentParser(
-        description = textwrap.dedent('''\
+        description=textwrap.dedent(
+            """\
             Command line tool to set the value of a specific parameter of the heat pump.
 
             Example:
 
               $ python3 %(prog)s --device /dev/ttyUSB1 "HKR Soll_Raum" "21.5"
               21.5
-            '''),
-        formatter_class = argparse.RawDescriptionHelpFormatter,
-        epilog = textwrap.dedent('''\
+            """
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=textwrap.dedent(
+            """\
             DISCLAIMER
             ----------
 
@@ -69,44 +73,49 @@ def main():
               for damage caused by this program or mentioned information.
 
               Thus, use it on your own risk!
-            ''') + "\r\n")
+            """
+        )
+        + "\r\n",
+    )
 
     parser.add_argument(
-        "-d", "--device",
-        default = "/dev/ttyUSB0",
-        type = str,
-        help = "the serial device on which the heat pump is connected, default: %(default)s")
+        "-d",
+        "--device",
+        default="/dev/ttyUSB0",
+        type=str,
+        help="the serial device on which the heat pump is connected, default: %(default)s",
+    )
 
     parser.add_argument(
-        "-b", "--baudrate",
-        default = 115200,
-        type = int,
+        "-b",
+        "--baudrate",
+        default=115200,
+        type=int,
         # the supported baudrates of the Heliotherm heat pump (HP08S10W-WEB):
-        choices = [9600, 19200, 38400, 57600, 115200],
-        help = "baudrate of the serial connection (same as configured on the heat pump), default: %(default)s")
+        choices=[9600, 19200, 38400, 57600, 115200],
+        help="baudrate of the serial connection (same as configured on the heat pump), default: %(default)s",
+    )
 
     parser.add_argument(
-        "-t", "--time",
-        action = "store_true",
-        help = "measure the execution time")
+        "-t", "--time", action="store_true", help="measure the execution time"
+    )
 
     parser.add_argument(
-        "-v", "--verbose",
-        action = "store_true",
-        help = "increase output verbosity by activating logging")
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="increase output verbosity by activating logging",
+    )
 
     parser.add_argument(
         "name",
-        type = str,
-        nargs = 1,
-        action = ParamNameAction,
-        help = "parameter name (as defined in htparams.csv)")
+        type=str,
+        nargs=1,
+        action=ParamNameAction,
+        help="parameter name (as defined in htparams.csv)",
+    )
 
-    parser.add_argument(
-        "value",
-        type = str,
-        nargs = 1,
-        help = "parameter value (as string)")
+    parser.add_argument("value", type=str, nargs=1, help="parameter value (as string)")
 
     args = parser.parse_args()
 
@@ -124,7 +133,11 @@ def main():
 
         rid = hp.get_serial_number()
         if args.verbose:
-            _logger.info("connected successfully to heat pump with serial number {:d}".format(rid))
+            _logger.info(
+                "connected successfully to heat pump with serial number {:d}".format(
+                    rid
+                )
+            )
         ver = hp.get_version()
         if args.verbose:
             _logger.info("software version = {} ({:d})".format(ver[0], ver[1]))

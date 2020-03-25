@@ -20,5 +20,6 @@
 """ Top-level package for HtHeatpump. """
 
 import htheatpump.version as __version
+
 __version__ = __version.version.short()
-__author__  = "Daniel Strigl"
+__author__ = "Daniel Strigl"
