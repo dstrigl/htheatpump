@@ -92,7 +92,7 @@ def main():
         help = "output will be in JSON format")
 
     parser.add_argument(
-        "--boolasint",
+        "--bool-as-int",
         action = "store_true",
         help = "boolean values will be stored as '0' and '1'")
 
@@ -138,7 +138,7 @@ def main():
             values = hp.query(*args.name)
         exec_time = timer.elapsed
         for name, val in values.items():
-            if args.boolasint and HtParams[name].data_type == HtDataTypes.BOOL:
+            if args.bool_as_int and HtParams[name].data_type == HtDataTypes.BOOL:
                 values[name] = 1 if val else 0
 
         # print the current value(s) of the retrieved parameter(s)

@@ -69,7 +69,7 @@ setup(
     # Project requirements (used by pip to install its dependencies)
     install_requires=install_requires,
     tests_require=tests_require,
-    dev_require=dev_require,
+    #dev_require=dev_require,  # UserWarning: Unknown distribution option: 'dev_require'
     extras_require={"test": tests_require, "doc": doc_require, "dev": dev_require},
 
     # Prevent zip archive creation
