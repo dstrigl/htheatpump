@@ -17,20 +17,14 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" Command line tool to create a backup of the Heliotherm heat pump data points.
+""" Command line tool to create a complete list of all Heliotherm heat pump parameters.
 
     Example:
 
     .. code-block:: shell
 
-       $ python3 htbackup.py --baudrate 9600 --csv backup.csv
-       'SP,NR=0' [Language]: VAL='0', MIN='0', MAX='4'
-       'SP,NR=1' [TBF_BIT]: VAL='0', MIN='0', MAX='1'
-       'SP,NR=2' [Rueckruferlaubnis]: VAL='1', MIN='0', MAX='1'
-       ...
-       'MP,NR=0' [Temp. Aussen]: VAL='-7.0', MIN='-20.0', MAX='40.0'
-       'MP,NR=1' [Temp. Aussen verzoegert]: VAL='-6.9', MIN='-20.0', MAX='40.0'
-       'MP,NR=2' [Temp. Brauchwasser]: VAL='45.7', MIN='0.0', MAX='70.0'
+       $ python3 htcomplparams.py --baudrate 9600 -- TODO
+       TODO
        ...
 """
 
@@ -38,9 +32,10 @@ import sys
 import argparse
 import textwrap
 import re
-import json
 import csv
+import os
 from htheatpump.htheatpump import HtHeatpump
+from htheatpump.htparams import HtParam, HtDataTypes
 from htheatpump.utils import Timer
 import logging
 
@@ -52,14 +47,12 @@ def main():
     parser = argparse.ArgumentParser(
         description=textwrap.dedent(
             """\
-            Command line tool to create a backup of the Heliotherm heat pump data points.
+            Command line tool to create a complete list of all Heliotherm heat pump parameters.
 
             Example:
 
-              $ python3 %(prog)s --baudrate 9600 --csv backup.csv
-              'SP,NR=0' [Language]: VAL='0', MIN='0', MAX='4'
-              'SP,NR=1' [TBF_BIT]: VAL='0', MIN='0', MAX='1'
-              'SP,NR=2' [Rueckruferlaubnis]: VAL='1', MIN='0', MAX='1'
+              $ python3 %(prog)s --baudrate 9600 -- TODO
+              TODO
               ...
             """
         ),
@@ -101,11 +94,12 @@ def main():
     )
 
     parser.add_argument(
-        "-j", "--json", type=str, help="write the result to the specified JSON file"
-    )
-
-    parser.add_argument(
-        "-c", "--csv", type=str, help="write the result to the specified CSV file"
+        "-c",
+        "--csv",
+        type=str,
+        help="write the result to the specified CSV file",
+        nargs="?",
+        const="",
     )
 
     parser.add_argument(
@@ -117,12 +111,6 @@ def main():
         "--verbose",
         action="store_true",
         help="increase output verbosity by activating logging",
-    )
-
-    parser.add_argument(
-        "--without-values",
-        action="store_true",
-        help="store heat pump data points without their current value (keep it blank)",
     )
 
     parser.add_argument(
@@ -184,11 +172,31 @@ def main():
                             name, value, min_val, max_val = (
                                 g.strip() for g in m.group(1, 2, 4, 3)
                             )
-                            if args.without_values:
-                                value = ""  # keep it blank (if desired)
+                            # determine the data type of the data point
+                            dtype = None
+                            try:
+                                min_val = HtParam.from_str(min_val, HtDataTypes.INT)
+                                max_val = HtParam.from_str(max_val, HtDataTypes.INT)
+                                value = HtParam.from_str(value, HtDataTypes.INT)
+                                dtype = "INT"
+                                if min_val == 0 and max_val == 1 and value in (0, 1):
+                                    dtype = "BOOL"
+                            except ValueError:
+                                min_val = HtParam.from_str(
+                                    min_val, HtDataTypes.FLOAT, strict=False
+                                )
+                                max_val = HtParam.from_str(
+                                    max_val, HtDataTypes.FLOAT, strict=False
+                                )
+                                value = HtParam.from_str(
+                                    value, HtDataTypes.FLOAT, strict=False
+                                )
+                                dtype = "FLOAT"
+                            assert dtype is not None
+                            # print the determined values
                             print(
-                                "{!r} [{}]: VAL={!r}, MIN={!r}, MAX={!r}".format(
-                                    data_point, name, value, min_val, max_val
+                                "{!r} [{}]: VAL={}, MIN={}, MAX={} (dtype={})".format(
+                                    data_point, name, value, min_val, max_val, dtype
                                 )
                             )
                             # store the determined data in the result dict
@@ -199,6 +207,7 @@ def main():
                                         "value": value,
                                         "min": min_val,
                                         "max": max_val,
+                                        "dtype": dtype,
                                     }
                                 }
                             )
@@ -227,20 +236,40 @@ def main():
                         i += 1
         exec_time = timer.elapsed
 
-        if args.json:  # write result to JSON file
-            with open(args.json, "w") as jsonfile:
-                json.dump(result, jsonfile, indent=4, sort_keys=True)
-
         if args.csv:  # write result to CSV file
-            with open(args.csv, "w") as csvfile:
-                fieldnames = ["type", "number", "name", "value", "min", "max"]
-                writer = csv.DictWriter(csvfile, delimiter=",", fieldnames=fieldnames)
-                writer.writeheader()
+            filename = args.csv.strip()
+            if filename == "":
+                filename = os.path.join(
+                    os.getcwd(),
+                    "htparams-{}-{}-{}.csv".format(
+                        rid, ver[0].replace(".", "_"), ver[1]
+                    ),
+                )
+            print(filename)  # TODO
+            with open(filename, "w") as csvfile:
+                header = (
+                    "# name",
+                    "data point type (MP;SP)",
+                    "data point number",
+                    "acl (r-;-w;rw)",
+                    "dtype (BOOL;INT;FLOAT)",
+                    "min",
+                    "max",
+                )
+                writer = csv.writer(csvfile, delimiter=", ")
+                writer.writerow(header)
                 for dp_type, content in sorted(result.items(), reverse=True):
                     for i, data in content.items():
-                        row_data = {"type": dp_type, "number": i}
-                        row_data.update(data)
-                        writer.writerow({n: row_data[n] for n in fieldnames})
+                        row_data = (
+                            data["name"],
+                            dp_type,
+                            str(i),
+                            "r-",
+                            data["dtype"],
+                            str(data["min"]),
+                            str(data["max"]),
+                        )
+                        writer.writerow(row_data)
 
         # print execution time only if desired
         if args.time:
