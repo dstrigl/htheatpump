@@ -4,6 +4,7 @@ History
 1.2.2 (2020-??-??)
 ------------------
 
+* added new sample script ``htcomplparams.py`` to create a complete list of all heat pump parameters
 * added some more heat pump parameters (data points) in ``htparams.csv``
 * Python code reformatting using *Black*
 * changed package requirements structure; some changes in `setup.py`, `setup.cfg`, `tox.ini`, etc.
