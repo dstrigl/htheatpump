@@ -31,6 +31,7 @@
        'SP,NR=1' [TBF_BIT]: VAL=0, MIN=0, MAX=1 (dtype=BOOL)
        'SP,NR=2' [Rueckruferlaubnis]: VAL=1, MIN=0, MAX=1 (dtype=BOOL)
        ...
+       write data to: /home/pi/prog/htheatpump/htparams-123456-3_0_20-273.csv
 """
 
 import sys
@@ -64,6 +65,7 @@ def main():
               'SP,NR=1' [TBF_BIT]: VAL=0, MIN=0, MAX=1 (dtype=BOOL)
               'SP,NR=2' [Rueckruferlaubnis]: VAL=1, MIN=0, MAX=1 (dtype=BOOL)
               ...
+              write data to: /home/pi/prog/htheatpump/htparams-123456-3_0_20-273.csv
             """
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,

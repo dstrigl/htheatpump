@@ -261,3 +261,29 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/httimeprog.py
     [day=1, entry=4]: state=0, time=14:00-18:00
     [day=1, entry=5]: state=1, time=18:00-20:00
     [day=1, entry=6]: state=0, time=20:00-24:00
+
+
+htcomplparams
+-------------
+
+Command line tool to create a complete list of all Heliotherm heat pump parameters.
+
+The option ``-c`` or ``--csv`` can be used to write the determined data to a CSV file.
+If no filename is specified an automatic one, consisting of serial number an software
+version, will be used (e.g. htparams-123456-3_0_20-273.csv).
+
+Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htcomplparams.py
+
+**Example:**
+
+.. code-block:: shell
+
+    $ python3 htcomplparams.py --device /dev/ttyUSB1 --baudrate 9600 --csv
+    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
+    connected successfully to heat pump with serial number 123456
+    software version = 3.0.20 (273)
+    'SP,NR=0' [Language]: VAL=0, MIN=0, MAX=4 (dtype=INT)
+    'SP,NR=1' [TBF_BIT]: VAL=0, MIN=0, MAX=1 (dtype=BOOL)
+    'SP,NR=2' [Rueckruferlaubnis]: VAL=1, MIN=0, MAX=1 (dtype=BOOL)
+    ...
+    write data to: /home/pi/prog/htheatpump/htparams-123456-3_0_20-273.csv
