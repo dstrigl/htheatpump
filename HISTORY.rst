@@ -5,7 +5,7 @@ History
 ------------------
 
 * added some more heat pump parameters (data points) in ``htparams.csv``
-* Python code reformatting using *Black*.
+* Python code reformatting using *Black*
 * changed package requirements structure; some changes in `setup.py`, `setup.cfg`, `tox.ini`, etc.
 
 1.2.1 (2020-02-07)
