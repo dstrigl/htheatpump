@@ -154,7 +154,7 @@ def main():
 
         result = {}
         with Timer() as timer:
-            for dp_type in ("SP", "MP"):  # for all known data point types
+            for dp_type in ("MP", "SP"):  # for all known data point types
                 result.update({dp_type: {}})
                 i = 0  # start at zero for each data point type
                 while True:
