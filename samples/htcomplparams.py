@@ -23,8 +23,13 @@
 
     .. code-block:: shell
 
-       $ python3 htcomplparams.py --baudrate 9600 -- TODO
-       TODO
+       $ python3 htcomplparams.py --device /dev/ttyUSB1 --baudrate 9600 --csv
+       HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
+       connected successfully to heat pump with serial number 123456
+       software version = 3.0.20 (273)
+       'SP,NR=0' [Language]: VAL=0, MIN=0, MAX=4 (dtype=INT)
+       'SP,NR=1' [TBF_BIT]: VAL=0, MIN=0, MAX=1 (dtype=BOOL)
+       'SP,NR=2' [Rueckruferlaubnis]: VAL=1, MIN=0, MAX=1 (dtype=BOOL)
        ...
 """
 
@@ -51,8 +56,13 @@ def main():
 
             Example:
 
-              $ python3 %(prog)s --baudrate 9600 -- TODO
-              TODO
+              $ python3 %(prog)s --device /dev/ttyUSB1 --baudrate 9600 --csv
+              HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
+              connected successfully to heat pump with serial number 123456
+              software version = 3.0.20 (273)
+              'SP,NR=0' [Language]: VAL=0, MIN=0, MAX=4 (dtype=INT)
+              'SP,NR=1' [TBF_BIT]: VAL=0, MIN=0, MAX=1 (dtype=BOOL)
+              'SP,NR=2' [Rueckruferlaubnis]: VAL=1, MIN=0, MAX=1 (dtype=BOOL)
               ...
             """
         ),
@@ -236,7 +246,7 @@ def main():
                         i += 1
         exec_time = timer.elapsed
 
-        if args.csv:  # write result to CSV file
+        if args.csv is not None:  # write result to CSV file
             filename = args.csv.strip()
             if filename == "":
                 filename = os.path.join(
@@ -245,7 +255,7 @@ def main():
                         rid, ver[0].replace(".", "_"), ver[1]
                     ),
                 )
-            print(filename)  # TODO
+            print("write data to: " + filename)
             with open(filename, "w") as csvfile:
                 header = (
                     "# name",
@@ -256,7 +266,7 @@ def main():
                     "min",
                     "max",
                 )
-                writer = csv.writer(csvfile, delimiter=", ")
+                writer = csv.writer(csvfile, delimiter=",")
                 writer.writerow(header)
                 for dp_type, content in sorted(result.items(), reverse=True):
                     for i, data in content.items():
