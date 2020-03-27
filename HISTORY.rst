@@ -4,10 +4,12 @@ History
 1.2.2 (2020-??-??)
 ------------------
 
+* added sample file ``htparams-xxxxxx-3_0_20-273.csv`` with a complete list of all heat pump parameters
+  from a Heliotherm heat pump with SW 3.0.20
 * added new sample script ``htcomplparams.py`` to create a complete list of all heat pump parameters
 * added some more heat pump parameters (data points) in ``htparams.csv``
 * Python code reformatting using *Black*
-* changed package requirements structure; some changes in `setup.py`, `setup.cfg`, `tox.ini`, etc.
+* changed package requirements structure; some changes in ``setup.py``, ``setup.cfg``, ``tox.ini``, etc.
 
 1.2.1 (2020-02-07)
 ------------------

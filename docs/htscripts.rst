@@ -270,7 +270,11 @@ Command line tool to create a complete list of all Heliotherm heat pump paramete
 
 The option ``-c`` or ``--csv`` can be used to write the determined data to a CSV file.
 If no filename is specified an automatic one, consisting of serial number an software
-version, will be used (e.g. ``htparams-123456-3_0_20-273.csv``).
+version, will be used (e.g. :file:`htparams-123456-3_0_20-273.csv`).
+
+This script can be used to create the basis for your own user specific parameter
+definition file, which can than be placed under :file:`~/.htheatpump/htparams.csv`
+(see also :class:`~htheatpump.htparams.HtParams`).
 
 Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htcomplparams.py
 

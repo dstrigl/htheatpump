@@ -1,0 +1,522 @@
+# name,data point type (MP;SP),data point number,acl (r-;-w;rw),dtype (BOOL;INT;FLOAT),min,max
+Temp. Aussen,MP,0,r-,FLOAT,-20.0,40.0
+Temp. Aussen verzoegert,MP,1,r-,FLOAT,-20.0,40.0
+Temp. Brauchwasser,MP,2,r-,FLOAT,0.0,70.0
+Temp. Vorlauf,MP,3,r-,FLOAT,0.0,70.0
+Temp. Ruecklauf,MP,4,r-,FLOAT,0.0,70.0
+Temp. Pufferspeicher,MP,5,r-,FLOAT,0.0,70.0
+Temp. EQ_Eintritt,MP,6,r-,FLOAT,-20.0,30.0
+Temp. EQ_Austritt,MP,7,r-,FLOAT,-20.0,30.0
+Temp. Verdichterfuss,MP,8,r-,FLOAT,-20.0,70.0
+Temp. Sauggas,MP,9,r-,FLOAT,-20.0,30.0
+TF 22,MP,10,r-,FLOAT,-8.0,8.0
+Temp. Frischwasser_Istwert,MP,11,r-,FLOAT,0.0,70.0
+Temp. Verdampfung,MP,12,r-,FLOAT,-50.0,30.0
+Temp. Kondensation,MP,13,r-,FLOAT,-50.0,60.0
+Temp. KM_Unterkuehlung,MP,14,r-,FLOAT,0.0,60.0
+Temp. Heissgas,MP,15,r-,FLOAT,0.0,150.0
+Temp. Raumfuehler1,MP,16,r-,FLOAT,0.0,60.0
+Temp. Raumfuehler2,MP,17,r-,FLOAT,0.0,60.0
+Temp. Raumfuehler3,MP,18,r-,FLOAT,0.0,60.0
+Temp. Raumfuehler4,MP,19,r-,FLOAT,0.0,60.0
+Niederdruck (bar),MP,20,r-,FLOAT,0.0,18.0
+Hochdruck (bar),MP,21,r-,FLOAT,0.0,40.0
+Heizkreispumpe,MP,22,r-,BOOL,0,1
+Pufferladepumpe,MP,23,r-,BOOL,0,1
+EQ Pumpe (Ventilator),MP,24,r-,BOOL,0,1
+Warmwasservorrang,MP,25,r-,BOOL,0,1
+Carterheizung,MP,26,r-,BOOL,0,1
+Kuehlen UmV Passiv,MP,27,r-,BOOL,0,1
+Externe Pumpe,MP,28,r-,BOOL,0,1
+Zirkulationspumpe WW,MP,29,r-,BOOL,0,1
+Verdichter,MP,30,r-,BOOL,0,1
+Stoerung,MP,31,r-,BOOL,0,1
+Vierwegeventil Luft,MP,32,r-,BOOL,0,1
+Hochdruckschalter,MP,33,r-,BOOL,0,1
+EQ Motorschutz,MP,34,r-,BOOL,0,1
+Externe Anforderung,MP,35,r-,BOOL,0,1
+Hauptschalter,MP,36,r-,BOOL,0,1
+EVU_Sperre,MP,37,r-,BOOL,0,1
+FWS Stroemungsschalter,MP,38,r-,BOOL,0,1
+EQ Druckwaechter,MP,39,r-,BOOL,0,1
+ModStatus,MP,40,r-,INT,0,7
+BSZ Verdichter Schaltungen,MP,41,r-,INT,0,100000
+DIP_SW,MP,42,r-,INT,0,255
+Solar KT1,MP,43,r-,FLOAT,-30.0,120.0
+Ausheizstatus,MP,44,r-,INT,0,3
+Solar_Pumpe WW,MP,45,r-,BOOL,0,1
+Solar_Pumpe Puffer,MP,46,r-,BOOL,0,1
+AO1 HKP,MP,47,r-,INT,0,100
+AO2 Energiequelle,MP,48,r-,INT,0,100
+Anforderung 2.Stufe,MP,49,r-,INT,0,100
+Frischwasserpumpe,MP,50,r-,INT,0,100
+Expansionsventil,MP,51,r-,FLOAT,0.0,100.0
+WMZ_Heizung (kWh),MP,52,r-,FLOAT,0.0,12157522.0
+Stromz_Heizung (kWh),MP,53,r-,FLOAT,0.0,12157522.0
+WMZ_Brauchwasser (kWh),MP,54,r-,FLOAT,0.0,12157522.0
+Stromz_Brauchwasser (kWh),MP,55,r-,FLOAT,0.0,12157522.0
+Verdichteranforderung,MP,56,r-,INT,0,5
+HKR_Sollwert,MP,57,r-,FLOAT,0.0,50.0
+Heissgassollwert,MP,58,r-,FLOAT,0.0,130.0
+Druckdifferenz HD_ND,MP,59,r-,FLOAT,-10.0,50.0
+EQ_Temp.differenz,MP,60,r-,FLOAT,-10.0,50.0
+Abtau Luftein_Verdampf_diff.,MP,61,r-,FLOAT,-20.0,50.0
+VL_RL_Temp.diff.,MP,62,r-,FLOAT,-20.0,50.0
+MKR1_Temp. VLT,MP,63,r-,FLOAT,0.0,70.0
+MKR1_Temp. RLT,MP,64,r-,FLOAT,0.0,70.0
+MKR1_Pumpe,MP,65,r-,BOOL,0,1
+MKR1_Sollwert,MP,66,r-,FLOAT,0.0,60.0
+MKR1_Stellposition,MP,67,r-,FLOAT,0.0,100.0
+MKR1_StellSollPos,MP,68,r-,INT,0,100
+MKR2_Temp. VLT,MP,69,r-,FLOAT,0.0,70.0
+MKR2_Temp. RLT,MP,70,r-,FLOAT,0.0,70.0
+MKR2_Pumpe,MP,71,r-,BOOL,0,1
+MKR2_Sollwert,MP,72,r-,FLOAT,0.0,60.0
+MKR2_Stellposition,MP,73,r-,FLOAT,0.0,100.0
+MKR2_StellSollPos,MP,74,r-,INT,0,100
+Stromz_Gesamt (kWh):,MP,75,r-,FLOAT,0.0,141006544.0
+Volt L1-N:,MP,76,r-,FLOAT,0.0,250.0
+Volt L2-N:,MP,77,r-,FLOAT,0.0,250.0
+Volt L3-N:,MP,78,r-,FLOAT,0.0,250.0
+Strom L1:,MP,79,r-,FLOAT,0.0,100.0
+Strom L2:,MP,80,r-,FLOAT,0.0,100.0
+Strom L3:,MP,81,r-,FLOAT,0.0,100.0
+Netzfrequenz:,MP,82,r-,FLOAT,0.0,60.0
+Stromz_Leistung (W):,MP,83,r-,FLOAT,0.0,141006544.0
+WMZ_Gesamt (kWh):,MP,84,r-,FLOAT,0.0,141006544.0
+WMZ_Durchfluss:,MP,85,r-,INT,0,1000000000
+WMZ_Temp. Ein.:,MP,86,r-,FLOAT,0.0,100.0
+WMZ_Temp. Aus.:,MP,87,r-,FLOAT,0.0,100.0
+OpFrequenz,MP,88,r-,FLOAT,0.0,500.0
+WMZ_Leistung (kW):,MP,89,r-,FLOAT,0.0,141006544.0
+n-Soll Verdichter(%),MP,90,r-,INT,0,100
+OpVerdichter,MP,91,r-,BOOL,0,1
+COP,MP,92,r-,FLOAT,0.0,10.0
+OpErrors,MP,93,r-,INT,0,23
+OpStromabgabe,MP,94,r-,FLOAT,0.0,100.0
+OpAusgangsspannung,MP,95,r-,INT,0,500
+Mdiffn10,MP,96,r-,FLOAT,0.0,100.0
+Mdiffp10,MP,97,r-,FLOAT,0.0,100.0
+flow_m,MP,98,r-,FLOAT,0.0,100.0
+h11,MP,99,r-,FLOAT,0.0,100.0
+h1,MP,100,r-,FLOAT,0.0,100.0
+h42,MP,101,r-,FLOAT,0.0,100.0
+h4,MP,102,r-,FLOAT,0.0,100.0
+Language,SP,0,r-,INT,0,4
+TBF_BIT,SP,1,r-,BOOL,0,1
+Rueckruferlaubnis,SP,2,r-,BOOL,0,1
+Liegenschaft,SP,3,r-,INT,0,2147483647
+WP_System,SP,4,r-,INT,1,2
+WW Type,SP,5,r-,INT,0,4
+FWS Type,SP,6,r-,BOOL,0,1
+Puffer Type,SP,7,r-,BOOL,0,1
+Initialisieren,SP,8,r-,BOOL,0,1
+3.0.20,SP,9,r-,INT,0,0
+Verdichter_Status,SP,10,r-,INT,0,11
+Verdichter laeuft seit,SP,11,r-,INT,10,100000
+Verdichter Einschaltverz.(sec),SP,12,r-,INT,0,10800
+Betriebsart,SP,13,r-,INT,0,7
+Entstoerung,SP,14,r-,BOOL,0,1
+EXV HGSoll_diff_max,SP,15,r-,INT,10,40
+EXV HGSoll_diff_min,SP,16,r-,INT,10,30
+EXV KondTemp_max,SP,17,r-,INT,30,60
+EXV KondTemp_min,SP,18,r-,INT,10,30
+EXV Regler PID_P_Kp,SP,19,r-,INT,0,10000
+EXV Regler PID_I_Tn,SP,20,r-,INT,0,30000
+EXV Regler PID_D_Tv (sec),SP,21,r-,INT,0,1000
+max_End_Differenzdruck,SP,22,r-,INT,0,50
+EXV Regler PID_min (%),SP,23,r-,INT,0,80
+EXV Einspritzzeit (sec),SP,24,r-,INT,0,100
+BSZ seit:,SP,25,r-,INT,0,0
+EXV Vorregelzeit (sec),SP,26,r-,INT,70,1000
+EXV Vorregelwert (%),SP,27,r-,INT,10,100
+Pu_AbsHysterese,SP,28,r-,INT,1,10
+Pu_AbsTemp,SP,29,r-,INT,0,20
+Wartungslaufdauer alle Pumpen,SP,30,r-,INT,0,180
+Wartungslauftag alle Pumpen,SP,31,r-,INT,0,6
+Wartungslaufzeit alle Pumpen,SP,32,r-,INT,0,23
+HKP_Puls_ein (sec),SP,33,r-,INT,0,600
+HKP_Puls_aus (sec),SP,34,r-,INT,0,10800
+HKP_Vorlaufzeit (sec),SP,35,r-,INT,0,10800
+HKP_Nachlaufzeit (Sec),SP,36,r-,INT,0,10800
+HKP_Modus,SP,37,r-,INT,0,2
+WW_Vorrang Vorlaufzeit (Sec),SP,38,r-,INT,0,10800
+WW_Vorrang Nachlaufzeit (Sec),SP,39,r-,INT,0,10800
+EQ Vorlaufzeit (Sec),SP,40,r-,INT,0,7200
+EQ Nachlaufzeit (Sec),SP,41,r-,INT,0,7200
+PUP_Vorlaufzeit (Sec),SP,42,r-,INT,0,10800
+PUP_Nachlaufzeit (Sec),SP,43,r-,INT,0,10800
+MKP1_Puls_ein (Sec),SP,44,r-,INT,0,600
+MKP1_Puls_aus (Sec),SP,45,r-,INT,0,10800
+MKP1_Vorlaufzeit (Sec),SP,46,r-,INT,0,10800
+MKP1_Nachlaufzeit (Sec),SP,47,r-,INT,0,10800
+MKP1_Modus,SP,48,r-,INT,0,2
+WW Zirk.Pumpe Sperrzeit (Sec),SP,49,r-,INT,0,900
+WW Zirk.Pumpe Nachl.Zeit (Sec),SP,50,r-,INT,0,600
+WW Zirk.Pumpe Schaltuhr,SP,51,r-,BOOL,0,1
+2.Stufe bei Stoerung,SP,52,r-,BOOL,0,1
+2.Stufe HKR Betriebsart,SP,53,r-,INT,0,3
+2.Stufe HKR Paralell Gw.AT,SP,54,r-,INT,-15,40
+2.Stufe HKR Zeitverz. (Sec),SP,55,r-,INT,0,36000
+2.Stufe HKR Schalthysterese,SP,56,r-,INT,1,10
+2.Stufe HKR Solldifferenz,SP,57,r-,INT,0,10
+2.Stufe HKR Gesamtdifferenz,SP,58,r-,INT,0,0
+2.Stufe HKR AT Hysterese,SP,59,r-,INT,1,10
+2.Stufe HKR Alternativ Gw.AT,SP,60,r-,INT,-15,40
+2. Stufe WW Betriebsart,SP,61,r-,INT,0,3
+2. Stufe WW Paralell Gw.AT,SP,62,r-,INT,-15,40
+2. Stufe WW Zeitverz. (Sec),SP,63,r-,INT,0,36000
+2. Stufe WW Schalthysterese,SP,64,r-,INT,1,10
+2. Stufe WW Solldifferenz,SP,65,r-,INT,0,10
+2. Stufe WW Gesamtdifferenz,SP,66,r-,INT,0,0
+2. Stufe WW AT Hysterese,SP,67,r-,INT,1,10
+2. Stufe WW Alternativ Gw.AT,SP,68,r-,INT,-15,40
+HKR Soll_Raum,SP,69,r-,FLOAT,10.0,25.0
+WW Enthitzung_Hgt_Gw,SP,70,r-,INT,10,75
+HKR Aufheiztemp. (K),SP,71,r-,INT,1,10
+HKR Absenktemp. (K),SP,72,r-,INT,-10,-1
+HKR Soll_RaumVerst,SP,73,r-,FLOAT,0.1,5.0
+HKR Soll_Hys_oHG,SP,74,r-,INT,1,10
+HKR Soll_Hys_uHG,SP,75,r-,INT,1,9
+HKR Heizgrenze,SP,76,r-,INT,0,45
+HKR AT_Hysterese,SP,77,r-,INT,1,10
+HKR RLT_min,SP,78,r-,INT,5,45
+HKR RLT_max,SP,79,r-,INT,10,60
+HKR RLT Soll_oHG (Heizkurve),SP,80,r-,FLOAT,15.0,40.0
+HKR RLT Soll_0 (Heizkurve),SP,81,r-,FLOAT,20.0,50.0
+HKR RLT Soll_uHG (Heizkurve),SP,82,r-,FLOAT,25.0,60.0
+WW Normaltemp.,SP,83,r-,INT,10,75
+WW Hysterese Normaltemp.,SP,84,r-,INT,1,10
+WW Minimaltemp.,SP,85,r-,INT,5,45
+WW Hysterese Minimaltemp.,SP,86,r-,INT,1,10
+FWS Zieltemp,SP,87,r-,INT,10,50
+FWS Vorregelwert (%),SP,88,r-,INT,40,100
+FWS Regler PID_P,SP,89,r-,INT,0,10000
+FWS Regler PID_I_Tn (sec),SP,90,r-,INT,0,30000
+FWS Regler PID_D_Tv (sec),SP,91,r-,INT,0,1000
+FWS Min (%),SP,92,r-,INT,40,100
+FWS Max (%),SP,93,r-,INT,40,100
+HDS Anspr.verz.Zeit (sec),SP,94,r-,INT,0,300
+HDS Einschaltverz. (sec),SP,95,r-,INT,0,10800
+HDS Fehlerwiederh. (24 h),SP,96,r-,INT,0,6
+EQ MS Anspr.verz.Zeit (sec),SP,97,r-,INT,0,300
+EQ MS Einschaltverz. (sec),SP,98,r-,INT,0,10800
+EQ MS Fehlerwiederh. (24 h),SP,99,r-,INT,0,6
+HD Transm. Grenzwert,SP,100,r-,INT,5,45
+HD Transm. Hysterese,SP,101,r-,FLOAT,1.0,5.0
+HD Transm.Anspr.verz.Zeit(sec),SP,102,r-,INT,0,300
+HD Transm.Einschaltverz. (sec),SP,103,r-,INT,0,10800
+HD Transm.Fehlerwiederh.(24 h),SP,104,r-,INT,0,6
+ND Transm. Grenzwert,SP,105,r-,FLOAT,0.1,7.0
+ND Transm. Hysterese,SP,106,r-,FLOAT,0.1,5.0
+ND Transm.Anspr.verz.Zeit(Sec),SP,107,r-,INT,0,300
+ND Transm.Einschaltverz.(Sec),SP,108,r-,INT,0,10800
+ND Transm.Fehlerwiederh.(24 h),SP,109,r-,INT,0,6
+HG Begrenzung Grenzwert,SP,110,r-,INT,90,130
+HG Begrenzung Hysterese,SP,111,r-,FLOAT,1.0,20.0
+HG Begr.Anspr.verz.Zeit(Sec),SP,112,r-,INT,0,300
+HG Begrenzung EinschVz.(Sec),SP,113,r-,INT,0,10800
+HG Begr. Fehlerwiederh. (24 h),SP,114,r-,INT,0,6
+HD_ND Diff. Grenzwert,SP,115,r-,FLOAT,-20.0,20.0
+HD_ND Diff. Hysterese,SP,116,r-,FLOAT,1.0,10.0
+HD_ND Anspr.verz.Zeit (Sec),SP,117,r-,INT,0,300
+HD_ND Diff.Einschaltverz.(Sec),SP,118,r-,INT,0,10800
+HD_ND Fehlerwiederh. (24 h),SP,119,r-,INT,0,6
+Sauggas Grenzwert,SP,120,r-,INT,-20,20
+Sauggas Hysterese,SP,121,r-,FLOAT,1.0,10.0
+Sauggas Anspr.verz.Zeit(Sec),SP,122,r-,INT,0,300
+Sauggas Einschaltverz. (Sec),SP,123,r-,INT,0,10800
+Sauggas Fehlerwiederh. (24 h),SP,124,r-,INT,0,6
+EQ Diff. Maximaltemp. (K),SP,125,r-,INT,-10,20
+EQ Diff. Hysterese Max. (K),SP,126,r-,FLOAT,1.0,10.0
+EQ Diff. Anspr.verz.Zeit (Sec),SP,127,r-,INT,0,300
+EQ Diff. Einschaltverz. (Sec),SP,128,r-,INT,0,10800
+EQ Diff. Fehlerwiederh. (24 h),SP,129,r-,INT,0,6
+EQ Aus. Minimaltemp. (K),SP,130,r-,INT,-10,10
+EQ Aus. Hysterese (K),SP,131,r-,FLOAT,1.0,10.0
+EQ Aus. Anspr.verz.Zeit (Sec),SP,132,r-,INT,0,300
+EQ Aus. Einschaltverz. (Sec),SP,133,r-,INT,0,10800
+EQ Aus. Fehlerwiederh. (24 h),SP,134,r-,INT,0,6
+KondTemp Grenzwert (C),SP,135,r-,INT,10,80
+KondTemp Hysterese (h),SP,136,r-,FLOAT,1.0,10.0
+KondTemp Anspr.Verz.Zeit(Sec),SP,137,r-,INT,0,300
+KondTemp Einschaltverz.(Sec),SP,138,r-,INT,0,10800
+KondTemp Fehlerwiederh.(24 h),SP,139,r-,INT,0,6
+Abtaufreigabetemp. Verdampfung,SP,140,r-,INT,-10,5
+Externe Anforderung VNG,SP,141,r-,BOOL,0,1
+Abtauzeit maximal,SP,142,r-,INT,600,1800
+Abtaufreigabeverz.(Min),SP,143,r-,INT,1,120
+BSZ Abtau aktuelle Laufzeit,SP,144,r-,INT,0,100000
+Abtaudiff. Luftein_Verdampf.GW,SP,145,r-,FLOAT,1.0,30.0
+Abtauzeit_letzter Vorgang,SP,146,r-,INT,0,0
+Vollversion,SP,147,r-,BOOL,0,1
+Abtauendtemp. Kondensation,SP,148,r-,INT,5,25
+Z WM_Zaehlung Faktor,SP,149,r-,INT,0,6
+Z Stromzaehlung Faktor,SP,150,r-,INT,0,6
+O,SP,151,r-,INT,0,0
+Solar KTmin,SP,152,r-,INT,0,60
+BSZ HKP Betriebsstunden,SP,153,r-,INT,0,100000
+BSZ HKP aktuelle Laufzeit,SP,154,r-,INT,0,100000
+BSZ HKP Schaltung,SP,155,r-,INT,0,100000
+BSZ_PUP Betriebsstunden,SP,156,r-,INT,0,100000
+BSZ_PUP aktuelle Laufzeit,SP,157,r-,INT,0,100000
+BSZ_PUP Schaltung,SP,158,r-,INT,0,100000
+BSZ_MKP1 Betriebsstunden,SP,159,r-,INT,0,100000
+BSZ_MKP1 aktuelle Laufzeit,SP,160,r-,INT,0,100000
+BSZ_MKP1 Schaltung,SP,161,r-,INT,0,100000
+BSZ EQ Betriebsstunden,SP,162,r-,INT,0,100000
+BSZ EQ aktuelle Laufzeit,SP,163,r-,INT,0,100000
+BSZ EQ Schaltungen,SP,164,r-,INT,0,100000
+BSZ WWV Betriebsstunden,SP,165,r-,INT,0,100000
+BSZ WWV aktuelle Laufzeit,SP,166,r-,INT,0,100000
+BSZ WWV Schaltungen,SP,167,r-,INT,0,100000
+BSZ ZIPWW Betriebsstunden,SP,168,r-,INT,0,100000
+BSZ ZIPWW aktuelle Laufzeit,SP,169,r-,INT,0,100000
+BSZ ZIPWW Schaltungen,SP,170,r-,INT,0,100000
+BSZ Verdichter Betriebsst. WW,SP,171,r-,INT,0,100000
+BSZ Verdichter Betriebsst. HKR,SP,172,r-,INT,0,100000
+BSZ Verdichter Betriebsst. ges,SP,173,r-,INT,0,100000
+BSZ Verdichter akt. Laufzeit,SP,174,r-,INT,0,100000
+Kuehlen RLT min.,SP,175,r-,INT,5,25
+BSZ 2.Stufe Betriebsst. WW,SP,176,r-,INT,0,100000
+BSZ 2.Stufe Betriebsst. HKR,SP,177,r-,INT,0,100000
+BSZ 2.Stufe Betriebsst. ges,SP,178,r-,INT,0,100000
+BSZ 2.Stufe akt. Laufzeit,SP,179,r-,INT,0,100000
+BSZ 2.Stufe Schaltungen,SP,180,r-,INT,0,100000
+Ausheizprog. RL Starttemperatu,SP,181,r-,INT,10,25
+Ausheizprog. RL Zieltemperatur,SP,182,r-,INT,26,50
+Ausheizprog. RL Endtemperatur,SP,183,r-,INT,10,25
+Ausheizprog. Aufheiztage,SP,184,r-,INT,1,10
+Ausheizprog. Haltetage,SP,185,r-,INT,0,5
+Ausheizprog. Absenktage,SP,186,r-,INT,0,10
+Ausheizprog. HKR,SP,187,r-,INT,0,3
+BSZ Abtau Betriebsstunden,SP,188,r-,INT,0,100000
+BSZ Abtau Schaltungen,SP,189,r-,INT,0,100000
+RLVL Diff. Maximaldiff. (K),SP,190,r-,FLOAT,1.0,20.0
+RLVL Diff. Hysterese Max. (K),SP,191,r-,FLOAT,1.0,10.0
+RLVL Diff. Anspr.verz.Zeit (Se,SP,192,r-,INT,0,300
+RLVL Diff. Einschaltverz. (Sec,SP,193,r-,INT,0,10800
+RLVL Diff. Fehlerwiederh. (24,SP,194,r-,INT,0,6
+Abtau RLTmin,SP,195,r-,INT,10,30
+Abtau RLThys,SP,196,r-,INT,1,10
+Abtaudiff.bei -15C (uGw),SP,197,r-,INT,1,15
+Abtaudiff.bei  7C (oGw),SP,198,r-,INT,5,20
+MKR1 Aktiviert,SP,199,r-,INT,0,2
+MKR1 Soll_Raum,SP,200,r-,FLOAT,10.0,25.0
+MKR1 Soll_ZP_Korr,SP,201,r-,INT,0,10
+MKR1 Aufheiztemp. (K),SP,202,r-,INT,1,10
+MKR1 Absenktemp. (K),SP,203,r-,INT,-10,-1
+MKR1 Soll_RaumVerst,SP,204,r-,FLOAT,0.1,5.0
+MKR1 Heizgrenze,SP,205,r-,INT,0,45
+MKR1 AT_Hysterese,SP,206,r-,INT,1,10
+MKR1 RLT_min,SP,207,r-,INT,5,20
+MKR1 RLT_max,SP,208,r-,INT,10,60
+MKR1 RLT Soll_oHG (Heizkurve),SP,209,r-,FLOAT,15.0,40.0
+MKR1 RLT Soll_0 (Heizkurve),SP,210,r-,FLOAT,20.0,50.0
+MKR1 RLT Soll_uHG (Heizkurve),SP,211,r-,FLOAT,25.0,60.0
+n_0 bei Heizanforderung(%),SP,212,r-,INT,0,70
+MKR1 3PR SollHys,SP,213,r-,INT,0,10
+MKR1 3PR SchaltHys,SP,214,r-,FLOAT,0.1,10.0
+MKR1 PID_P_Kp,SP,215,r-,INT,0,10000
+MKR1 PID_I_Tn (sec),SP,216,r-,INT,0,30000
+MKR1 PID_D_Tv (sec),SP,217,r-,INT,0,1000
+MKR1 Min(%),SP,218,r-,INT,0,100
+MKR1 Spreizung(K),SP,219,r-,INT,0,10
+MKR1 Stellzeit,SP,220,r-,INT,50,500
+MKR1 Betriebsart,SP,221,r-,INT,0,7
+MKR2 Aktiviert,SP,222,r-,INT,0,2
+MKR2 Soll_Raum,SP,223,r-,FLOAT,10.0,25.0
+MKR2 Soll_ZP_Korr,SP,224,r-,INT,0,10
+MKR2 Aufheiztemp. (K),SP,225,r-,INT,1,10
+MKR2 Absenktemp. (K),SP,226,r-,INT,-10,-1
+MKR2 Soll_RaumVerst,SP,227,r-,FLOAT,0.1,5.0
+MKR2 Heizgrenze,SP,228,r-,INT,0,45
+MKR2 AT_Hysterese,SP,229,r-,INT,1,10
+MKR2 RLT_min,SP,230,r-,INT,5,20
+MKR2 RLT_max,SP,231,r-,INT,10,60
+MKR2 RLT Soll_oHG (Heizkurve),SP,232,r-,FLOAT,15.0,40.0
+MKR2 RLT Soll_0 (Heizkurve),SP,233,r-,FLOAT,20.0,50.0
+MKR2 RLT Soll_uHG (Heizkurve),SP,234,r-,FLOAT,25.0,60.0
+Verdichter-Oelsumpftemp.GW,SP,235,r-,INT,0,30
+MKR2 3PR SollHys,SP,236,r-,INT,0,10
+MKR2 3PR SchaltHys,SP,237,r-,FLOAT,0.1,10.0
+MKR2 PID_P,SP,238,r-,INT,0,10000
+MKR2 PID_I_Tn (sec),SP,239,r-,INT,0,30000
+MKR2 PID_D_Tv (sec),SP,240,r-,INT,0,1000
+MKR2 Min(%),SP,241,r-,INT,0,100
+MKR2 Spreizung(K),SP,242,r-,INT,0,10
+MKR2 Stellzeit,SP,243,r-,INT,50,500
+MKR2 Betriebsart,SP,244,r-,INT,0,7
+n_min bei Heizanforderung(%),SP,245,r-,INT,0,60
+n_max bei WW-Bereitung,SP,246,r-,INT,0,100
+n_max bei Heizanforderung(%),SP,247,r-,INT,0,100
+n_min bei WW-Bereitung,SP,248,r-,INT,0,50
+HKR Party RLT min.,SP,249,r-,INT,20,40
+MKR1 Party RLT min.,SP,250,r-,INT,20,40
+MKR2 Party RLT min.,SP,251,r-,INT,20,40
+Int. Lebenszeichen (s),SP,252,r-,INT,300,610000
+BSZ EXTP aktuelle Laufzeit,SP,253,r-,INT,0,100000
+BSZ EXTP Schaltungen,SP,254,r-,INT,0,100000
+Abtaueinleitung,SP,255,r-,BOOL,0,1
+HKR Soll_Hys_uHGmin,SP,256,r-,INT,-20,-5
+n_Steigung (ppm),SP,257,r-,INT,1,100
+Regeldiff Grenzwert (K),SP,258,r-,INT,20,60
+Regeldiff Hysterese (h),SP,259,r-,FLOAT,1.0,10.0
+Regeldiff Anspr.Verz.Zeit(Sec),SP,260,r-,INT,0,300
+Regeldiff Einschaltverz.(Sec),SP,261,r-,INT,0,10800
+Regeldiff Fehlerwiederh.(24 h),SP,262,r-,INT,0,6
+Energiezaehler,SP,263,r-,INT,0,2
+Kuehlen,SP,264,r-,INT,0,3
+Kuehlen Esd dummy,SP,265,r-,INT,0,5
+Kuehlen Schalthysterese,SP,266,r-,INT,1,5
+Externe Anforderung,SP,267,r-,INT,0,2
+Ausheizprog Aufheiztage2,SP,268,r-,INT,1,10
+Ausheizprog AufheizCounter,SP,269,r-,INT,0,0
+Heizen nach WW Bereitung,SP,270,r-,INT,0,2
+Solaranlage,SP,271,r-,INT,0,3
+Solar KTmax,SP,272,r-,INT,60,120
+Solar KTmax Hysterese,SP,273,r-,INT,1,5
+Solar Norm. Hysterese,SP,274,r-,INT,1,15
+Solar Puls_ein (Sec),SP,275,r-,INT,0,600
+Solar Puls_aus (Sec),SP,276,r-,INT,0,10800
+Solar BSZ P1 Betriebsstunden,SP,277,r-,INT,0,100000
+Solar BSZ P1 aktuelle Laufzeit,SP,278,r-,INT,0,100000
+Solar BSZ P1 Schaltungen,SP,279,r-,INT,0,100000
+Solar BSZ P2 Betriebsstunden,SP,280,r-,INT,0,100000
+Solar BSZ P2 aktuelle Laufzeit,SP,281,r-,INT,0,100000
+Solar BSZ P2 Schaltungen,SP,282,r-,INT,0,100000
+Solar Grenzwert Puffer,SP,283,r-,INT,0,80
+Solar Grenzwert Brauchwasser,SP,284,r-,INT,0,80
+Solar Anforderung,SP,285,r-,INT,0,0
+Reset Effizienz,SP,286,r-,BOOL,0,1
+BSZ EXTP Betriebsstunden,SP,287,r-,INT,0,100000
+BG1 Verwenden,SP,288,r-,INT,0,2
+BG2 Verwenden,SP,289,r-,BOOL,0,1
+BG3 Verwenden,SP,290,r-,BOOL,0,1
+BG4 Verwenden,SP,291,r-,BOOL,0,1
+Verdichter-Oelsumpf dT,SP,292,r-,INT,2,10
+Kuehlgrenze,SP,293,r-,INT,10,30
+HKP bei EVU-Sperre,SP,294,r-,BOOL,0,1
+HKP Anforderungsabhaengig,SP,295,r-,BOOL,0,1
+MKP1 bei EVU-Sperre,SP,296,r-,BOOL,0,1
+MKP1 Anforderungsabhaengig,SP,297,r-,BOOL,0,1
+MKP2 bei EVU-Sperre,SP,298,r-,BOOL,0,1
+MKP2 Anforderungsabhaengig,SP,299,r-,BOOL,0,1
+BWP bei EVU-Sperre,SP,300,r-,BOOL,0,1
+PUP bei EVU-Sperre,SP,301,r-,BOOL,0,1
+Abtau RL_VLdT_GW_BWP,SP,302,r-,FLOAT,1.0,20.0
+ExtP bei EVU-Sperre,SP,303,r-,BOOL,0,1
+ExtP_Vorlaufzeit (Sec),SP,304,r-,INT,0,10800
+ExtP_Nachlaufzeit (Sec),SP,305,r-,INT,0,10800
+Ext.Anf.Verz.-zeit,SP,306,r-,INT,0,10800
+Sauggas Grenzwert Kuehlen,SP,307,r-,INT,-20,20
+ND Transm. Grenzwert Kuehlen,SP,308,r-,FLOAT,1.0,10.0
+EXV offset bei n_0% (%),SP,309,r-,INT,-50,0
+EXV offset_0 bei n (%),SP,310,r-,INT,0,50
+n bei Abtauung,SP,311,r-,INT,0,100
+AO2min bei Heizanf (%),SP,312,r-,INT,0,60
+AO2max bei WW-Bereitung,SP,313,r-,INT,5,100
+AO2max bei Heizanf (%),SP,314,r-,INT,5,100
+Verdichter modulierend,SP,315,r-,BOOL,0,1
+MKP2_Puls_ein (Sec),SP,316,r-,INT,0,600
+MKP2_Puls_aus (Sec),SP,317,r-,INT,0,10800
+MKP2_Vorlaufzeit (Sec),SP,318,r-,INT,0,10800
+MKP2_Nachlaufzeit (Sec),SP,319,r-,INT,0,10800
+MKP2_Modus,SP,320,r-,INT,0,2
+BSZ_MKP2 Betriebsstunden,SP,321,r-,INT,0,100000
+BSZ_MKP2 aktuelle Laufzeit,SP,322,r-,INT,0,100000
+BSZ_MKP2 Schaltung,SP,323,r-,INT,0,100000
+Ausheizprog. Verz.-tage,SP,324,r-,INT,0,250
+Ausheizprog. Sollhys.,SP,325,r-,INT,1,10
+Mindest-Abtaufreigabeverz.(Min,SP,326,r-,INT,1,45
+AO2min bei WW-Bereitung,SP,327,r-,INT,5,70
+Verz.Zeit Heizen nach WW (sec),SP,328,r-,INT,0,180
+TF22 Offset,SP,329,r-,INT,0,7
+Sollwert M1 aktiv,SP,330,r-,BOOL,0,1
+Sollwert M2 aktiv,SP,331,r-,BOOL,0,1
+Solar Min. Hysterese,SP,332,r-,INT,0,15
+Solar Pendel Ladezeit (Min),SP,333,r-,INT,1,30
+Solar Pendel Pausezeit (Min),SP,334,r-,INT,1,30
+n Regelabweichung(%),SP,335,r-,INT,0,100
+Exv_v_Rampe (ms),SP,336,r-,INT,7,50
+Verd.Abtau Einschaltvz.(Sec),SP,337,r-,INT,0,10800
+Luefterverz.(sec),SP,338,r-,INT,0,90
+Grenzw.WW_2teStufe,SP,339,r-,INT,10,75
+Kuehlgrenze_Hys(K),SP,340,r-,INT,1,20
+SDS Anspr.verz.Zeit (sec),SP,341,r-,INT,0,300
+SDS Einschaltverz. (sec),SP,342,r-,INT,0,10800
+SDS Fehlerwiederh. (24 h),SP,343,r-,INT,0,6
+max_Start_Differenzdruck,SP,344,r-,INT,1,40
+n Start_Drehzahl (%),SP,345,r-,INT,15,50
+n_GW Oel_Rueckfuehrung(%),SP,346,r-,INT,0,30
+WW Normaltemp_Gw_max,SP,347,r-,INT,45,75
+MKR1 Kuehlen RLT min.,SP,348,r-,INT,5,25
+MKR1 Kuehlen Esd dummy,SP,349,r-,INT,0,5
+MKR1 Kuehlen Schalthys.,SP,350,r-,INT,1,5
+MKR1 Sollhysterese(K),SP,351,r-,INT,1,10
+MKR2 Kuehlen RLT min.,SP,352,r-,INT,5,25
+MKR2 Kuehlen Esd dummy,SP,353,r-,INT,0,5
+MKR2 Kuehlen Schalthys.,SP,354,r-,INT,1,5
+MKR2 Sollhysterese(K),SP,355,r-,INT,1,10
+HKP PID_P,SP,356,r-,INT,0,10000
+HKP PID_I_Tn (sec),SP,357,r-,INT,0,30000
+HKP PID_D_Tv (sec),SP,358,r-,INT,0,1000
+HKP n_min(%),SP,359,r-,INT,20,100
+Legionellenshutz,SP,360,r-,INT,0,2
+Legionellenschutz Dauer,SP,361,r-,INT,0,36000
+Legionellenschutz Tag,SP,362,r-,INT,0,6
+Legionellenschutz Zeitpunkt,SP,363,r-,INT,0,23
+Legionellenschutz Temp,SP,364,r-,INT,30,70
+Legionellenschutz Laufzeit,SP,365,r-,INT,0,100000
+Legionellenschutz WW Zirk.,SP,366,r-,BOOL,0,1
+n_min bei Ext Anforderung,SP,367,r-,INT,0,50
+n_max bei Ext Anforderung,SP,368,r-,INT,0,100
+HKP Ziel_dT,SP,369,r-,INT,0,10
+EQP PID_P,SP,370,r-,INT,0,10000
+EQP PID_I_Tn (sec),SP,371,r-,INT,0,30000
+EQP PID_D_Tv (sec),SP,372,r-,INT,0,1000
+EQP n_min(%),SP,373,r-,INT,5,100
+EQP Ziel_dT,SP,374,r-,INT,0,10
+BSZ Verdichter Schaltung WW,SP,375,r-,INT,0,100000
+EXV Fehler 100% (min),SP,376,r-,INT,0,100
+FU_ERR Anspr.verz.Zeit (sec),SP,377,r-,INT,0,300
+FU_ERR Einschaltverz. (sec),SP,378,r-,INT,0,10800
+FU_ERR Fehlerwiederh. (24 h),SP,379,r-,INT,0,6
+n_Rampe (ppm),SP,380,r-,INT,1,32000
+n bei Kuehlen (%),SP,381,r-,INT,0,100
+Abtau RLTmin_WW,SP,382,r-,INT,10,30
+Abtau Vorlaufzeit (Sec),SP,383,r-,INT,1,240
+Abtauverz.(sec),SP,384,r-,INT,0,120
+2.Stufe bei EVU,SP,385,r-,BOOL,0,1
+Sauggas Fehler.verz.(Sec),SP,386,r-,INT,0,120
+Abtau Exv Start_ND(bar),SP,387,r-,INT,5,15
+HKP im Kuehlbetrieb,SP,388,r-,BOOL,0,1
+MKP1 im Kuehlbetrieb,SP,389,r-,BOOL,0,1
+MKP2 im Kuehlbetrieb,SP,390,r-,BOOL,0,1
+HKP VRZ,SP,391,r-,INT,120,420
+HKP VRW,SP,392,r-,INT,20,100
+EQP VRZ,SP,393,r-,INT,120,420
+EQP VRW,SP,394,r-,INT,20,100
+S_BSZ Startzeit,SP,395,r-,INT,120701,999000
+S_BSZ seit Startzeit,SP,396,r-,INT,0,100000
+S_BSZ Jahr1,SP,397,r-,INT,0,100000
+S_BSZ Jahr2,SP,398,r-,INT,0,100000
+ph_type,SP,399,r-,INT,0,13
+WMZ kWh Offset,SP,400,r-,INT,-50,50
+Mo (g/s),SP,401,r-,FLOAT,0.0,1000.0
+2.Stufe bei Frostanforderung,SP,402,r-,BOOL,0,1
+2.Stufe bei AHZP,SP,403,r-,BOOL,0,1
+AO2 bei Kuehlanforderung,SP,404,r-,INT,0,100
+Externe Anforderung RLTmax,SP,405,r-,INT,10,50
+Externe Anforderung RLThys,SP,406,r-,INT,1,5
+2.Stufe EXT Betriebsart,SP,407,r-,INT,0,3
+2.Stufe EXT Paralell Gw.AT,SP,408,r-,INT,-15,40
+2.Stufe EXT Zeitverz. (Sec),SP,409,r-,INT,0,36000
+2.Stufe EXT Schalthysterese,SP,410,r-,INT,1,10
+2.Stufe EXT Solldifferenz,SP,411,r-,INT,0,10
+2.Stufe EXT Gesamtdifferenz,SP,412,r-,INT,0,0
+2.Stufe EXT AT Hysterese,SP,413,r-,INT,1,10
+2.Stufe EXT Alternativ Gw.AT,SP,414,r-,INT,-15,40
+Pairingcode:,SP,415,r-,INT,0,99999
+n Start_Drehzahl 2 (%),SP,416,r-,INT,30,60
+Verz.Start_Drehzahl 2,SP,417,r-,INT,10,30
