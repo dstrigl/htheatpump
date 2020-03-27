@@ -4,7 +4,7 @@ include HISTORY.rst
 include LICENSE
 include README.rst
 
-include htheatpump/htparams.csv
+include htheatpump/*.csv
 
 recursive-include samples *.py
 
