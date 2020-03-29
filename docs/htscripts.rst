@@ -32,11 +32,13 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htdatetime.py
 .. code-block:: shell
 
     $ python3 htdatetime.py --device /dev/ttyUSB1 --baudrate 9600
+    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     Tuesday, 2017-11-21T21:48:04
 
 .. code-block:: shell
 
     $ python3 htdatetime.py -d /dev/ttyUSB1 -b 9600 "2008-09-03T20:56:35"
+    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     Wednesday, 2008-09-03T20:56:35
 
 
@@ -55,6 +57,7 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htshell.py
 .. code-block:: shell
 
     $ python3 htshell.py --device /dev/ttyUSB1 "AR,28,29,30" -r 3
+    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     > 'AR,28,29,30'
     < 'AA,28,19,14.09.14-02:08:56,EQ_Spreizung'
     < 'AA,29,20,14.09.14-11:52:08,EQ_Spreizung'
@@ -75,12 +78,14 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htquery.py
 .. code-block:: shell
 
     $ python3 htquery.py --device /dev/ttyUSB1 "Temp. Aussen" "Stoerung"
+    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     Stoerung    : False
     Temp. Aussen: 5.0
 
 .. code-block:: shell
 
     $ python3 htquery.py --json "Temp. Aussen" "Stoerung"
+    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     {
         "Stoerung": false,
         "Temp. Aussen": 3.2
@@ -99,6 +104,7 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htset.py
 .. code-block:: shell
 
     $ python3 htset.py --device /dev/ttyUSB1 "HKR Soll_Raum" "21.5"
+    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     21.5
 
 
@@ -117,6 +123,7 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htfaultlist.py
 .. code-block:: shell
 
     $ python3 htfaultlist.py --device /dev/ttyUSB1 --baudrate 9600
+    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     #000 [2000-01-01T00:00:00]: 65534, Keine Stoerung
     #001 [2000-01-01T00:00:00]: 65286, Info: Programmupdate 1
     #002 [2000-01-01T00:00:00]: 65285, Info: Initialisiert
@@ -146,6 +153,7 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htbackup.py
 .. code-block:: shell
 
     $ python3 htbackup.py --baudrate 9600 --csv backup.csv
+    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     'SP,NR=0' [Language]: VAL='0', MIN='0', MAX='4'
     'SP,NR=1' [TBF_BIT]: VAL='0', MIN='0', MAX='1'
     'SP,NR=2' [Rueckruferlaubnis]: VAL='1', MIN='0', MAX='1'
@@ -190,20 +198,19 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/hthttp.py
 
 .. code-block:: shell
 
-    $ python3 hthttp.py start --device /dev/ttyUSB1 --ip 192.168.11.91 --port 8081
+    $ python3 hthttp.py start --device /dev/ttyUSB1 --ip 192.168.1.80 --port 8080
+    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     hthttp.py started with PID 1099
 
     $ tail /tmp/hthttp-daemon.log
-    [2019-01-18 20:24:20,379][INFO    ] Serial<id=0x764857f0, open=True>(port='/dev/ttyUSB0', baudrate=115200, ...
-    [2019-01-18 20:24:20,389][INFO    ] login successfully
-    192.168.11.127 - - [18/Jan/2019 20:24:20] "GET /faultlist/last HTTP/1.1" 200 -
-    [2019-01-18 20:24:20,414][INFO    ] {
-      "datetime": "2018-09-07T09:14:02",
-      "error": 65534,
-      "index": 61,
-      "message": "Keine Stoerung"
-    }
-    [2019-01-18 20:24:20,425][INFO    ] logout successfully
+    [2020-03-29 16:21:48,012][INFO    ][__main__|run]: === HtHttpDaemon.run() =========================================
+    [2020-03-29 16:21:48,034][INFO    ][htheatpump.htheatpump|open_connection]: Serial<id=0xb6020f50, open=True>(...)
+    [2020-03-29 16:21:48,083][INFO    ][htheatpump.htheatpump|login]: login successfully
+    [2020-03-29 16:21:48,116][INFO    ][__main__|run]: Connected successfully to heat pump with serial number: 123456
+    [2020-03-29 16:21:48,156][INFO    ][__main__|run]: Software version: 3.0.20 (273)
+    [2020-03-29 16:21:48,203][INFO    ][htheatpump.htheatpump|logout]: logout successfully
+    [2020-03-29 16:21:48,400][INFO    ][__main__|run]: Starting server at: ('192.168.1.80', 8080)
+    ...
 
     $ python3 hthttp.py stop
 
@@ -226,12 +233,14 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htfastquery.py
 .. code-block:: shell
 
     $ python3 htfastquery.py --device /dev/ttyUSB1 "Temp. Vorlauf" "Temp. Ruecklauf"
+    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     Temp. Ruecklauf [MP,04]: 25.2
     Temp. Vorlauf   [MP,03]: 25.3
 
 .. code-block:: shell
 
     $ python3 htfastquery.py --json "Temp. Vorlauf" "Temp. Ruecklauf"
+    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     {
         "Temp. Ruecklauf": 25.2,
         "Temp. Vorlauf": 25.3
@@ -253,6 +262,7 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/httimeprog.py
 .. code-block:: shell
 
     $ python3 python3 httimeprog.py --device /dev/ttyUSB1 --csv timeprog.csv 1 1
+    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     [idx=1]: idx=1, name='Zirkulationspumpe', ead=7, nos=2, ste=15, nod=7, entries=[...]
     [day=1, entry=0]: state=0, time=00:00-06:00
     [day=1, entry=1]: state=1, time=06:00-08:00
