@@ -1,7 +1,7 @@
 History
 =======
 
-1.2.2 (2020-??-??)
+1.2.2 (2020-03-29)
 ------------------
 
 * added sample file ``htparams-xxxxxx-3_0_20-273.csv`` with a complete list of all heat pump parameters
