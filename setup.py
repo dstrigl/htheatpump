@@ -56,7 +56,7 @@ setup(
     # Supported platforms
     platforms=["Linux"],
     # Project packages
-    packages=find_packages(exclude=["tests", "tests.*"]),
+    packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     include_package_data=True,
     # Project requirements (used by pip to install its dependencies)
     install_requires=install_requires,
@@ -102,5 +102,19 @@ setup(
         "Topic :: Terminals :: Serial",
     ],
     # Entry points specification
-    entry_points={"console_scripts": ["htheatpump=htheatpump.__main__:main",]},
+    entry_points={
+        "console_scripts": [
+            "htheatpump=htheatpump.__main__:main",
+            "htbackup=htheatpump.scripts.htbackup:main",
+            "htcomplparams=htheatpump.scripts.htcomplparams:main",
+            "htdatetime=htheatpump.scripts.htdatetime:main",
+            "htfastquery=htheatpump.scripts.htfastquery:main",
+            "htfaultlist=htheatpump.scripts.htfaultlist:main",
+            "hthttp=htheatpump.scripts.hthttp:main",
+            "htquery=htheatpump.scripts.htquery:main",
+            "htset=htheatpump.scripts.htset:main",
+            "htshell=htheatpump.scripts.htshell:main",
+            "httimeprog=htheatpump.scripts.httimeprog:main",
+        ],
+    },
 )

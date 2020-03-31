@@ -3,14 +3,16 @@ include CONTRIBUTING.rst
 include HISTORY.rst
 include LICENSE
 include README.rst
+include .coveragerc
+include .editorconfig
+include Makefile
+include tox.ini
 
-include htheatpump/*.csv
-
-recursive-include samples *.py
-
+recursive-include htheatpump *
 recursive-include requirements *.pip
+recursive-include samples *.py *.txt
 recursive-include tests *
-recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif
+recursive-include docs *.rst conf.py Makefile make.bat
 
 global-exclude __pycache__
 global-exclude .coverage
