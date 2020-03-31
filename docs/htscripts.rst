@@ -25,19 +25,19 @@ To change date and/or time on the heat pump the date and time has to be passed i
 the current date and time of the host will be used. If nothing is passed to the program the current
 date and time on the heat pump will be returned.
 
-Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htdatetime.py
+Source: https://github.com/dstrigl/htheatpump/blob/master/htheatpump/scripts/htdatetime.py
 
 **Example:**
 
 .. code-block:: shell
 
-    $ python3 htdatetime.py --device /dev/ttyUSB1 --baudrate 9600
+    $ htdatetime --device /dev/ttyUSB1 --baudrate 9600
     HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     Tuesday, 2017-11-21T21:48:04
 
 .. code-block:: shell
 
-    $ python3 htdatetime.py -d /dev/ttyUSB1 -b 9600 "2008-09-03T20:56:35"
+    $ htdatetime -d /dev/ttyUSB1 -b 9600 "2008-09-03T20:56:35"
     HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     Wednesday, 2008-09-03T20:56:35
 
@@ -50,13 +50,13 @@ Command shell tool to send raw commands to the Heliotherm heat pump.
 For commands which deliver more than one response from the heat pump the expected number of responses
 can be defined by the argument ``-r`` or ``--responses``.
 
-Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htshell.py
+Source: https://github.com/dstrigl/htheatpump/blob/master/htheatpump/scripts/htshell.py
 
 **Example:**
 
 .. code-block:: shell
 
-    $ python3 htshell.py --device /dev/ttyUSB1 "AR,28,29,30" -r 3
+    $ htshell --device /dev/ttyUSB1 "AR,28,29,30" -r 3
     HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     > 'AR,28,29,30'
     < 'AA,28,19,14.09.14-02:08:56,EQ_Spreizung'
@@ -71,20 +71,20 @@ Command line tool to query for parameters of the Heliotherm heat pump.
 
 If the ``-j``, ``--json`` option is used, the output will be in JSON format.
 
-Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htquery.py
+Source: https://github.com/dstrigl/htheatpump/blob/master/htheatpump/scripts/htquery.py
 
 **Example:**
 
 .. code-block:: shell
 
-    $ python3 htquery.py --device /dev/ttyUSB1 "Temp. Aussen" "Stoerung"
+    $ htquery --device /dev/ttyUSB1 "Temp. Aussen" "Stoerung"
     HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     Stoerung    : False
     Temp. Aussen: 5.0
 
 .. code-block:: shell
 
-    $ python3 htquery.py --json "Temp. Aussen" "Stoerung"
+    $ htquery --json "Temp. Aussen" "Stoerung"
     HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     {
         "Stoerung": false,
@@ -97,13 +97,13 @@ htset
 
 Command line tool to set the value of a specific parameter of the heat pump.
 
-Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htset.py
+Source: https://github.com/dstrigl/htheatpump/blob/master/htheatpump/scripts/htset.py
 
 **Example:**
 
 .. code-block:: shell
 
-    $ python3 htset.py --device /dev/ttyUSB1 "HKR Soll_Raum" "21.5"
+    $ htset --device /dev/ttyUSB1 "HKR Soll_Raum" "21.5"
     HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     21.5
 
@@ -116,13 +116,13 @@ Command line tool to query for the fault list of the heat pump.
 The option ``-c``, ``--csv`` and ``-j``, ``--json`` can be used to write the
 fault list to a specified CSV or JSON file.
 
-Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htfaultlist.py
+Source: https://github.com/dstrigl/htheatpump/blob/master/htheatpump/scripts/htfaultlist.py
 
 **Example:**
 
 .. code-block:: shell
 
-    $ python3 htfaultlist.py --device /dev/ttyUSB1 --baudrate 9600
+    $ htfaultlist --device /dev/ttyUSB1 --baudrate 9600
     HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     #000 [2000-01-01T00:00:00]: 65534, Keine Stoerung
     #001 [2000-01-01T00:00:00]: 65286, Info: Programmupdate 1
@@ -146,13 +146,13 @@ Command line tool to create a backup of the Heliotherm heat pump data points.
 The option ``-c``, ``--csv`` and ``-j``, ``--json`` can be used to write the
 read data point values to a specified CSV or JSON file.
 
-Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htbackup.py
+Source: https://github.com/dstrigl/htheatpump/blob/master/htheatpump/scripts/htbackup.py
 
 **Example:**
 
 .. code-block:: shell
 
-    $ python3 htbackup.py --baudrate 9600 --csv backup.csv
+    $ htbackup --baudrate 9600 --csv backup.csv
     HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     'SP,NR=0' [Language]: VAL='0', MIN='0', MAX='4'
     'SP,NR=1' [TBF_BIT]: VAL='0', MIN='0', MAX='1'
@@ -192,15 +192,15 @@ Simple HTTP server which provides the possibility to access the Heliotherm heat 
 
   The result in the HTTP response is given in JSON format.
 
-Source: https://github.com/dstrigl/htheatpump/blob/master/samples/hthttp.py
+Source: https://github.com/dstrigl/htheatpump/blob/master/htheatpump/scripts/hthttp.py
 
 **Example:**
 
 .. code-block:: shell
 
-    $ python3 hthttp.py start --device /dev/ttyUSB1 --ip 192.168.1.80 --port 8080
+    $ hthttp start --device /dev/ttyUSB1 --ip 192.168.1.80 --port 8080
     HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
-    hthttp.py started with PID 1099
+    hthttp started with PID 1234
 
     $ tail /tmp/hthttp-daemon.log
     [2020-03-29 16:21:48,012][INFO    ][__main__|run]: === HtHttpDaemon.run() =========================================
@@ -212,7 +212,7 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/samples/hthttp.py
     [2020-03-29 16:21:48,400][INFO    ][__main__|run]: Starting server at: ('192.168.1.80', 8080)
     ...
 
-    $ python3 hthttp.py stop
+    $ hthttp stop
 
 
 htfastquery
@@ -226,20 +226,20 @@ Command line tool to query for parameters of the Heliotherm heat pump the fast w
 
 If the ``-j``, ``--json`` option is used, the output will be in JSON format.
 
-Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htfastquery.py
+Source: https://github.com/dstrigl/htheatpump/blob/master/htheatpump/scripts/htfastquery.py
 
 **Example:**
 
 .. code-block:: shell
 
-    $ python3 htfastquery.py --device /dev/ttyUSB1 "Temp. Vorlauf" "Temp. Ruecklauf"
+    $ htfastquery --device /dev/ttyUSB1 "Temp. Vorlauf" "Temp. Ruecklauf"
     HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     Temp. Ruecklauf [MP,04]: 25.2
     Temp. Vorlauf   [MP,03]: 25.3
 
 .. code-block:: shell
 
-    $ python3 htfastquery.py --json "Temp. Vorlauf" "Temp. Ruecklauf"
+    $ htfastquery --json "Temp. Vorlauf" "Temp. Ruecklauf"
     HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     {
         "Temp. Ruecklauf": 25.2,
@@ -255,13 +255,13 @@ Command line tool to query for the time programs of the heat pump.
 The option ``-c``, ``--csv`` and ``-j``, ``--json`` can be used to write the
 time program properties to a specified CSV or JSON file.
 
-Source: https://github.com/dstrigl/htheatpump/blob/master/samples/httimeprog.py
+Source: https://github.com/dstrigl/htheatpump/blob/master/htheatpump/scripts/httimeprog.py
 
 **Example:**
 
 .. code-block:: shell
 
-    $ python3 python3 httimeprog.py --device /dev/ttyUSB1 --csv timeprog.csv 1 1
+    $ httimeprog --device /dev/ttyUSB1 --csv timeprog.csv 1 1
     HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     [idx=1]: idx=1, name='Zirkulationspumpe', ead=7, nos=2, ste=15, nod=7, entries=[...]
     [day=1, entry=0]: state=0, time=00:00-06:00
@@ -286,13 +286,13 @@ This script can be used to create the basis for your own user specific parameter
 definition file, which can than be placed under :file:`~/.htheatpump/htparams.csv`
 (see also :class:`~htheatpump.htparams.HtParams`).
 
-Source: https://github.com/dstrigl/htheatpump/blob/master/samples/htcomplparams.py
+Source: https://github.com/dstrigl/htheatpump/blob/master/htheatpump/scripts/htcomplparams.py
 
 **Example:**
 
 .. code-block:: shell
 
-    $ python3 htcomplparams.py --device /dev/ttyUSB1 --baudrate 9600 --csv
+    $ htcomplparams --device /dev/ttyUSB1 --baudrate 9600 --csv
     HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     connected successfully to heat pump with serial number 123456
     software version = 3.0.20 (273)

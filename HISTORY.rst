@@ -4,6 +4,7 @@ History
 1.2.3 (2020-??-??)
 ------------------
 
+* added sample scripts (e.g. ``htcomplparams``, ``htquery``, etc.) to be part of the ``HtHeatpump`` package
 * clean-up of ``setup.py`` and ``MANIFEST.in``
 
 1.2.2 (2020-03-29)
