@@ -4,6 +4,7 @@ History
 1.2.3 (2020-??-??)
 ------------------
 
+* changed behaviour of ``HtHeatpump.reconnect()``, which will now also establish a connection if still not connected
 * added sample scripts (e.g. ``htcomplparams``, ``htquery``, etc.) to be part of the ``HtHeatpump`` package
 * clean-up of ``setup.py`` and ``MANIFEST.in``
 

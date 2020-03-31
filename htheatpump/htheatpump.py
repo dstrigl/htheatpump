@@ -446,7 +446,7 @@ class HtHeatpump:
             self._ser.reset_output_buffer()
             self._ser.reset_input_buffer()
             self.close_connection()
-            self.open_connection()
+        self.open_connection()
 
     def close_connection(self) -> None:
         """ Close the serial connection.
