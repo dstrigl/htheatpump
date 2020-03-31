@@ -333,13 +333,13 @@ def main():
 
             Example:
 
-              $ python3 %(prog)s start --device /dev/ttyUSB1 --ip 192.168.11.91 --port 8081
+              $ python3 hthttp.py start --device /dev/ttyUSB1 --ip 192.168.11.91 --port 8081
               hthttp.py started with PID 1099
 
               $ tail /tmp/hthttp-daemon.log
               ...
 
-              $ python3 %(prog)s stop
+              $ python3 hthttp.py stop
             """
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,

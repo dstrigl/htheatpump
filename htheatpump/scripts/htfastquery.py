@@ -57,7 +57,7 @@ def main():
 
             Example:
 
-              $ python3 %(prog)s --device /dev/ttyUSB1 "Temp. Vorlauf" "Temp. Ruecklauf"
+              $ python3 htfastquery.py --device /dev/ttyUSB1 "Temp. Vorlauf" "Temp. Ruecklauf"
               Temp. Ruecklauf [MP,04]: 25.2
               Temp. Vorlauf   [MP,03]: 25.3
             """

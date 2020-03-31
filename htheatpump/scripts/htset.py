@@ -55,7 +55,7 @@ def main():
 
             Example:
 
-              $ python3 %(prog)s --device /dev/ttyUSB1 "HKR Soll_Raum" "21.5"
+              $ python3 htset.py --device /dev/ttyUSB1 "HKR Soll_Raum" "21.5"
               21.5
             """
         ),

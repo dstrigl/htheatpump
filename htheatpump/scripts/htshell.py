@@ -53,7 +53,7 @@ def main():
 
             Example:
 
-              $ python3 %(prog)s --device /dev/ttyUSB1 "AR,28,29,30" -r 3
+              $ python3 htshell.py --device /dev/ttyUSB1 "AR,28,29,30" -r 3
               > 'AR,28,29,30'
               < 'AA,28,19,14.09.14-02:08:56,EQ_Spreizung'
               < 'AA,29,20,14.09.14-11:52:08,EQ_Spreizung'

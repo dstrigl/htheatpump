@@ -55,7 +55,7 @@ def main():
 
             Example:
 
-              $ python3 %(prog)s --device /dev/ttyUSB1 "Temp. Aussen" "Stoerung"
+              $ python3 htquery.py --device /dev/ttyUSB1 "Temp. Aussen" "Stoerung"
               Stoerung    : False
               Temp. Aussen: 5.0
             """

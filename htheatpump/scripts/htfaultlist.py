@@ -59,7 +59,7 @@ def main():
 
             Example:
 
-              $ python3 %(prog)s --device /dev/ttyUSB1
+              $ python3 htfaultlist.py --device /dev/ttyUSB1
               #000 [2000-01-01T00:00:00]: 65534, Keine Stoerung
               #001 [2000-01-01T00:00:00]: 65286, Info: Programmupdate 1
               #002 [2000-01-01T00:00:00]: 65285, Info: Initialisiert

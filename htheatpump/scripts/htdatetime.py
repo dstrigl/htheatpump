@@ -66,9 +66,9 @@ def main():
 
             Example:
 
-              $ python3 %(prog)s --device /dev/ttyUSB1 --baudrate 9600
+              $ python3 htdatetime.py --device /dev/ttyUSB1 --baudrate 9600
               Tuesday, 2017-11-21T21:48:04
-              $ python3 %(prog)s -d /dev/ttyUSB1 -b 9600 "2008-09-03T20:56:35"
+              $ python3 htdatetime.py -d /dev/ttyUSB1 -b 9600 "2008-09-03T20:56:35"
               Wednesday, 2008-09-03T20:56:35
             """
         ),

@@ -56,7 +56,7 @@ def main():
 
             Example:
 
-              $ python3 %(prog)s --baudrate 9600 --csv backup.csv
+              $ python3 htbackup.py --baudrate 9600 --csv backup.csv
               'SP,NR=0' [Language]: VAL='0', MIN='0', MAX='4'
               'SP,NR=1' [TBF_BIT]: VAL='0', MIN='0', MAX='1'
               'SP,NR=2' [Rueckruferlaubnis]: VAL='1', MIN='0', MAX='1'

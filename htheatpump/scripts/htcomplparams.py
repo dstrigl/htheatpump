@@ -57,7 +57,7 @@ def main():
 
             Example:
 
-              $ python3 %(prog)s --device /dev/ttyUSB1 --baudrate 9600 --csv
+              $ python3 htcomplparams.py --device /dev/ttyUSB1 --baudrate 9600 --csv
               HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
               connected successfully to heat pump with serial number 123456
               software version = 3.0.20 (273)
