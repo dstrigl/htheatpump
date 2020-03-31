@@ -114,6 +114,16 @@ parameters.
 A full list of supported functions can be found in the ``htheatpump`` documentation at
 `readthedocs.io <https://htheatpump.readthedocs.io/en/latest/?badge=latest>`_.
 
+There are also some sample scripts that are part of the ``htheatpump`` package and
+can be run immediately after installation, e.g.:
+
+.. code-block:: shell
+
+    $ htquery --device /dev/ttyUSB1 "Temp. Aussen" "Stoerung"
+    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
+    Stoerung    : False
+    Temp. Aussen: 5.0
+
 
 Logging
 ~~~~~~~
