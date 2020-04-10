@@ -1,6 +1,11 @@
 History
 =======
 
+1.2.4 (2020-??-??)
+------------------
+
+* added additional heat pump parameter (data points) ``Hauptschalter`` in ``htparams.csv``
+
 1.2.3 (2020-03-31)
 ------------------
 

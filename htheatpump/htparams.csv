@@ -21,6 +21,7 @@ Warmwasservorrang,MP,25,r-,BOOL,0,1
 Zirkulationspumpe WW,MP,29,r-,BOOL,0,1
 Verdichter,MP,30,r-,BOOL,0,1
 Stoerung,MP,31,r-,BOOL,0,1
+Hauptschalter,MP,36,r-,BOOL,0,1
 FWS Stroemungsschalter,MP,38,r-,BOOL,0,1
 BSZ Verdichter Schaltungen,MP,41,r-,INT,0,100000
 Frischwasserpumpe,MP,50,r-,INT,0,100
