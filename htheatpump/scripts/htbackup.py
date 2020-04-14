@@ -44,7 +44,7 @@ from htheatpump.htheatpump import HtHeatpump
 from htheatpump.utils import Timer
 import logging
 
-_logger = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 # Main program
@@ -205,10 +205,12 @@ def main():
                             success = True
                         except Exception as e:
                             retry += 1
-                            _logger.warning(
-                                "try #{:d}/{:d} for query of data point {!r} failed: {!s}".format(
-                                    retry, args.max_retries + 1, data_point, e
-                                )
+                            _LOGGER.warning(
+                                "try #%d/%d for query of data point '%s' failed: %s",
+                                retry,
+                                args.max_retries + 1,
+                                data_point,
+                                e,
                             )
                             # try a reconnect, maybe this will help
                             hp.reconnect()  # perform a reconnect
@@ -217,10 +219,10 @@ def main():
                             except Exception:
                                 pass  # ignore a potential problem
                     if not success:
-                        _logger.error(
-                            "query of data point {!r} failed after {:d} try/tries".format(
-                                data_point, retry
-                            )
+                        _LOGGER.error(
+                            "query of data point '%s' failed after %s try/tries",
+                            data_point,
+                            retry,
                         )
                         break
                     else:
@@ -247,7 +249,7 @@ def main():
             print("execution time: {:.2f} sec".format(exec_time))
 
     except Exception as ex:
-        _logger.exception(ex)
+        _LOGGER.exception(ex)
         sys.exit(1)
     finally:
         hp.logout()  # try to logout for an ordinary cancellation (if possible)

@@ -47,7 +47,7 @@ from htheatpump.htheatpump import HtHeatpump
 from htheatpump.utils import Timer
 import logging
 
-_logger = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 # Main program
@@ -150,14 +150,12 @@ def main():
 
         rid = hp.get_serial_number()
         if args.verbose:
-            _logger.info(
-                "connected successfully to heat pump with serial number {:d}".format(
-                    rid
-                )
+            _LOGGER.info(
+                "connected successfully to heat pump with serial number %d", rid
             )
         ver = hp.get_version()
         if args.verbose:
-            _logger.info("software version = {} ({:d})".format(ver[0], ver[1]))
+            _LOGGER.info("software version = %s (%d)", *ver)
 
         if args.last:
             # query for the last fault message of the heat pump
@@ -208,7 +206,7 @@ def main():
             print("execution time: {:.2f} sec".format(exec_time))
 
     except Exception as ex:
-        _logger.exception(ex)
+        _LOGGER.exception(ex)
         sys.exit(1)
     finally:
         hp.logout()  # try to logout for an ordinary cancellation (if possible)

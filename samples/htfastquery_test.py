@@ -25,7 +25,7 @@ import time
 from timeit import default_timer as timer
 import logging
 
-# _logger = logging.getLogger(__name__)
+# _LOGGER = logging.getLogger(__name__)
 
 
 # Main program

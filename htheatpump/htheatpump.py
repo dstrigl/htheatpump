@@ -19,8 +19,8 @@
 
 """ This module is responsible for the communication with the Heliotherm heat pump. """
 
-from htheatpump.htparams import HtParams, HtParamValueType
-from htheatpump.httimeprog import TimeProgEntry, TimeProgram
+from .htparams import HtParams, HtParamValueType
+from .httimeprog import TimeProgEntry, TimeProgram
 from typing import Optional, List, Dict, Set, Tuple, Any
 
 import serial
@@ -41,7 +41,7 @@ import copy
 
 import logging
 
-_logger = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -436,7 +436,7 @@ class HtHeatpump:
             dsrdtr=dsrdtr,
             timeout=_serial_timeout,
         )
-        _logger.info(self._ser)  # log serial connection properties
+        _LOGGER.info(self._ser)  # log serial connection properties
 
     def reconnect(self) -> None:
         """ Perform a reconnect of the serial connection. Flush the output and
@@ -514,7 +514,7 @@ class HtHeatpump:
         if not self._ser:
             raise IOError("serial connection not open")
         req = create_request(cmd)
-        _logger.debug("send request: [{}]".format(req))
+        _LOGGER.debug("send request: [%s]", req)
         self._ser.write(req)
 
     def read_response(self) -> str:
@@ -569,11 +569,10 @@ class HtHeatpump:
         # we read until we will found the trailing "\r\n" at the end of the payload. The payload length
         # itself will then be computed afterwards by counting the number of bytes of the payload.
         if payload_len == 0:
-            _logger.info(
-                "received response with a payload length of zero; "
-                "try to read until the occurrence of '\\r\\n' [header={}]".format(
-                    header
-                )
+            _LOGGER.info(
+                "received response with a payload length of zero;"
+                " try to read until the occurrence of '\\r\\n' [header=%s]",
+                header,
             )
             payload = b""
             while payload[-2:] != b"\r\n":
@@ -615,17 +614,14 @@ class HtHeatpump:
                 )
             )
         # debug log of the received response
-        _logger.debug(
-            "received response: {}".format(
-                header + bytes([payload_len]) + payload + bytes([checksum])
-            )
+        _LOGGER.debug(
+            "received response: %s",
+            header + bytes([payload_len]) + payload + bytes([checksum]),
         )
-        _logger.debug("  header = {}".format(header))
-        _logger.debug(
-            "  payload length = {:d}({:d})".format(payload_len, payload_len_r)
-        )
-        _logger.debug("  payload = {}".format(payload))
-        _logger.debug("  checksum = {}".format(hex(checksum)))
+        _LOGGER.debug("  header = %s", header)
+        _LOGGER.debug("  payload length = %d(%d)", payload_len, payload_len_r)
+        _LOGGER.debug("  payload = %s", payload)
+        _LOGGER.debug("  checksum = %s", hex(checksum))
         # extract the relevant data from the payload (without header '~' and trailer ';\r\n')
         m = re.match(r"^~([^;]*);\r\n$", payload.decode("ascii"))
         if not m:
@@ -670,13 +666,13 @@ class HtHeatpump:
                     success = True
             except Exception as e:
                 retry += 1
-                _logger.warning("login try #{:d} failed: {!s}".format(retry, e))
+                _LOGGER.warning("login try #%d failed: %s", retry, e)
                 # try a reconnect, maybe this will help ;-)
                 self.reconnect()
         if not success:
-            _logger.error("login failed after {:d} try/tries".format(retry))
+            _LOGGER.error("login failed after %d try/tries", retry)
             raise IOError("login failed after {:d} try/tries".format(retry))
-        _logger.info("login successfully")
+        _LOGGER.info("login successfully")
         # perform a limits update of all parameters (if desired)
         if update_param_limits:
             self.update_param_limits()
@@ -692,10 +688,10 @@ class HtHeatpump:
             m = re.match(LOGOUT_RESP, resp)
             if not m:
                 raise IOError("invalid response for LOGOUT command [{!r}]".format(resp))
-            _logger.info("logout successfully")
+            _LOGGER.info("logout successfully")
         except Exception as e:
             # just a warning, because it's possible that we can continue without any further problems
-            _logger.warning("logout failed: {!s}".format(e))
+            _LOGGER.warning("logout failed: %s", e)
             # raise  # logout() should not fail!
 
     def get_serial_number(self) -> int:
@@ -716,12 +712,10 @@ class HtHeatpump:
             if not m:
                 raise IOError("invalid response for RID command [{!r}]".format(resp))
             rid = int(m.group(1))
-            _logger.debug("manufacturer's serial number = {:d}".format(rid))
+            _LOGGER.debug("manufacturer's serial number = %d", rid)
             return rid  # return the received manufacturer's serial number as an int
         except Exception as e:
-            _logger.error(
-                "query for manufacturer's serial number failed: {!s}".format(e)
-            )
+            _LOGGER.error("query for manufacturer's serial number failed: %s", e)
             raise
 
     def get_version(self) -> Tuple[str, int]:
@@ -759,10 +753,10 @@ class HtHeatpump:
                     )
                 )
             ver = (m.group(1).strip(), int(m.group(2)))
-            _logger.debug("software version = {} ({:d})".format(ver[0], ver[1]))
+            _LOGGER.debug("software version = %s (%d)", *ver)
             return ver
         except Exception as e:
-            _logger.error("query for software version failed: {!s}".format(e))
+            _LOGGER.error("query for software version failed: %s", e)
             raise
 
     def get_date_time(self) -> Tuple[datetime.datetime, int]:
@@ -794,15 +788,13 @@ class HtHeatpump:
             weekday = int(m.group(7))  # weekday 1-7 (Monday through Sunday)
             # create datetime object from extracted data
             dt = datetime.datetime(year, month, day, hour, minute, second)
-            _logger.debug(
-                "datetime = {}, weekday = {:d}".format(dt.isoformat(), weekday)
-            )
+            _LOGGER.debug("datetime = %s, weekday = %d", dt.isoformat(), weekday)
             return (
                 dt,
                 weekday,
             )  # return the heat pump's date and time as a datetime object
         except Exception as e:
-            _logger.error("query for date and time failed: {!s}".format(e))
+            _LOGGER.error("query for date and time failed: %s", e)
             raise
 
     def set_date_time(
@@ -851,15 +843,13 @@ class HtHeatpump:
             weekday = int(m.group(7))  # weekday 1-7 (Monday through Sunday)
             # create datetime object from extracted data
             dt = datetime.datetime(year, month, day, hour, minute, second)
-            _logger.debug(
-                "datetime = {}, weekday = {:d}".format(dt.isoformat(), weekday)
-            )
+            _LOGGER.debug("datetime = %s, weekday = %d", dt.isoformat(), weekday)
             return (
                 dt,
                 weekday,
             )  # return the heat pump's date and time as a datetime object
         except Exception as e:
-            _logger.error("set of date and time failed: {!s}".format(e))
+            _LOGGER.error("set of date and time failed: %s", e)
             raise
 
     def get_last_fault(self) -> Tuple[int, int, datetime.datetime, str]:
@@ -899,12 +889,10 @@ class HtHeatpump:
             # create datetime object from extracted data
             dt = datetime.datetime(year, month, day, hour, minute, second)
             msg = m.group(9).strip()
-            _logger.debug(
-                "(idx: {:d}, err: {:d})[{}]: {}".format(idx, err, dt.isoformat(), msg)
-            )
+            _LOGGER.debug("(idx: %d, err: %d)[%s]: %s", idx, err, dt.isoformat(), msg)
             return idx, err, dt, msg
         except Exception as e:
-            _logger.error("query for last fault message failed: {!s}".format(e))
+            _LOGGER.error("query for last fault message failed: %s", e)
             raise
 
     def get_fault_list_size(self) -> int:
@@ -925,10 +913,10 @@ class HtHeatpump:
             if not m:
                 raise IOError("invalid response for ALS command [{!r}]".format(resp))
             size = int(m.group(1))
-            _logger.debug("fault list size = {:d}".format(size))
+            _LOGGER.debug("fault list size = %d", size)
             return size
         except Exception as e:
-            _logger.error("query for fault list size failed: {!s}".format(e))
+            _LOGGER.error("query for fault list size failed: %s", e)
             raise
 
     def get_fault_list(self, *args: int) -> List[Dict[str, object]]:
@@ -998,10 +986,8 @@ class HtHeatpump:
                     # create datetime object from extracted data
                     dt = datetime.datetime(year, month, day, hour, minute, second)
                     msg = m.group(9).strip()
-                    _logger.debug(
-                        "(idx: {:03d}, err: {:05d})[{}]: {}".format(
-                            idx, err, dt.isoformat(), msg
-                        )
+                    _LOGGER.debug(
+                        "(idx: %03d, err: %05d)[%s]: %s", idx, err, dt.isoformat(), msg
                     )
                     if idx != args[n - cnt + i]:
                         raise IOError(
@@ -1019,7 +1005,7 @@ class HtHeatpump:
                         }
                     )
             except Exception as e:
-                _logger.error("query for fault list failed: {!s}".format(e))
+                _LOGGER.error("query for fault list failed: %s", e)
                 raise
         return fault_list
 
@@ -1066,10 +1052,13 @@ class HtHeatpump:
         resp_name, resp_min, resp_max, resp_val = (
             g.strip() for g in m.group(1, 4, 3, 2)
         )  # type: str, Any, Any, Any
-        _logger.debug(
-            "{!r}: NAME={!r}, MIN={!r}, MAX={!r}, VAL={!r}".format(
-                name, resp_name, resp_min, resp_max, resp_val
-            )
+        _LOGGER.debug(
+            "'%s': NAME='%s', MIN='%s', MAX='%s', VAL='%s'",
+            name,
+            resp_name,
+            resp_min,
+            resp_max,
+            resp_val,
         )
         resp_min = param.from_str(
             resp_min
@@ -1113,7 +1102,7 @@ class HtHeatpump:
             resp = self.read_response()
             return self._extract_param_data(name, resp)
         except Exception as e:
-            _logger.error("query of parameter {!r} failed: {!s}".format(name, e))
+            _LOGGER.error("query of parameter '%s' failed: %s", name, e)
             raise
 
     def _verify_param_resp(
@@ -1186,17 +1175,19 @@ class HtHeatpump:
             if (VerifyAction.VALUE in self._verify_param_action) and (
                 resp_val is not None and not param.in_limits(resp_val)
             ):
-                _logger.warning(
-                    "value {!r} of parameter {!r} is beyond the limits [{}, {}]".format(
-                        resp_val, name, param.min_val, param.max_val
-                    )
+                _LOGGER.warning(
+                    "value '%s' of parameter '%s' is beyond the limits [%s, %s]",
+                    resp_val,
+                    name,
+                    param.min_val,
+                    param.max_val,
                 )
         except Exception as e:
             if self._verify_param_error:  # interpret as error?
                 raise
             else:  # ... or only as a warning?
-                _logger.warning(
-                    "response verification of param {!r} failed: {!s}".format(name, e)
+                _LOGGER.warning(
+                    "response verification of param '%s' failed: %s", name, e
                 )
         return resp_val
 
@@ -1220,15 +1211,11 @@ class HtHeatpump:
             # update the limit values in the HtParams database and count the number of updated entries
             if HtParams[name].set_limits(resp_min, resp_max):
                 updated_params.append(name)
-                _logger.debug(
-                    "updated param {!r}: MIN={}, MAX={}".format(
-                        name, resp_min, resp_max
-                    )
+                _LOGGER.debug(
+                    "updated param '%s': MIN=%s, MAX=%s", name, resp_min, resp_max
                 )
-        _logger.info(
-            "updated {:d} (of {:d}) parameter limits".format(
-                len(updated_params), len(HtParams)
-            )
+        _LOGGER.info(
+            "updated %d (of %d) parameter limits", len(updated_params), len(HtParams)
         )
         return updated_params
 
@@ -1267,10 +1254,10 @@ class HtHeatpump:
         try:
             resp = self._get_param(name)
             val = self._verify_param_resp(name, *resp)
-            _logger.debug("{!r} = {!s}".format(name, val))
+            _LOGGER.debug("'%s' = %s", name, val)
             return val  # type: ignore
         except Exception as e:
-            _logger.error("get parameter {!r} failed: {!s}".format(name, e))
+            _LOGGER.error("get parameter '%s' failed: %s", name, e)
             raise
 
     def set_param(
@@ -1334,10 +1321,10 @@ class HtHeatpump:
             resp = self.read_response()
             data = self._extract_param_data(name, resp)
             ret = self._verify_param_resp(name, *data)
-            _logger.debug("{!r} = {!s}".format(name, ret))
+            _LOGGER.debug("'%s' = %s", name, ret)
             return ret  # type: ignore
         except Exception as e:
-            _logger.error("set parameter {!r} failed: {!s}".format(name, e))
+            _LOGGER.error("set parameter '%s' failed: %s", name, e)
             raise
 
     @property
@@ -1387,7 +1374,7 @@ class HtHeatpump:
             for name in args:
                 values.update({name: self.get_param(name)})
         except Exception as e:
-            _logger.error("query of parameter(s) failed: {!s}".format(e))
+            _LOGGER.error("query of parameter(s) failed: %s", e)
             raise
         return values
 
@@ -1482,17 +1469,19 @@ class HtHeatpump:
                         )
                     name, param = dp_dict[dp_number]
                     val = param.from_str(dp_value)
-                    _logger.debug("{!r} = {!s} ({})".format(name, val, unknown_val))
+                    _LOGGER.debug("'%s' = %s (%s)", name, val, unknown_val)
                     # check the received value against the limits and write a WARNING if necessary
                     if not param.in_limits(val):
-                        _logger.warning(
-                            "value {!r} of parameter {!r} is beyond the limits [{}, {}]".format(
-                                val, name, param.min_val, param.max_val
-                            )
+                        _LOGGER.warning(
+                            "value '%s' of parameter '%s' is beyond the limits [%s, %s]",
+                            val,
+                            name,
+                            param.min_val,
+                            param.max_val,
                         )
                     values.update({name: val})
             except Exception as e:
-                _logger.error("fast query of parameter(s) failed: {!s}".format(e))
+                _LOGGER.error("fast query of parameter(s) failed: %s", e)
                 raise
         return values
 
@@ -1515,7 +1504,7 @@ class HtHeatpump:
             if not m:
                 raise IOError("invalid response for PRL command [{!r}]".format(resp))
             sum = int(m.group(1))
-            _logger.debug("number of time programs = {:d}".format(sum))
+            _LOGGER.debug("number of time programs = %d", sum)
             for idx in range(sum):
                 resp = (
                     self.read_response()
@@ -1528,14 +1517,18 @@ class HtHeatpump:
                 # extract data (NAME, EAD, NOS, STE and NOD)
                 name = m.group(1)
                 ead, nos, ste, nod = [int(g) for g in m.group(2, 3, 4, 5)]
-                _logger.debug(
-                    "[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
-                        idx, name, ead, nos, ste, nod
-                    )
+                _LOGGER.debug(
+                    "[idx=%d]: name='%s', ead=%d, nos=%d, ste=%d, nod=%d",
+                    idx,
+                    name,
+                    ead,
+                    nos,
+                    ste,
+                    nod,
                 )
                 time_progs.append(TimeProgram(idx, name, ead, nos, ste, nod))
         except Exception as e:
-            _logger.error("query for time programs failed: {!s}".format(e))
+            _LOGGER.error("query for time programs failed: %s", e)
             raise
         return time_progs
 
@@ -1567,15 +1560,19 @@ class HtHeatpump:
             # extract data (NAME, EAD, NOS, STE and NOD)
             name = m.group(1)
             ead, nos, ste, nod = [int(g) for g in m.group(2, 3, 4, 5)]
-            _logger.debug(
-                "[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
-                    idx, name, ead, nos, ste, nod
-                )
+            _LOGGER.debug(
+                "[idx=%d]: name='%s', ead=%d, nos=%d, ste=%d, nod=%d",
+                idx,
+                name,
+                ead,
+                nos,
+                ste,
+                nod,
             )
             time_prog = TimeProgram(idx, name, ead, nos, ste, nod)
             return time_prog
         except Exception as e:
-            _logger.error("query for time program failed: {!s}".format(e))
+            _LOGGER.error("query for time program failed: %s", e)
             raise
 
     def _get_time_prog_with_entries(self, idx: int) -> TimeProgram:
@@ -1606,10 +1603,14 @@ class HtHeatpump:
             # extract data (NAME, EAD, NOS, STE and NOD)
             name = m.group(1)
             ead, nos, ste, nod = [int(g) for g in m.group(2, 3, 4, 5)]
-            _logger.debug(
-                "[idx={:d}]: name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}".format(
-                    idx, name, ead, nos, ste, nod
-                )
+            _LOGGER.debug(
+                "[idx=%d]: name='%s', ead=%d, nos=%d, ste=%d, nod=%d",
+                idx,
+                name,
+                ead,
+                nos,
+                ste,
+                nod,
             )
             time_prog = TimeProgram(idx, name, ead, nos, ste, nod)
             # read the single time program entries for each day
@@ -1624,15 +1625,19 @@ class HtHeatpump:
                     )
                 # extract data (ST, BEG, END)
                 st, beg, end = m.group(1, 2, 3)
-                _logger.debug(
-                    "[idx={:d}, day={:d}, entry={:d}]: st={}, beg={}, end={}".format(
-                        idx, day, num, st, beg, end
-                    )
+                _LOGGER.debug(
+                    "[idx=%d, day=%d, entry=%d]: st=%s, beg=%s, end=%s",
+                    idx,
+                    day,
+                    num,
+                    st,
+                    beg,
+                    end,
                 )
                 time_prog.set_entry(day, num, TimeProgEntry.from_str(st, beg, end))
             return time_prog
         except Exception as e:
-            _logger.error("query for time program with entries failed: {!s}".format(e))
+            _LOGGER.error("query for time program with entries failed: %s", e)
             raise
 
     def get_time_prog(self, idx: int, with_entries: bool = True) -> TimeProgram:
@@ -1691,14 +1696,18 @@ class HtHeatpump:
                 raise IOError("invalid response for PRE command [{!r}]".format(resp))
             # extract data (ST, BEG, END)
             st, beg, end = m.group(1, 2, 3)
-            _logger.debug(
-                "[idx={:d}, day={:d}, entry={:d}]: st={}, beg={}, end={}".format(
-                    idx, day, num, st, beg, end
-                )
+            _LOGGER.debug(
+                "[idx=%d, day=%d, entry=%d]: st=%s, beg=%s, end=%s",
+                idx,
+                day,
+                num,
+                st,
+                beg,
+                end,
             )
             return TimeProgEntry.from_str(st, beg, end)
         except Exception as e:
-            _logger.error("query for time program entry failed: {!s}".format(e))
+            _LOGGER.error("query for time program entry failed: %s", e)
             raise
 
     def set_time_prog_entry(
@@ -1742,14 +1751,18 @@ class HtHeatpump:
                 raise IOError("invalid response for PRE command [{!r}]".format(resp))
             # extract data (ST, BEG, END)
             st, beg, end = m.group(1, 2, 3)
-            _logger.debug(
-                "[idx={:d}, day={:d}, entry={:d}]: st={}, beg={}, end={}".format(
-                    idx, day, num, st, beg, end
-                )
+            _LOGGER.debug(
+                "[idx=%d, day=%d, entry=%d]: st=%s, beg=%s, end=%s",
+                idx,
+                day,
+                num,
+                st,
+                beg,
+                end,
             )
             return TimeProgEntry.from_str(st, beg, end)
         except Exception as e:
-            _logger.error("set time program entry failed: {!s}".format(e))
+            _LOGGER.error("set time program entry failed: %s", e)
             raise
 
     def set_time_prog(self, time_prog: TimeProgram) -> TimeProgram:
@@ -1775,10 +1788,8 @@ class HtHeatpump:
             for num in range(time_prog.entries_a_day)
         ]:
             entry = time_prog.entry(day, num)
-            _logger.debug(
-                "[idx={:d}, day={:d}, entry={:d}]: {!s}".format(
-                    time_prog.index, day, num, entry
-                )
+            _LOGGER.debug(
+                "[idx=%d, day=%d, entry=%d]: %s", time_prog.index, day, num, entry
             )
             if entry is not None:
                 entry = self.set_time_prog_entry(time_prog.index, day, num, entry)

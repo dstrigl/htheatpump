@@ -32,7 +32,7 @@ import csv
 from os import path
 from typing import Union, Dict, Optional, Any, KeysView, ItemsView, ValuesView
 
-from htheatpump.utils import Singleton
+from .utils import Singleton
 
 
 # ------------------------------------------------------------------------------------------------------------------- #

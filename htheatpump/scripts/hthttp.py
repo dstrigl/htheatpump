@@ -77,7 +77,7 @@ from .daemon import Daemon
 from datetime import datetime
 import logging
 
-_logger = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 class HttpGetException(Exception):
@@ -102,7 +102,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         parsed_path = urlparse.urlparse(self.path)
-        _logger.info(parsed_path.path.lower())
+        _LOGGER.info(parsed_path.path.lower())
 
         try:
             hp.reconnect()
@@ -112,13 +112,13 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                 # synchronize the system time of the heat pump with the current time
                 dt, _ = hp.set_date_time(datetime.now())
                 result = {"datetime": dt.isoformat()}
-                _logger.debug(dt.isoformat())
+                _LOGGER.debug(dt.isoformat())
 
             elif re.match(self.DATETIME_PATH, parsed_path.path.lower()):
                 # return the current system time of the heat pump
                 dt, _ = hp.get_date_time()
                 result = {"datetime": dt.isoformat()}
-                _logger.debug(dt.isoformat())
+                _LOGGER.debug(dt.isoformat())
 
             elif re.match(self.FAULTLIST_LAST_PATH, parsed_path.path.lower()):
                 # query for the last fault message of the heat pump
@@ -129,9 +129,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                     "datetime": dt.isoformat(),
                     "message": msg,
                 }
-                _logger.debug(
-                    "#{:d} [{}]: {:d}, {}".format(idx, dt.isoformat(), err, msg)
-                )
+                _LOGGER.debug("#%d [%s]: %d, %s", idx, dt.isoformat(), err, msg)
 
             elif re.match(self.FAULTLIST_PATH, parsed_path.path.lower()):
                 # query for the whole fault list of the heat pump
@@ -141,13 +139,12 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                         {"datetime": entry["datetime"].isoformat()}
                     )  # convert datetime dict entry to string
                     result.append(entry)
-                    _logger.debug(
-                        "#{:03d} [{}]: {:05d}, {}".format(
-                            entry["index"],
-                            entry["datetime"],
-                            entry["error"],
-                            entry["message"],
-                        )
+                    _LOGGER.debug(
+                        "#%03d [%s]: %05d, %s",
+                        entry["index"],
+                        entry["datetime"],
+                        entry["error"],
+                        entry["message"],
                     )
 
             elif re.match(self.TIMEPROG_PATH, parsed_path.path.lower()):
@@ -160,7 +157,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                     raise HttpGetException(400, str(ex))
                 time_prog = hp.get_time_prog(idx, with_entries=True)
                 result = time_prog.as_json()
-                _logger.debug("{}".format(time_prog))
+                _LOGGER.debug(time_prog)
 
             elif re.match(self.TIMEPROGS_PATH, parsed_path.path.lower()):
                 # query for the list of available time programs of the heat pump
@@ -168,12 +165,12 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                 result = []
                 for time_prog in time_progs:
                     result.append(time_prog.as_json(with_entries=False))
-                    _logger.debug("{}".format(time_prog))
+                    _LOGGER.debug(time_prog)
 
             elif re.match(self.PARAM_PATH, parsed_path.path.lower()):
                 # query and/or set parameter values of the heat pump
                 qsl = urlparse.parse_qsl(parsed_path.query, keep_blank_values=True)
-                _logger.info(qsl)
+                _LOGGER.info(qsl)
                 result = {}
                 if not qsl:
                     # query for all "known" parameters
@@ -186,7 +183,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                         ):
                             value = 1 if value else 0
                         result.update({name: value})
-                        _logger.debug("{}: {}".format(name, value))
+                        _LOGGER.debug("%s: %s", name, value)
                 else:
                     # query and/or set specific parameter values of the heat pump
                     params = {}
@@ -221,7 +218,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                         ):
                             value = 1 if value else 0
                         result.update({name: value})
-                        _logger.debug("{}: {}".format(name, value))
+                        _LOGGER.debug("%s: %s", name, value)
 
             elif parsed_path.path.lower() == "/":
                 # query for some properties of the connected heat pump
@@ -237,10 +234,12 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                     "software_version": software_version,
                     "datetime": dt.isoformat(),
                 }
-                _logger.debug(
-                    "property_id: {}, serial_number: {}, software_version: {}, datetime: {}".format(
-                        property_id, serial_number, software_version, dt.isoformat()
-                    )
+                _LOGGER.debug(
+                    "property_id: %d, serial_number: %d, software_version: %s, datetime: %s",
+                    property_id,
+                    serial_number,
+                    software_version,
+                    dt.isoformat(),
                 )
 
             else:
@@ -250,12 +249,12 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                 )
 
         except HttpGetException as ex:
-            _logger.exception(ex)
+            _LOGGER.exception(ex)
             self.send_response(ex.response_code, str(ex))
             self.send_header("Content-Type", "application/json")
             self.end_headers()
         except Exception as ex:
-            _logger.exception(ex)
+            _LOGGER.exception(ex)
             # HTTP response 500 = Internal Server Error
             self.send_response(500, str(ex))
             self.send_header("Content-Type", "application/json")
@@ -266,7 +265,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             message = json.dumps(result, indent=2, sort_keys=True)
-            _logger.info(message)
+            _LOGGER.info(message)
             self.wfile.write(bytes(message, "utf8"))
 
         finally:
@@ -275,26 +274,24 @@ class HttpGetHandler(BaseHTTPRequestHandler):
 
 class HtHttpDaemon(Daemon):
     def run(self):
-        _logger.info("=== HtHttpDaemon.run() {}".format("=" * 100))
+        _LOGGER.info("=== HtHttpDaemon.run() %s", "=" * 100)
         global hp
         try:
             hp = HtHeatpump(args.device, baudrate=args.baudrate)
             hp.open_connection()
             hp.login()
             rid = hp.get_serial_number()
-            _logger.info(
-                "Connected successfully to heat pump with serial number: {:d}".format(
-                    rid
-                )
+            _LOGGER.info(
+                "Connected successfully to heat pump with serial number: %d", rid
             )
             ver = hp.get_version()
-            _logger.info("Software version: {} ({:d})".format(ver[0], ver[1]))
+            _LOGGER.info("Software version: %s (%d)", *ver)
             hp.logout()
             server = HTTPServer((args.ip, args.port), HttpGetHandler)
-            _logger.info("Starting server at: {}".format(server.server_address))
+            _LOGGER.info("Starting server at: %s", server.server_address)
             server.serve_forever()  # start the server and wait for requests
         except Exception as ex:
-            _logger.exception(ex)
+            _LOGGER.exception(ex)
             sys.exit(2)
         finally:
             hp.logout()  # try to logout for an ordinary cancellation (if possible)
