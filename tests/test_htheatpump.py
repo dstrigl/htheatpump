@@ -23,9 +23,15 @@ import pytest
 import re
 import datetime
 import random
-from htheatpump.htparams import HtDataTypes, HtParam, HtParams
-from htheatpump.htheatpump import HtHeatpump, VerifyAction
-from htheatpump.httimeprog import TimeProgEntry, TimeProgram
+from htheatpump import (
+    HtDataTypes,
+    HtParam,
+    HtParams,
+    HtHeatpump,
+    VerifyAction,
+    TimeProgEntry,
+    TimeProgram,
+)
 from typing import List
 
 

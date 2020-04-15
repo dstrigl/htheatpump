@@ -71,8 +71,7 @@ import json
 import re
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib import parse as urlparse
-from htheatpump.htheatpump import HtHeatpump
-from htheatpump.htparams import HtDataTypes, HtParams
+from htheatpump import HtHeatpump, HtDataTypes, HtParams
 from .daemon import Daemon
 from datetime import datetime
 import logging

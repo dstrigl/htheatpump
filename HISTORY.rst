@@ -4,7 +4,7 @@ History
 1.2.4 (2020-??-??)
 ------------------
 
-* some clean-up
+* some minor cleanup and improvements
 * changed log statements to the form with the preferred and well-known ``%s`` (and ``%d``, ``%f``, etc.)
   string formatting indicators (due to performance reasons)
 * added additional heat pump parameter (data points) ``Hauptschalter`` in ``htparams.csv``

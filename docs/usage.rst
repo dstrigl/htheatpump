@@ -8,7 +8,7 @@ An overview about the available parameters can be found here: :ref:`htparams`
 
 .. code:: python
 
-    from htheatpump.htheatpump import HtHeatpump
+    from htheatpump import HtHeatpump
 
     hp = HtHeatpump("/dev/ttyUSB0", baudrate=9600)
     try:

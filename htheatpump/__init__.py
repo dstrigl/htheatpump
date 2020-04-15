@@ -19,7 +19,11 @@
 
 """ Top-level package for HtHeatpump. """
 
-import htheatpump.version as __version
+from .htparams import HtDataTypes, HtParamValueType, HtParam, HtParams
+from .httimeprog import TimeProgPeriod, TimeProgEntry, TimeProgram
+from .htheatpump import VerifyAction, VerificationException, HtHeatpump
 
-__version__ = __version.version.short()
+from .version import version as __version
+
+__version__ = __version.short()
 __author__ = "Daniel Strigl"

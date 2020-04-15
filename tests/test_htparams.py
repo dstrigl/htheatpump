@@ -21,8 +21,7 @@
 
 import pytest
 import re
-from htheatpump.htparams import HtDataTypes, HtParam, HtParams, HtParamValueType
-from htheatpump.htheatpump import HtHeatpump
+from htheatpump import HtDataTypes, HtParam, HtParams, HtParamValueType, HtHeatpump
 from typing import Optional
 
 

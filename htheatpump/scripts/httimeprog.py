@@ -36,7 +36,7 @@ import argparse
 import textwrap
 import json
 import csv
-from htheatpump.htheatpump import HtHeatpump
+from htheatpump import HtHeatpump
 from htheatpump.utils import Timer
 import logging
 

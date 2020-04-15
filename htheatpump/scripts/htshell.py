@@ -33,7 +33,7 @@
 import sys
 import argparse
 import textwrap
-from htheatpump.htheatpump import HtHeatpump
+from htheatpump import HtHeatpump
 from htheatpump.utils import Timer
 import logging
 

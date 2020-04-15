@@ -40,8 +40,7 @@ import textwrap
 import re
 import csv
 import os
-from htheatpump.htheatpump import HtHeatpump
-from htheatpump.htparams import HtParam, HtDataTypes
+from htheatpump import HtHeatpump, HtParam, HtDataTypes
 from htheatpump.utils import Timer
 import logging
 

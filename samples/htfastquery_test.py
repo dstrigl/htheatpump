@@ -18,8 +18,7 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-from htheatpump.htheatpump import HtHeatpump
-from htheatpump.htparams import HtParams
+from htheatpump import HtHeatpump, HtParams
 import random
 import time
 from timeit import default_timer as timer

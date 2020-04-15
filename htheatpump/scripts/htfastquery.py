@@ -39,8 +39,7 @@ import sys
 import argparse
 import textwrap
 import json
-from htheatpump.htheatpump import HtHeatpump
-from htheatpump.htparams import HtDataTypes, HtParams
+from htheatpump import HtHeatpump, HtDataTypes, HtParams
 from htheatpump.utils import Timer
 import logging
 

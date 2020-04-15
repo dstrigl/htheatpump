@@ -21,7 +21,7 @@
 
 import pytest
 from typing import Dict
-from htheatpump.httimeprog import TimeProgPeriod, TimeProgEntry, TimeProgram
+from htheatpump import TimeProgPeriod, TimeProgEntry, TimeProgram
 
 
 class TestTimeProgPeriod:
