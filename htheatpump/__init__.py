@@ -17,13 +17,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" Top-level package for HtHeatpump. """
-
 from .htparams import HtDataTypes, HtParamValueType, HtParam, HtParams
 from .httimeprog import TimeProgPeriod, TimeProgEntry, TimeProgram
 from .htheatpump import VerifyAction, VerificationException, HtHeatpump
-
-from .version import version as __version
-
-__version__ = __version.short()
-__author__ = "Daniel Strigl"

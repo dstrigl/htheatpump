@@ -1800,42 +1800,6 @@ class HtHeatpump:
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
-# Main program
-# ------------------------------------------------------------------------------------------------------------------- #
-
-# Only for testing: request for parameter values and print it
-# def main():
-#    if len(sys.argv) == 2:
-#        logging.basicConfig(level=logging.DEBUG)
-#    names = sys.argv[1:] if len(sys.argv) > 1 else HtParams.keys()
-#    values = {}
-#    hp = HtHeatpump("/dev/ttyUSB0")
-#    try:
-#        hp.open_connection()
-#        hp.login()
-#        rid = hp.get_serial_number()
-#        print("connected successfully to heat pump with serial number {:d}".format(rid))
-#        # query for the given parameter(s)
-#        start = timer()
-#        values = hp.query(*names)
-#        end = timer()
-#    finally:
-#        hp.logout()  # try to logout for an ordinary cancellation (if possible)
-#        hp.close_connection()
-#    if len(names) > 1:
-#        for n in sorted(names):
-#            print("{:{width}}: {}".format(n, values[n], width=len(max(names, key=len))))
-#    elif len(names) == 1:
-#        print(values[names[0]])
-#    #pprint.pprint(names)
-#    print("query took {:.2f} sec".format(end - start))
-#
-#
-# if __name__ == "__main__":
-#    main()
-
-
-# ------------------------------------------------------------------------------------------------------------------- #
 # Exported symbols
 # ------------------------------------------------------------------------------------------------------------------- #
 

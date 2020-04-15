@@ -5,8 +5,21 @@
 
 import io
 import os
+import re
 from setuptools import setup, find_packages
-from htheatpump import __version__
+
+
+def read(*parts):
+    """ Read file. """
+    filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), *parts)
+    with open(filename, encoding="utf-8", mode="rt") as fp:
+        return fp.read()
+
+def get_version():
+    """ Get current version from code. """
+    regex = r"__version__\s=\s\"(?P<version>[\d\.]+?)\""
+    path = ("htheatpump", "__version__.py")
+    return re.search(regex, read(*path)).group("version")
 
 
 # Get the description from the README file
@@ -41,7 +54,7 @@ setup(
     # Versions should comply with PEP440. For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version=__version__,
+    version=get_version(),
     # Project description
     description="Easy-to-use Python communication module for Heliotherm heat pumps",
     long_description=readme + "\n\n" + history,
