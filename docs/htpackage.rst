@@ -24,9 +24,3 @@ htheatpump.utils
 ---------------------
 .. automodule:: htheatpump.utils
    :members:
-
-
-htheatpump.version
----------------------
-.. automodule:: htheatpump.version
-   :members:
