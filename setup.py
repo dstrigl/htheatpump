@@ -15,6 +15,7 @@ def read(*parts):
     with open(filename, encoding="utf-8", mode="rt") as fp:
         return fp.read()
 
+
 def get_version():
     """ Get current version from code. """
     regex = r"__version__\s=\s\"(?P<version>[\d\.]+?)\""
