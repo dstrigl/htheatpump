@@ -154,7 +154,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                     idx = int(m.group(1))
                 except ValueError as ex:
                     # for an invalid time program index: HTTP response 400 = Bad Request
-                    raise HttpGetException(400, str(ex))
+                    raise HttpGetException(400, str(ex)) from ex
                 time_prog = hp.get_time_prog(idx, with_entries=True)
                 result = time_prog.as_json()
                 _LOGGER.debug(time_prog)
@@ -199,10 +199,10 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                             params.update({name: value})
                     except KeyError as ex:
                         # for unknown parameter name: HTTP response 404 = Not Found
-                        raise HttpGetException(404, str(ex))
+                        raise HttpGetException(404, str(ex)) from ex
                     except ValueError as ex:
                         # for an invalid parameter value: HTTP response 400 = Bad Request
-                        raise HttpGetException(400, str(ex))
+                        raise HttpGetException(400, str(ex)) from ex
                     # query/set all requested parameter values
                     for name, value in params.items():
                         if value is None:
