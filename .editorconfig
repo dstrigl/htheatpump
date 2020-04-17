@@ -15,6 +15,9 @@ trim_trailing_whitespace = false
 [*.json]
 ident_size = 2
 
+[*.cfg]
+ident_size = 2
+
 [{.gitignore,.gitkeep,.editorconfig}]
 ident_size = 2
 
