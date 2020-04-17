@@ -63,16 +63,17 @@ Ready to contribute? Here's how to set up ``htheatpump`` for local development.
 
     $ git clone git@github.com:your_name_here/htheatpump.git
 
-3. Install your local copy into a virtualenv [1]_. Assuming you have ``virtualenvwrapper`` installed, this is how you
-   set up your fork for local development under Python 3.5::
+3. Install your local copy into a virtualenv [1]_. Assuming you have ``virtualenvwrapper`` installed,
+   this is how you set up your fork for local development under Python 3.7::
 
-    $ mkvirtualenv hthp-py35 -p python3.5
+    $ mkvirtualenv hthp-py37 -p python3.7
     $ cd htheatpump/
     $ python setup.py develop
 
-4. Install all project dependencies for local development::
+4. Install all project dependencies for local development (and testing)::
 
-    $ pip install -r requirements-dev.txt
+    $ pip install -r requirements/develop.pip
+    $ pip install -r requirements/test.pip
 
 5. Create a branch for local development::
 
@@ -80,24 +81,24 @@ Ready to contribute? Here's how to set up ``htheatpump`` for local development.
 
    Now you can make your changes locally.
 
-6. When you're done making changes, check that your changes pass ``flake8`` and the *tests* (using ``setup.py``
-   or ``pytest``), including testing other Python versions with ``tox``::
+6. When you're done making changes, check that your changes pass ``flake8`` and the *tests*
+   (using ``pytest``), including testing other Python versions with ``tox``::
 
     $ flake8 htheatpump tests samples setup.py
-    $ python setup.py test OR pytest
+    $ pytest
     $ tox
 
-   There are also a few tests which only run if a heat pump is connected. These can be executed by passing the argument
-   ``--connected`` to the test commands::
+   There are also a few tests which only run if a heat pump is connected. These can be executed
+   by passing the argument ``--connected`` to the test commands::
 
-    $ python setup.py test --addopts --connected
     $ pytest --connected
+    $ tox -- --connected
 
-   To change the default device (``/dev/ttyUSB0``) and baudrate (115200) use the arguments ``--device`` and
-   ``--baudrate``::
+   To change the default device (``/dev/ttyUSB0``) and baudrate (115200) use the arguments
+   ``--device`` and ``--baudrate``::
 
-    $ python setup.py test --addopts --connected --device /dev/ttyUSB1 --baudrate 9600
     $ pytest --connected --device /dev/ttyUSB1 --baudrate 9600
+    $ tox -- --connected --device /dev/ttyUSB1 --baudrate 9600
 
 7. Commit your changes and push your branch to GitHub::
 
@@ -119,7 +120,7 @@ Before you submit a pull request, check that it meets these guidelines:
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
-3. The pull request should work for Python 3.5, 3.6 and 3.7. Check
+3. The pull request should work for Python 3.5, 3.6, 3.7 and 3.8. Check
    https://travis-ci.org/dstrigl/htheatpump/pull_requests
    and make sure that the tests pass for all supported Python versions.
 
@@ -128,4 +129,4 @@ Tips
 
 To run a subset of tests::
 
-$ pytest tests/test_htparams.py
+    $ pytest tests/test_htparams.py
