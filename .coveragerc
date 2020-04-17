@@ -2,6 +2,7 @@
 omit =
     htheatpump/__init__.py
     htheatpump/__main__.py
+    htheatpump/__version__.py
     htheatpump/scripts/*
     docs/*
     tests/*
