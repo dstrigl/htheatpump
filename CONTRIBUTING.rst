@@ -103,7 +103,7 @@ Ready to contribute? Here's how to set up ``htheatpump`` for local development.
 7. Commit your changes and push your branch to GitHub::
 
     $ git add .
-    $ git commit -m "Your detailed description of your changes."
+    $ git commit -m "A description of your changes."
     $ git push origin name-of-your-bugfix-or-feature
 
 8. Submit a pull request through the GitHub website.
