@@ -1,11 +1,11 @@
 include AUTHORS.rst
 include CONTRIBUTING.rst
 include HISTORY.rst
-include LICENSE
 include README.rst
-include .coveragerc
+include LICENSE
+
 include .editorconfig
-include Makefile
+include .flake8
 include tox.ini
 
 recursive-include htheatpump *
