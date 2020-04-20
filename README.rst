@@ -65,6 +65,7 @@ Tested with [*]_
 * Heliotherm HP08E-K-BC, SW 3.0.7B
 * Heliotherm HP05S07W-WEB, SW 3.0.17 and SW 3.0.37
 * Heliotherm HP12L-M-BC, SW 3.0.21
+* Heliotherm HP07S08W-WEB, SW 3.0.37
 * Brötje BSW NEO 8 SW 3.0.38
 
   .. [*] thanks to Kilian, Hans, Alois, Simon and Felix (`FelixPetriconi <https://github.com/FelixPetriconi>`_) for contribution
