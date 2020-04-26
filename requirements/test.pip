@@ -1,6 +1,6 @@
 mypy==0.770
 coverage==5.1
 pytest~=5.3.5  # Issue in pytest-sugar https://github.com/Teemu/pytest-sugar/issues/187
-pytest-mypy==0.6.1
+pytest-mypy==0.6.2
 pytest-cov==2.8.1
 pytest-sugar==0.9.2
