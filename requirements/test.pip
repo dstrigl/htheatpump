@@ -1,6 +1,6 @@
 mypy==0.782
 coverage==5.2.1
-pytest==6.0.0
+pytest==6.0.1
 pytest-mypy==0.6.2
 pytest-cov==2.10.0
 pytest-sugar==0.9.4
