@@ -21,7 +21,7 @@
 
 from .htparams import HtParams, HtParamValueType
 from .httimeprog import TimeProgEntry, TimeProgram
-from typing import Optional, List, Dict, Set, Tuple, Any
+from typing import Optional, Union, List, Dict, Set, Tuple, Any
 
 import serial
 import time
@@ -336,23 +336,31 @@ class HtHeatpump:
 
     :param device: The serial device to attach to (e.g. :data:`/dev/ttyUSB0`).
     :type device: str
-    :param baudrate: The baud rate to use for the serial device (optional).
+    :param baudrate: The baud rate to use for the serial device.
     :type baudrate: int
-    :param bytesize: The bytesize of the serial messages (optional).
+    :param bytesize: The bytesize of the serial messages.
     :type bytesize: int
-    :param parity: Which kind of parity to use (optional).
+    :param parity: Which kind of parity to use.
     :type parity: str
-    :param stopbits: The number of stop bits to use (optional).
-    :type stopbits: float
-    :param xonxoff: Software flow control enabled (optional).
+    :param stopbits: The number of stop bits to use.
+    :type stopbits: float or int
+    :param timeout: The read timeout value.
+    :type timeout: None, float or int
+    :param xonxoff: Software flow control enabled.
     :type xonxoff: bool
-    :param rtscts: Hardware flow control (RTS/CTS) enabled (optional).
+    :param rtscts: Hardware flow control (RTS/CTS) enabled.
     :type rtscts: bool
-    :param dsrdtr: Hardware flow control (DSR/DTR) enabled (optional).
+    :param write_timeout: The write timeout value.
+    :type write_timeout: None, float or int
+    :param dsrdtr: Hardware flow control (DSR/DTR) enabled.
     :type dsrdtr: bool
-    :param verify_param_action: Parameter verification actions (optional).
-    :type verify_param_action: set
-    :param verify_param_error: Interpretation of parameter verification failure as error enabled (optional).
+    :param inter_byte_timeout: Inter-character timeout, ``None`` to disable (default).
+    :type inter_byte_timeout: None, float or int
+    :param exclusive: Exclusive access mode enabled (POSIX only).
+    :type exclusive: bool
+    :param verify_param_action: Parameter verification actions.
+    :type verify_param_action: None or set
+    :param verify_param_error: Interpretation of parameter verification failure as error enabled.
     :type verify_param_error: bool
 
     Example::
@@ -369,19 +377,45 @@ class HtHeatpump:
             hp.logout()  # try to logout for an ordinary cancellation (if possible)
             hp.close_connection()
     """
-
-    def __init__(self, device: str, **kwargs) -> None:
+    def __init__(
+        self,
+        device: str,
+        baudrate: int = 115200,
+        bytesize: int = serial.EIGHTBITS,
+        parity: str = serial.PARITY_NONE,
+        stopbits: Union[float, int] = serial.STOPBITS_ONE,
+        timeout: Optional[Union[float, int]] = _serial_timeout,
+        xonxoff: bool = True,
+        rtscts: bool = False,
+        write_timeout: Optional[Union[float, int]] = None,
+        dsrdtr: bool = False,
+        inter_byte_timeout: Optional[Union[float, int]] = None,
+        exclusive: Optional[bool] = None,
+        verify_param_action: Optional[Set["VerifyAction"]] = None,
+        verify_param_error: bool = False,
+    ) -> None:
         # store the serial settings for later connection establishment
-        self._ser_settings = {"device": device}
-        assert isinstance(device, str)
-        self._ser_settings.update(kwargs)
+        self._ser_settings = {
+            "port": device,
+            "baudrate": baudrate,
+            "bytesize": bytesize,
+            "parity": parity,
+            "stopbits": stopbits,
+            "timeout": timeout,
+            "xonxoff": xonxoff,
+            "rtscts": rtscts,
+            "write_timeout": write_timeout,
+            "dsrdtr": dsrdtr,
+            "inter_byte_timeout": inter_byte_timeout,
+            "exclusive": exclusive,
+        }
         self._ser = None
-        # default values for the parameter verification
-        self._verify_param_action = kwargs.get(
-            "verify_param_action", {VerifyAction.NAME}
+        # store settings for parameter verification
+        self._verify_param_action = (
+            {VerifyAction.NAME} if verify_param_action is None else verify_param_action
         )
         assert isinstance(self._verify_param_action, set)
-        self._verify_param_error = kwargs.get("verify_param_error", False)
+        self._verify_param_error = verify_param_error
         assert isinstance(self._verify_param_error, bool)
 
     def __del__(self) -> None:
@@ -408,34 +442,8 @@ class HtHeatpump:
         """
         if self._ser:
             raise IOError("serial connection already open")
-        device = self._ser_settings.get("device", "/dev/ttyUSB0")
-        assert isinstance(device, str)
-        baudrate = self._ser_settings.get("baudrate", 115200)
-        assert isinstance(baudrate, int)
-        bytesize = self._ser_settings.get("bytesize", serial.EIGHTBITS)
-        assert isinstance(bytesize, int)
-        parity = self._ser_settings.get("parity", serial.PARITY_NONE)
-        assert isinstance(parity, str)
-        stopbits = self._ser_settings.get("stopbits", serial.STOPBITS_ONE)
-        assert isinstance(stopbits, (int, float))
-        xonxoff = self._ser_settings.get("xonxoff", True)
-        assert isinstance(xonxoff, bool)
-        rtscts = self._ser_settings.get("rtscts", False)
-        assert isinstance(rtscts, bool)
-        dsrdtr = self._ser_settings.get("dsrdtr", False)
-        assert isinstance(dsrdtr, bool)
         # open the serial connection (must fit with the settings on the heat pump!)
-        self._ser = serial.Serial(
-            device,
-            baudrate=baudrate,
-            bytesize=bytesize,
-            parity=parity,
-            stopbits=stopbits,
-            xonxoff=xonxoff,
-            rtscts=rtscts,
-            dsrdtr=dsrdtr,
-            timeout=_serial_timeout,
-        )
+        self._ser = serial.Serial(**self._ser_settings)
         _LOGGER.info(self._ser)  # log serial connection properties
 
     def reconnect(self) -> None:
