@@ -1017,8 +1017,9 @@ class HtHeatpump:
                 raise
         return fault_list
 
+    @staticmethod
     def _extract_param_data(
-        self, name: str, resp: str
+            name: str, resp: str
     ) -> Tuple[str, HtParamValueType, HtParamValueType, HtParamValueType]:
         """ Extract the parameter data like parameter name, minimal value, maximal value and the
         current value from the parameter access response string.
