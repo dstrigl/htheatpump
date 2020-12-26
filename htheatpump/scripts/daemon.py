@@ -33,7 +33,7 @@ import signal
 
 
 class Daemon:
-    """ Subclass Daemon class and override the :meth:`run()` method.
+    """Subclass Daemon class and override the :meth:`run()` method.
 
     :param pidfile: The path of the PID-file.
     :type pidfile: str
@@ -67,7 +67,7 @@ class Daemon:
         self._stderr = stderr if stderr is not None else "/dev/null"
 
     def daemonize(self):
-        """ Deamonize, do the double-fork magic.
+        """Deamonize, do the double-fork magic.
 
         .. seealso::
             For more details about the UNIX double-fork magic see Stevens'
@@ -123,8 +123,7 @@ class Daemon:
         os.remove(self._pidfile)
 
     def start(self):
-        """ Start the daemon.
-        """
+        """Start the daemon."""
         # check pidfile to see if the daemon already runs
         try:
             with open(self._pidfile, "r") as f:
@@ -145,8 +144,7 @@ class Daemon:
         self.run()
 
     def status(self):
-        """ Print the status of the daemon.
-        """
+        """Print the status of the daemon."""
         # get the PID from pidfile
         try:
             with open(self._pidfile, "r") as f:
@@ -166,8 +164,7 @@ class Daemon:
             sys.stdout.write("no process with PID {} found\n".format(pid))
 
     def stop(self):
-        """ Stop the daemon.
-        """
+        """Stop the daemon."""
         # get the PID from pidfile
         try:
             with open(self._pidfile, "r") as f:
@@ -195,14 +192,13 @@ class Daemon:
             sys.exit(1)
 
     def restart(self):
-        """ Restart the daemon.
-        """
+        """Restart the daemon."""
         self.stop()
         time.sleep(1)
         self.start()
 
     def run(self):
-        """ You should override this method when you subclass :class:`Daemon`.
+        """You should override this method when you subclass :class:`Daemon`.
         It will be called after the process has been daemonized by :meth:`start()`
         or :meth:`restart()`.
 

@@ -34,7 +34,7 @@ TimeProgPeriodT = TypeVar("TimeProgPeriodT", bound="TimeProgPeriod")
 
 
 class TimeProgPeriod:
-    """ Representation of a time program period defined by start- and end-time (``HH:MM``).
+    """Representation of a time program period defined by start- and end-time (``HH:MM``).
 
     :param start_hour: The hour value of the start-time (``HH``).
     :type start_hour: int
@@ -100,7 +100,7 @@ class TimeProgPeriod:
     def from_str(
         cls: Type[TimeProgPeriodT], start_str: str, end_str: str
     ) -> TimeProgPeriodT:
-        """ Create a :class:`~TimeProgPeriod` instance from string representations of the start- and end-time.
+        """Create a :class:`~TimeProgPeriod` instance from string representations of the start- and end-time.
 
         :param start_str: The start-time of the time program entry as :obj:`str`.
         :type start_str: str
@@ -133,7 +133,7 @@ class TimeProgPeriod:
     def from_json(
         cls: Type[TimeProgPeriodT], json_dict: Dict[str, str]
     ) -> TimeProgPeriodT:
-        """ Create a :class:`~TimeProgPeriod` instance from a JSON representation.
+        """Create a :class:`~TimeProgPeriod` instance from a JSON representation.
 
         :param json_dict: The JSON representation of the time program period as :obj:`dict`.
         :type json_dict: dict
@@ -146,7 +146,7 @@ class TimeProgPeriod:
     def set(
         self, start_hour: int, start_minute: int, end_hour: int, end_minute: int
     ) -> None:
-        """ Set the start- and end-time of this time program period.
+        """Set the start- and end-time of this time program period.
 
         :param start_hour: The hour value of the start-time.
         :type start_hour: int
@@ -166,7 +166,7 @@ class TimeProgPeriod:
         self._end_hour, self._end_minute = end_hour, end_minute
 
     def __str__(self) -> str:
-        """ Return a string representation of this time program period.
+        """Return a string representation of this time program period.
 
         :returns: A string representation of this time program period.
         :rtype: ``str``
@@ -176,7 +176,7 @@ class TimeProgPeriod:
         )
 
     def __eq__(self, other):
-        """ Implement the equal operator.
+        """Implement the equal operator.
 
         :param other: Another instance of :class:`~TimeProgPeriod` to check against.
         :returns: :const:`True` if we check against the same subclass and the raw values matches,
@@ -195,7 +195,7 @@ class TimeProgPeriod:
         )
 
     def as_dict(self) -> Dict[str, object]:
-        """ Create a dict representation of this time program period.
+        """Create a dict representation of this time program period.
 
         :returns: A dict representing this time program period.
         :rtype: ``dict``
@@ -206,7 +206,7 @@ class TimeProgPeriod:
         }
 
     def as_json(self) -> Dict[str, object]:
-        """ Create a json-readable dict representation of this time program period.
+        """Create a json-readable dict representation of this time program period.
 
         :returns: A json-readable dict representing this time program period.
         :rtype: ``dict``
@@ -218,7 +218,7 @@ class TimeProgPeriod:
 
     @property
     def start_str(self) -> str:
-        """ Return the start-time of this time program period as :obj:`str`.
+        """Return the start-time of this time program period as :obj:`str`.
 
         :returns: The start-time of this time program period as :obj:`str`. For example:
             ::
@@ -231,7 +231,7 @@ class TimeProgPeriod:
 
     @property
     def end_str(self) -> str:
-        """ Return the end-time of this time program period as :obj:`str`.
+        """Return the end-time of this time program period as :obj:`str`.
 
         :returns: The end-time of this time program period as :obj:`str`. For example:
             ::
@@ -244,7 +244,7 @@ class TimeProgPeriod:
 
     @property
     def start_hour(self) -> int:
-        """ Return the hour value of the start-time of this time program period.
+        """Return the hour value of the start-time of this time program period.
 
         :returns: The hour value of the start-time of this time program period.
         :rtype: ``int``
@@ -253,7 +253,7 @@ class TimeProgPeriod:
 
     @property
     def start_minute(self) -> int:
-        """ Return the minute value of the start-time of this time program period.
+        """Return the minute value of the start-time of this time program period.
 
         :returns: The minute value of the start-time of this time program period.
         :rtype: ``int``
@@ -262,7 +262,7 @@ class TimeProgPeriod:
 
     @property
     def end_hour(self) -> int:
-        """ Return the hour value of the end-time of this time program period.
+        """Return the hour value of the end-time of this time program period.
 
         :returns: The hour value of the end-time of this time program period.
         :rtype: ``int``
@@ -271,7 +271,7 @@ class TimeProgPeriod:
 
     @property
     def end_minute(self) -> int:
-        """ Return the minute value of the end-time of this time program period.
+        """Return the minute value of the end-time of this time program period.
 
         :returns: The minute value of the end-time of this time program period.
         :rtype: ``int``
@@ -280,7 +280,7 @@ class TimeProgPeriod:
 
     @property
     def start(self) -> Tuple[int, int]:
-        """ Return the start-time of this time program period as a tuple with 2 elements,
+        """Return the start-time of this time program period as a tuple with 2 elements,
         where the first element represents the hours and the second one the minutes.
 
         :returns: The start-time of this time program period as tuple. For example:
@@ -294,7 +294,7 @@ class TimeProgPeriod:
 
     @property
     def end(self) -> Tuple[int, int]:
-        """ Return the end-time of this time program period as a tuple with 2 elements,
+        """Return the end-time of this time program period as a tuple with 2 elements,
         where the first element represents the hours and the second one the minutes.
 
         :returns: The end-time of this time program period as tuple. For example:
@@ -315,7 +315,7 @@ TimeProgEntryT = TypeVar("TimeProgEntryT", bound="TimeProgEntry")
 
 
 class TimeProgEntry:
-    """ Representation of a single time program entry.
+    """Representation of a single time program entry.
 
     :param state: The state of the time program entry.
     :type state: int
@@ -331,7 +331,7 @@ class TimeProgEntry:
     def from_str(
         cls: Type[TimeProgEntryT], state: str, start_str: str, end_str: str
     ) -> TimeProgEntryT:
-        """ Create a :class:`~TimeProgEntry` instance from string representations of the state, start- and end-time.
+        """Create a :class:`~TimeProgEntry` instance from string representations of the state, start- and end-time.
 
         :param state: The state of the time program entry as :obj:`str`.
         :type state: str
@@ -348,7 +348,7 @@ class TimeProgEntry:
     def from_json(
         cls: Type[TimeProgEntryT], json_dict: Dict[str, Any]
     ) -> TimeProgEntryT:
-        """ Create a :class:`~TimeProgEntry` instance from a JSON representation.
+        """Create a :class:`~TimeProgEntry` instance from a JSON representation.
 
         :param json_dict: The JSON representation of the time program entry as :obj:`dict`.
         :type json_dict: dict
@@ -362,7 +362,7 @@ class TimeProgEntry:
         )
 
     def set(self, state: int, period: TimeProgPeriod) -> None:
-        """ Set the state and period of this time program entry.
+        """Set the state and period of this time program entry.
 
         :param state: The state of the time program entry.
         :type state: int
@@ -373,7 +373,7 @@ class TimeProgEntry:
         self._period = copy.deepcopy(period)
 
     def __str__(self) -> str:
-        """ Return a string representation of this time program entry.
+        """Return a string representation of this time program entry.
 
         :returns: A string representation of this time program entry.
         :rtype: ``str``
@@ -381,7 +381,7 @@ class TimeProgEntry:
         return "state={:d}, time={!s}".format(self._state, self._period)
 
     def __eq__(self, other):
-        """ Implement the equal operator.
+        """Implement the equal operator.
 
         :param other: Another instance of :class:`~TimeProgEntry` to check against.
         :returns: :const:`True` if we check against the same subclass and the raw values matches,
@@ -395,7 +395,7 @@ class TimeProgEntry:
         return self._state == other.state and self._period == other.period
 
     def as_dict(self) -> Dict[str, object]:
-        """ Create a dict representation of this time program entry.
+        """Create a dict representation of this time program entry.
 
         :returns: A dict representing this time program entry.
         :rtype: ``dict``
@@ -405,7 +405,7 @@ class TimeProgEntry:
         return ret
 
     def as_json(self) -> Dict[str, object]:
-        """ Create a json-readable dict representation of this time program entry.
+        """Create a json-readable dict representation of this time program entry.
 
         :returns: A json-readable dict representing this time program entry.
         :rtype: ``dict``
@@ -416,7 +416,7 @@ class TimeProgEntry:
 
     @property
     def state(self) -> int:
-        """ Property to get or set the state of this time program entry.
+        """Property to get or set the state of this time program entry.
 
         :param: The new state of the time program entry.
         :returns: The current state of the time program entry.
@@ -430,7 +430,7 @@ class TimeProgEntry:
 
     @property
     def period(self) -> TimeProgPeriod:
-        """ Property to get or set the period of this time program entry.
+        """Property to get or set the period of this time program entry.
 
         :param: The new period of the time program entry as :class:`~TimeProgPeriod`.
         :returns: A copy of the current period of the time program entry as :class:`~TimeProgPeriod`.
@@ -451,7 +451,7 @@ TimeProgramT = TypeVar("TimeProgramT", bound="TimeProgram")
 
 
 class TimeProgram:
-    """ Representation of a time program of the Heliotherm heat pump.
+    """Representation of a time program of the Heliotherm heat pump.
 
     :param idx: The time program index.
     :type idx: int
@@ -504,7 +504,7 @@ class TimeProgram:
 
     @classmethod
     def from_json(cls: Type[TimeProgramT], json_dict: Dict[str, Any]) -> TimeProgramT:
-        """ Create a :class:`~TimeProgram` instance from a JSON representation.
+        """Create a :class:`~TimeProgram` instance from a JSON representation.
 
         :param json_dict: The JSON representation of the time program as :obj:`dict`.
         :type json_dict: dict
@@ -532,7 +532,7 @@ class TimeProgram:
         return time_prog
 
     def __str__(self) -> str:
-        """ Return a string representation of this time program.
+        """Return a string representation of this time program.
 
         :returns: A string representation of this time program.
         :rtype: ``str``
@@ -554,7 +554,7 @@ class TimeProgram:
         )
 
     def as_dict(self, with_entries: bool = True) -> Dict[str, object]:
-        """ Create a dict representation of this time program.
+        """Create a dict representation of this time program.
 
         :param with_entries: Determines whether the single time program entries should be included or not.
             Default is :const:`True`.
@@ -575,7 +575,7 @@ class TimeProgram:
         return ret
 
     def as_json(self, with_entries: bool = True) -> Dict[str, object]:
-        """ Create a json-readable dict representation of this time program.
+        """Create a json-readable dict representation of this time program.
 
         :param with_entries: Determines whether the single time program entries should be included or not.
             Default is :const:`True`.
@@ -607,7 +607,7 @@ class TimeProgram:
 
     @property
     def index(self) -> int:
-        """ Return the index of this time program.
+        """Return the index of this time program.
 
         :returns: The index of this time program.
         :rtype: ``int``
@@ -616,7 +616,7 @@ class TimeProgram:
 
     @property
     def name(self) -> str:
-        """ Return the name of this time program.
+        """Return the name of this time program.
 
         :returns: The name of this time program.
         :rtype: ``int``
@@ -625,7 +625,7 @@ class TimeProgram:
 
     @property
     def entries_a_day(self) -> int:
-        """ Return the number of entries a day of this time program.
+        """Return the number of entries a day of this time program.
 
         :returns: The number of entries a day of this time program.
         :rtype: ``int``
@@ -634,7 +634,7 @@ class TimeProgram:
 
     @property
     def number_of_states(self) -> int:
-        """ Return the number of states of this time program.
+        """Return the number of states of this time program.
 
         :returns: The number of states of this time program.
         :rtype: ``int``
@@ -643,7 +643,7 @@ class TimeProgram:
 
     @property
     def step_size(self) -> int:
-        """ Return the step-size (in minutes) of the start- and end-times of this time program entries.
+        """Return the step-size (in minutes) of the start- and end-times of this time program entries.
 
         :returns: The step-size (in minutes) of the start- and end-times of this time program entries.
         :rtype: ``int``
@@ -652,7 +652,7 @@ class TimeProgram:
 
     @property
     def number_of_days(self) -> int:
-        """ Return the number of days of this time program.
+        """Return the number of days of this time program.
 
         :returns: The number of days of this time program.
         :rtype: ``int``
@@ -660,7 +660,7 @@ class TimeProgram:
         return self._number_of_days
 
     def entry(self, day: int, num: int) -> Optional[TimeProgEntry]:
-        """ Return a copy of a specific time program entry.
+        """Return a copy of a specific time program entry.
 
         :param day: The day of the time program entry.
         :type day: int
@@ -672,7 +672,7 @@ class TimeProgram:
         return copy.deepcopy(self._entries[day][num])
 
     def entries_of_day(self, day: int) -> List[Optional[TimeProgEntry]]:
-        """ Return a list of copies of time program entries of a specific day.
+        """Return a list of copies of time program entries of a specific day.
 
         :param day: The day of the time program entries.
         :type day: int
@@ -682,7 +682,7 @@ class TimeProgram:
         return copy.deepcopy(self._entries[day])
 
     def set_entry(self, day: int, num: int, entry: TimeProgEntry) -> None:
-        """ Set the properties of a given time program entry of the heat pump.
+        """Set the properties of a given time program entry of the heat pump.
 
         :param day: The day of the time program entry.
         :type day: int

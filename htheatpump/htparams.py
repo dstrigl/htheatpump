@@ -53,7 +53,7 @@ HtParamValueType = Union[
 
 @enum.unique
 class HtDataTypes(enum.Enum):
-    """ Supported data types of the Heliotherm heat pump:
+    """Supported data types of the Heliotherm heat pump:
 
     * ``BOOL``   The value of the parameter is given as **boolean** (e.g. on/off, yes/no, enabled/disabled).
     * ``INT``    The value of the parameter is given as **integer**.
@@ -66,7 +66,7 @@ class HtDataTypes(enum.Enum):
 
     @staticmethod
     def from_str(s: str) -> "HtDataTypes":
-        """ Create a corresponding enum representation for the passed string.
+        """Create a corresponding enum representation for the passed string.
 
         :param s: The passed string.
         :type s: str
@@ -86,7 +86,7 @@ class HtDataTypes(enum.Enum):
 
 
 class HtParam:
-    """ Representation of a specific heat pump parameter.
+    """Representation of a specific heat pump parameter.
 
     :param dp_type: The data point type (:data:`"MP"`, :data:`"SP"`).
     :type dp_type: str
@@ -135,7 +135,7 @@ class HtParam:
         )
 
     def cmd(self) -> str:
-        """ Return the command string, based on the data point type and number of the parameter.
+        """Return the command string, based on the data point type and number of the parameter.
 
         :returns: The command string.
         :rtype: ``str``
@@ -147,7 +147,7 @@ class HtParam:
         min_val: Optional[HtParamValueType] = None,
         max_val: Optional[HtParamValueType] = None,
     ) -> bool:
-        """ Set the limits of the parameter and return whether the passed limit values differed
+        """Set the limits of the parameter and return whether the passed limit values differed
         from the old one.
 
         :param min_val: The minimal value (default :const:`None`, which means "doesn't matter").
@@ -170,7 +170,7 @@ class HtParam:
         return ret
 
     def in_limits(self, val: Optional[HtParamValueType]) -> bool:
-        """ Determine whether the passed value is in between the parameter limits or not.
+        """Determine whether the passed value is in between the parameter limits or not.
 
         :param val: The value to check against the parameter limits.
         :type val: bool, int or float
@@ -190,7 +190,7 @@ class HtParam:
 
     @staticmethod
     def _from_str(value: str, data_type: HtDataTypes, strict: bool) -> HtParamValueType:
-        """ Convert the passed value (in form of a string) to the expected data type.
+        """Convert the passed value (in form of a string) to the expected data type.
 
         :param value: The passed value (in form of a string).
         :type value: str
@@ -247,7 +247,7 @@ class HtParam:
     def from_str(
         self: Union["HtParam", str], arg: Union[str, HtDataTypes], strict: bool = True
     ) -> HtParamValueType:
-        """ Convert the passed value (in form of a string) to the expected data type.
+        """Convert the passed value (in form of a string) to the expected data type.
 
         This method can be called as a *static method*, e.g.::
 
@@ -278,7 +278,7 @@ class HtParam:
 
     @staticmethod
     def _check_value_type(value: HtParamValueType, data_type: HtDataTypes) -> None:
-        """ Check the type of the passed value against the given parameter data type.
+        """Check the type of the passed value against the given parameter data type.
 
         :param value: The passed value.
         :type value: bool, int or float
@@ -313,7 +313,7 @@ class HtParam:
         self: Union["HtParam", HtParamValueType],
         arg: Union[HtParamValueType, HtDataTypes],
     ) -> None:
-        """ Check the type of the passed value against the given parameter data type.
+        """Check the type of the passed value against the given parameter data type.
 
         This method can be called as a *static method*, e.g.::
 
@@ -338,7 +338,7 @@ class HtParam:
 
     @staticmethod
     def _to_str(value: HtParamValueType, data_type: HtDataTypes) -> str:
-        """ Convert the passed value to a string.
+        """Convert the passed value to a string.
 
         :param value: The passed value.
         :type value: bool, int or float
@@ -368,7 +368,7 @@ class HtParam:
         self: Union["HtParam", HtParamValueType],
         arg: Union[HtParamValueType, HtDataTypes],
     ) -> str:
-        """ Convert the passed value to a string.
+        """Convert the passed value to a string.
 
         This method can be called as a *static method*, e.g.::
 
@@ -409,7 +409,7 @@ class HtParamsMeta(type):  # pragma: no cover
 
 
 def _load_params_from_csv() -> Dict[str, HtParam]:
-    """ Helper function to load all supported heat pump parameter definitions from the CSV file.
+    """Helper function to load all supported heat pump parameter definitions from the CSV file.
 
     :returns: Dictionary of the supported heat pump parameters:
         ::
@@ -473,7 +473,7 @@ def _load_params_from_csv() -> Dict[str, HtParam]:
 
 
 class HtParams(Singleton, metaclass=HtParamsMeta):
-    """ Dictionary of the supported Heliotherm heat pump parameters. [*]_
+    """Dictionary of the supported Heliotherm heat pump parameters. [*]_
 
     .. note::
 

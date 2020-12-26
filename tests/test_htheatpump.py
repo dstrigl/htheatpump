@@ -46,7 +46,7 @@ from typing import List
     ],
 )
 def test_calc_checksum(s: bytes, checksum: int):
-    from htheatpump.htheatpump import calc_checksum
+    from htheatpump.protocol import calc_checksum
 
     assert calc_checksum(s) == checksum
     # assert 0
@@ -54,7 +54,7 @@ def test_calc_checksum(s: bytes, checksum: int):
 
 @pytest.mark.parametrize("s", [b"", b"\x01"])
 def test_verify_checksum_raises_ValueError(s: bytes):
-    from htheatpump.htheatpump import verify_checksum
+    from htheatpump.protocol import verify_checksum
 
     with pytest.raises(ValueError):
         verify_checksum(s)
@@ -72,7 +72,7 @@ def test_verify_checksum_raises_ValueError(s: bytes):
     ],
 )
 def test_verify_checksum(s: bytes, result: bool):
-    from htheatpump.htheatpump import verify_checksum
+    from htheatpump.protocol import verify_checksum
 
     assert verify_checksum(s) == result
     # assert 0
@@ -80,7 +80,7 @@ def test_verify_checksum(s: bytes, result: bool):
 
 @pytest.mark.parametrize("s", [b""])
 def test_add_checksum_raises_ValueError(s: bytes):
-    from htheatpump.htheatpump import add_checksum
+    from htheatpump.protocol import add_checksum
 
     with pytest.raises(ValueError):
         add_checksum(s)
@@ -110,7 +110,7 @@ def test_add_checksum_raises_ValueError(s: bytes):
     ],
 )
 def test_add_checksum(s: bytes, result: bytes):
-    from htheatpump.htheatpump import add_checksum
+    from htheatpump.protocol import add_checksum
 
     assert add_checksum(s) == result
     # assert 0
@@ -118,7 +118,7 @@ def test_add_checksum(s: bytes, result: bytes):
 
 @pytest.mark.parametrize("cmd", ["?" * 254])
 def test_create_request_raises_ValueError(cmd: str):
-    from htheatpump.htheatpump import create_request
+    from htheatpump.protocol import create_request
 
     with pytest.raises(ValueError):
         create_request(cmd)
@@ -135,7 +135,7 @@ def test_create_request_raises_ValueError(cmd: str):
     ],
 )
 def test_create_request(cmd: str, result: bytes):
-    from htheatpump.htheatpump import create_request
+    from htheatpump.protocol import create_request
 
     assert create_request(cmd) == result
     # assert 0

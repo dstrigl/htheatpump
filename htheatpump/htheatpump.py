@@ -21,6 +21,38 @@
 
 from .htparams import HtParams, HtParamValueType
 from .httimeprog import TimeProgEntry, TimeProgram
+from .protocol import (
+    create_request,
+    RESPONSE_HEADER_LEN,
+    RESPONSE_HEADER,
+    LOGIN_CMD,
+    LOGIN_RESP,
+    LOGOUT_CMD,
+    LOGOUT_RESP,
+    RID_CMD,
+    RID_RESP,
+    VERSION_CMD,
+    VERSION_RESP,
+    CLK_CMD,
+    CLK_RESP,
+    ALC_CMD,
+    ALC_RESP,
+    ALS_CMD,
+    ALS_RESP,
+    AR_CMD,
+    MAX_CMD_LENGTH,
+    AR_RESP,
+    MR_CMD,
+    MR_RESP,
+    PRL_CMD,
+    PRL_RESP,
+    PRI_CMD,
+    PRI_RESP,
+    PRD_CMD,
+    PRD_RESP,
+    PRE_CMD,
+    PRE_RESP,
+)
 from typing import Optional, Union, List, Dict, Set, Tuple, Any
 
 import serial
@@ -29,10 +61,6 @@ import re
 import datetime
 import enum
 import copy
-
-# import sys
-# import pprint
-# from timeit import default_timer as timer
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -45,18 +73,13 @@ _LOGGER = logging.getLogger(__name__)
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
-# Constants & enums
+# Enums
 # ------------------------------------------------------------------------------------------------------------------- #
-
-_serial_timeout = 5  # type: int
-""" Serial timeout value in seconds; normally no need to change it. """
-_login_retries = 2  # type: int
-""" Maximum number of retries for a login attempt; 1 regular try + :const:`_login_retries` retries. """
 
 
 @enum.unique
 class VerifyAction(enum.Enum):
-    """ Possible actions for the parameter verification:
+    """Possible actions for the parameter verification:
 
     * ``NAME``  Verification of the parameter name.
     * ``MIN``   Verification of the minimal value of the parameter.
@@ -100,223 +123,12 @@ class VerifyAction(enum.Enum):
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
-# Protocol constants
-# ------------------------------------------------------------------------------------------------------------------- #
-
-MAX_CMD_LENGTH = 253  # 253 = 255 - 1 byte for header - 1 byte for trailer
-
-REQUEST_HEADER = b"\x02\xfd\xd0\xe0\x00\x00"
-RESPONSE_HEADER_LEN = 6  # response header length
-RESPONSE_HEADER = {
-    #
-    # NOTE:
-    # =====
-    # It seems that there is some inconsistency in the way how the heat pump replies to requests.
-    # Depending on the received header (the first 6 bytes) we have to correct the payload length for
-    #   the checksum computation, so that the received checksum fits with the computed one.
-    # Additionally, for some replies the checksum seems to be totally ignored, because the received
-    #   checksum is always zero (0x0), regardless of the content.
-    #
-    # This behavior will be handled in the following lines. See also function HtHeatpump.read_response().
-    # normal response header with answer
-    b"\x02\xfd\xe0\xd0\x00\x00": {
-        "payload_len": lambda payload_len: payload_len,  # no payload length correction necessary
-        # method to calculate the checksum of the response:
-        "checksum": lambda header, payload_len, payload: calc_checksum(
-            header + bytes([payload_len]) + payload
-        ),
-    },
-    # response header for some of the "MR" command (HtHeatpump.fast_query) answers
-    #   for this kind of answers the payload length must be corrected (for the checksum computation)
-    #     so that the received checksum fits with the computed one
-    #   observed on: HP08S10W-WEB, SW 3.0.20
-    b"\x02\xfd\xe0\xd0\x01\x00": {
-        "payload_len": lambda payload_len: payload_len - 1,  # payload length correction
-        # method to calculate the checksum of the response:
-        "checksum": lambda header, payload_len, payload: calc_checksum(
-            header + bytes([payload_len]) + payload
-        ),
-    },
-    # response header with answer
-    #   for error messages (e.g. "ERR,INVALID IDX") and some "MR" command (HtHeatpump.fast_query) answers
-    #   for this kind of answers the payload length must be corrected (for the checksum computation)
-    #     so that the received checksum fits with the computed one
-    #   observed on: HP08S10W-WEB, SW 3.0.20
-    b"\x02\xfd\xe0\xd0\x02\x00": {
-        "payload_len": lambda payload_len: payload_len - 2,  # payload length correction
-        # method to calculate the checksum of the response:
-        "checksum": lambda header, payload_len, payload: calc_checksum(
-            header + bytes([payload_len]) + payload
-        ),
-    },
-    # response header with answer
-    #   when receiving an answer from the heat pump with this header the checksum is always 0x0 (don't ask me why!)
-    #   observed on: HP08S10W-WEB, SW 3.0.20 for parameter requests ("SP"/"MP" commands)
-    b"\x02\xfd\xe0\xd0\x04\x00": {
-        "payload_len": lambda payload_len: payload_len,  # no payload length correction necessary
-        # we don't know why, but for this kind of responses the checksum is always 0x0:
-        "checksum": lambda header, payload_len, payload: 0x00,
-    },
-    # response header with answer
-    #   when receiving an answer from the heat pump with this header the checksum is always 0x0 (don't ask me why!)
-    #   observed on: HP10S12W-WEB, SW 3.0.8 for parameter requests ("SP"/"MP" commands)
-    b"\x02\xfd\xe0\xd0\x08\x00": {
-        "payload_len": lambda payload_len: payload_len,  # no payload length correction necessary
-        # we don't know why, but for this kind of responses the checksum is always 0x0:
-        "checksum": lambda header, payload_len, payload: 0x00,
-    },
-}
-
-
-# special commands of the heat pump:
-# ----------------------------------
-#
-LOGIN_CMD = r"LIN"  # login command
-LOGIN_RESP = r"^OK"
-LOGOUT_CMD = r"LOUT"  # logout command
-LOGOUT_RESP = r"^OK"
-RID_CMD = r"RID"  # query for the manufacturer's serial number
-RID_RESP = r"^RID,(\d+)$"  # e.g. '~RID,123456;\r\n'
-VERSION_CMD = r"SP,NR=9"  # query for the software version of the heat pump
-VERSION_RESP = r"^SP,NR=9,.*NAME=([^,]+).*VAL=([^,]+).*$"  # e.g. 'SP,NR=9,ID=9,NAME=3.0.20,...,VAL=2321,...'
-CLK_CMD = (
-    r"CLK",  # get/set the current date and time of the heat pump
-    r"CLK,DA={:02d}.{:02d}.{:02d},TI={:02d}:{:02d}:{:02d},WD={:d}",
-)
-CLK_RESP = (
-    r"^CLK"  # answer for the current date and time of the heat pump
-    r",DA=(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d\d)"  # date, e.g. '26.11.15'
-    r",TI=([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"  # time, e.g. '21:28:57'
-    r",WD=([1-7])$"
-)  # weekday 1-7 (Monday through Sunday)
-ALC_CMD = r"ALC"  # query for the last fault message of the heat pump
-ALC_RESP = (
-    r"^AA,(\d+),(\d+)"  # fault list index and error code (?)
-    r",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d\d)"  # date, e.g. '14.09.14'
-    r"-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"  # time, e.g. '11:52:08'
-    r",(.*)$"
-)  # error message, e.g. 'EQ_Spreizung'
-ALS_CMD = r"ALS"  # query for the fault list size of the heat pump
-ALS_RESP = r"^SUM=(\d+)$"  # e.g. 'SUM=2757'
-AR_CMD = r"AR"  # query for specific entries of the fault list
-AR_RESP = (
-    r"^AA,(\d+),(\d+)"  # fault list index and error code (?)
-    r",(3[0-1]|[1-2]\d|0[1-9])\.(1[0-2]|0[1-9])\.(\d\d)"  # date, e.g. '14.09.14'
-    r"-([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)"  # time, e.g. '11:52:08'
-    r",(.*)$"
-)  # error message, e.g. 'EQ_Spreizung'
-MR_CMD = r"MR"  # fast query for several MP data point values
-MR_RESP = r"^MA,(\d+),([^,]+),(\d+)$"  # MP data point number, value and ?; e.g. 'MA,0,-3.4,17'
-PRL_CMD = r"PRL"  # query for the time programs of the heat pump
-PRL_RESP = (
-    r"^SUM=(\d+)$",  # e.g. 'SUM=5'
-    r"^PRI{:d},.*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$",
-)  # e.g. 'PRI0,...'
-PRI_CMD = r"PRI{:d}"  # query for a specific time program of the heat pump
-PRI_RESP = r"^PRI{:d},.*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$"  # e.g. 'PRI2,NAME=..'
-PRD_CMD = (
-    r"PRD{:d}"  # query for the entries of a specific time program of the heat pump
-)
-PRD_RESP = (
-    r"^PRI{:d},*NAME=([^,]+).*EAD=([^,]+).*NOS=([^,]+).*STE=([^,]+).*NOD=([^,]+).*$",  # e.g. 'PRI0,...'
-    r"^PRE,.*PR={:d},.*DAY={:d},.*EV={:d},.*ST=(\d+),"  # e.g. 'PRE,PR=0,DAY=3,EV=1,ST=1,...'
-    r".*BEG=(\d?\d:\d?\d),.*END=(\d?\d:\d?\d).*$",
-)  # '...BEG=03:30,END=22:00'
-PRE_CMD = (
-    r"PRE,PR={:d},DAY={:d},EV={:d}",  # get/set a specific time program entry of the heat pump
-    r"PRE,PR={:d},DAY={:d},EV={:d},ST={:d},BEG={},END={}",
-)
-PRE_RESP = (
-    r"^PRE,.*PR={:d},.*DAY={:d},.*EV={:d},.*ST=(\d+),"  # e.g. 'PRE,PR=2,DAY=5,EV=4,ST=1,...'
-    r".*BEG=(\d?\d:\d?\d),.*END=(\d?\d:\d?\d).*$"
-)  # '...BEG=13:30,END=14:45'
-
-
-# ------------------------------------------------------------------------------------------------------------------- #
-# Helper functions
-# ------------------------------------------------------------------------------------------------------------------- #
-
-
-def calc_checksum(s: bytes) -> int:
-    """ Function that calculates the checksum of a provided bytes array.
-
-    :param s: Byte array from which the checksum should be computed.
-    :type s: bytes
-    :returns: The computed checksum as ``int``.
-    :rtype: ``int``
-    """
-    assert isinstance(s, bytes)
-    checksum = 0x0
-    for i in range(len(s)):
-        databyte = s[i]
-        checksum ^= databyte
-        databyte = (databyte << 1) & 0xFF
-        checksum ^= databyte
-    return checksum
-
-
-def verify_checksum(s: bytes) -> bool:
-    """ Verify if the provided bytes array is terminated with a valid checksum.
-
-    :param s: The byte array including the checksum.
-    :type s: bytes
-    :returns: :const:`True` if valid, :const:`False` otherwise.
-    :rtype: ``bool``
-    :raises ValueError:
-        Will be raised for an invalid byte array with length less than 2 bytes.
-    """
-    assert isinstance(s, bytes)
-    if len(s) < 2:
-        raise ValueError(
-            "the provided array of bytes needs to be at least 2 bytes long"
-        )
-    return (
-        calc_checksum(s[:-1]) == s[-1]
-    )  # is the last byte of the array the correct checksum?
-
-
-def add_checksum(s: bytes) -> bytes:
-    """ Add a checksum at the end of the provided bytes array.
-
-    :param s: The provided byte array.
-    :type s: bytes
-    :returns: Byte array with the added checksum.
-    :rtype: ``bytes``
-    :raises ValueError:
-        Will be raised for an invalid byte array with length less than 1 byte.
-    """
-    assert isinstance(s, bytes)
-    if len(s) < 1:
-        raise ValueError("the provided array of bytes needs to be at least 1 byte long")
-    return s + bytes(
-        [calc_checksum(s)]
-    )  # append the checksum at the end of the bytes array
-
-
-def create_request(cmd: str) -> bytes:
-    """ Create a specified request command for the heat pump.
-
-    :param cmd: The command string.
-    :type cmd: str
-    :returns: The request string for the specified command as byte array.
-    :rtype: ``bytes``
-    :raises ValueError:
-        Will be raised for an invalid byte array with length greater than 253 byte.
-    """
-    assert isinstance(cmd, str)
-    if len(cmd) > MAX_CMD_LENGTH:
-        raise ValueError("command must be lesser than 254 characters")
-    cmd = "~" + cmd + ";"  # add header '~' and trailer ';'
-    return add_checksum(REQUEST_HEADER + bytes([len(cmd)]) + cmd.encode("ascii"))
-
-
-# ------------------------------------------------------------------------------------------------------------------- #
 # Exception classes
 # ------------------------------------------------------------------------------------------------------------------- #
 
 
 class VerificationException(ValueError):  # pragma: no cover
-    """ Exception which represents a verification error during parameter access.
+    """Exception which represents a verification error during parameter access.
 
     :param message: A detailed message describing the parameter verification failure.
     :type message: str
@@ -332,7 +144,7 @@ class VerificationException(ValueError):  # pragma: no cover
 
 
 class HtHeatpump:
-    """ Object which encapsulates the communication with the Heliotherm heat pump.
+    """Object which encapsulates the communication with the Heliotherm heat pump.
 
     :param device: The serial device to attach to (e.g. :data:`/dev/ttyUSB0`).
     :type device: str
@@ -377,6 +189,13 @@ class HtHeatpump:
             hp.logout()  # try to logout for an ordinary cancellation (if possible)
             hp.close_connection()
     """
+
+    DEFAULT_SERIAL_TIMEOUT = 5  # type: int
+    """Serial timeout value in seconds; normally no need to change it."""
+
+    DEFAULT_LOGIN_RETRIES = 2  # type: int
+    """Maximum number of retries for a login attempt; 1 regular try + :const:`DEFAULT_LOGIN_RETRIES` retries."""
+
     def __init__(
         self,
         device: str,
@@ -384,7 +203,7 @@ class HtHeatpump:
         bytesize: int = serial.EIGHTBITS,
         parity: str = serial.PARITY_NONE,
         stopbits: Union[float, int] = serial.STOPBITS_ONE,
-        timeout: Optional[Union[float, int]] = _serial_timeout,
+        timeout: Optional[Union[float, int]] = DEFAULT_SERIAL_TIMEOUT,
         xonxoff: bool = True,
         rtscts: bool = False,
         write_timeout: Optional[Union[float, int]] = None,
@@ -394,6 +213,7 @@ class HtHeatpump:
         verify_param_action: Optional[Set["VerifyAction"]] = None,
         verify_param_error: bool = False,
     ) -> None:
+        """Initialize the HtHeatpump class."""
         # store the serial settings for later connection establishment
         self._ser_settings = {
             "port": device,
@@ -431,7 +251,7 @@ class HtHeatpump:
         self.close_connection()
 
     def open_connection(self) -> None:
-        """ Open the serial connection with the defined settings.
+        """Open the serial connection with the defined settings.
 
         :raises IOError:
             When the serial connection is already open.
@@ -447,8 +267,8 @@ class HtHeatpump:
         _LOGGER.info(self._ser)  # log serial connection properties
 
     def reconnect(self) -> None:
-        """ Perform a reconnect of the serial connection. Flush the output and
-            input buffer, close the serial connection and open it again.
+        """Perform a reconnect of the serial connection. Flush the output and
+        input buffer, close the serial connection and open it again.
         """
         if self._ser and self._ser.is_open:
             self._ser.reset_output_buffer()
@@ -457,8 +277,7 @@ class HtHeatpump:
         self.open_connection()
 
     def close_connection(self) -> None:
-        """ Close the serial connection.
-        """
+        """Close the serial connection."""
         if self._ser and self._ser.is_open:
             self._ser.close()
             self._ser = None
@@ -467,7 +286,7 @@ class HtHeatpump:
 
     @property
     def is_open(self) -> bool:
-        """ Return the state of the serial port, whether it’s open or not.
+        """Return the state of the serial port, whether it’s open or not.
 
         :returns: The state of the serial port as :obj:`bool`.
         :rtype: ``bool``
@@ -476,7 +295,7 @@ class HtHeatpump:
 
     @property
     def verify_param_action(self) -> Set[VerifyAction]:
-        """ Property to specify the actions which should be performed during the parameter verification.
+        """Property to specify the actions which should be performed during the parameter verification.
 
         The possible actions for the parameter verification can be found in the enum :class:`~VerifyAction`.
         The default includes just a verification of the parameter name.
@@ -495,7 +314,7 @@ class HtHeatpump:
 
     @property
     def verify_param_error(self) -> bool:
-        """ Property to get or set whether a parameter verification failure should result in an error or not.
+        """Property to get or set whether a parameter verification failure should result in an error or not.
 
         If :const:`True` a failed parameter verification will result in an :exc:`VerificationException` exception.
         If :const:`False` (default) only a warning message will be emitted.
@@ -512,7 +331,7 @@ class HtHeatpump:
         self._verify_param_error = val
 
     def send_request(self, cmd: str) -> None:
-        """ Send a request to the heat pump.
+        """Send a request to the heat pump.
 
         :param cmd: Command to send to the heat pump.
         :type cmd: str
@@ -526,7 +345,7 @@ class HtHeatpump:
         self._ser.write(req)
 
     def read_response(self) -> str:
-        """ Read the response message from the heat pump.
+        """Read the response message from the heat pump.
 
         :returns: The returned response message of the heat pump as :obj:`str`.
         :rtype: ``str``
@@ -639,9 +458,11 @@ class HtHeatpump:
         return m.group(1)
 
     def login(
-        self, update_param_limits: bool = False, max_retries: int = _login_retries
+        self,
+        update_param_limits: bool = False,
+        max_retries: int = DEFAULT_LOGIN_RETRIES,
     ) -> None:
-        """ Log in the heat pump. If :attr:`update_param_limits` is :const:`True` an update of the
+        """Log in the heat pump. If :attr:`update_param_limits` is :const:`True` an update of the
         parameter limits in :class:`~htheatpump.htparams.HtParams` will be performed. This will
         be done by requesting the current value together with their limits (MIN and MAX) for all
         “known” parameters directly after a successful login.
@@ -650,7 +471,7 @@ class HtHeatpump:
             :class:`~htheatpump.htparams.HtParams` should be done or not. Default is :const:`False`.
         :type update_param_limits: bool
         :param max_retries: Maximal number of retries for a successful login. One regular try
-            plus :const:`max_retries` retries. Default is 2.
+            plus :const:`max_retries` retries. Default is :attr:`DEFAULT_LOGIN_RETRIES`.
         :type max_retries: int
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
@@ -686,8 +507,7 @@ class HtHeatpump:
             self.update_param_limits()
 
     def logout(self) -> None:
-        """ Log out from the heat pump session.
-        """
+        """Log out from the heat pump session."""
         try:
             # send LOGOUT request to the heat pump
             self.send_request(LOGOUT_CMD)
@@ -703,7 +523,7 @@ class HtHeatpump:
             # raise  # logout() should not fail!
 
     def get_serial_number(self) -> int:
-        """ Query for the manufacturer's serial number of the heat pump.
+        """Query for the manufacturer's serial number of the heat pump.
 
         :returns: The manufacturer's serial number of the heat pump as :obj:`int` (e.g. :data:`123456`).
         :rtype: ``int``
@@ -727,7 +547,7 @@ class HtHeatpump:
             raise
 
     def get_version(self) -> Tuple[str, int]:
-        """ Query for the software version of the heat pump.
+        """Query for the software version of the heat pump.
 
         :returns: The software version of the heat pump as a tuple with 2 elements.
             The first element inside the returned tuple represents the software
@@ -768,7 +588,7 @@ class HtHeatpump:
             raise
 
     def get_date_time(self) -> Tuple[datetime.datetime, int]:
-        """ Read the current date and time of the heat pump.
+        """Read the current date and time of the heat pump.
 
         :returns: The current date and time of the heat pump as a tuple with 2 elements, where
             the first element is of type :class:`datetime.datetime` which represents the current
@@ -808,7 +628,7 @@ class HtHeatpump:
     def set_date_time(
         self, dt: Optional[datetime.datetime] = None
     ) -> Tuple[datetime.datetime, int]:
-        """ Set the current date and time of the heat pump.
+        """Set the current date and time of the heat pump.
 
         :param dt: The date and time to set. If :const:`None` current date and time
             of the host will be used.
@@ -861,7 +681,7 @@ class HtHeatpump:
             raise
 
     def get_last_fault(self) -> Tuple[int, int, datetime.datetime, str]:
-        """ Query for the last fault message of the heat pump.
+        """Query for the last fault message of the heat pump.
 
         :returns:
             The last fault message of the heat pump as a tuple with 4 elements.
@@ -904,7 +724,7 @@ class HtHeatpump:
             raise
 
     def get_fault_list_size(self) -> int:
-        """ Query for the fault list size of the heat pump.
+        """Query for the fault list size of the heat pump.
 
         :returns: The size of the fault list as :obj:`int`.
         :rtype: ``int``
@@ -928,7 +748,7 @@ class HtHeatpump:
             raise
 
     def get_fault_list(self, *args: int) -> List[Dict[str, object]]:
-        """ Query for the fault list of the heat pump.
+        """Query for the fault list of the heat pump.
 
         :param args: The index number(s) to request from the fault list (optional).
             If not specified all fault list entries are requested.
@@ -1019,9 +839,9 @@ class HtHeatpump:
 
     @staticmethod
     def _extract_param_data(
-            name: str, resp: str
+        name: str, resp: str
     ) -> Tuple[str, HtParamValueType, HtParamValueType, HtParamValueType]:
-        """ Extract the parameter data like parameter name, minimal value, maximal value and the
+        """Extract the parameter data like parameter name, minimal value, maximal value and the
         current value from the parameter access response string.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
@@ -1083,7 +903,7 @@ class HtHeatpump:
     def _get_param(
         self, name: str
     ) -> Tuple[str, HtParamValueType, HtParamValueType, HtParamValueType]:
-        """ Read the data (NAME, MIN, MAX, VAL) of a specific parameter of the heat pump.
+        """Read the data (NAME, MIN, MAX, VAL) of a specific parameter of the heat pump.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
         :type name: str
@@ -1122,7 +942,7 @@ class HtHeatpump:
         resp_max: Optional[HtParamValueType] = None,
         resp_val: Optional[HtParamValueType] = None,
     ) -> Optional[HtParamValueType]:
-        """ Perform a verification of the parameter access response data (NAME, MIN, MAX, VAL). Check whether
+        """Perform a verification of the parameter access response data (NAME, MIN, MAX, VAL). Check whether
         the name, min and max value matches with the parameter definition in :class:`~htheatpump.htparams.HtParams`
         and warn if the current value is beyond the limits.
 
@@ -1201,7 +1021,7 @@ class HtHeatpump:
         return resp_val
 
     def update_param_limits(self) -> List[str]:
-        """ Perform an update of the parameter limits in :class:`~htheatpump.htparams.HtParams` by requesting
+        """Perform an update of the parameter limits in :class:`~htheatpump.htparams.HtParams` by requesting
         the limit values of all "known" parameters directly from the heat pump.
 
         :returns: The list of updated (changed) parameters.
@@ -1229,7 +1049,7 @@ class HtHeatpump:
         return updated_params
 
     def get_param(self, name: str) -> HtParamValueType:
-        """ Query for a specific parameter of the heat pump.
+        """Query for a specific parameter of the heat pump.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
         :type name: str
@@ -1272,7 +1092,7 @@ class HtHeatpump:
     def set_param(
         self, name: str, val: HtParamValueType, ignore_limits: bool = False
     ) -> HtParamValueType:
-        """ Set the value of a specific parameter of the heat pump. If :attr:`ignore_limits` is :const:`False`
+        """Set the value of a specific parameter of the heat pump. If :attr:`ignore_limits` is :const:`False`
         and the passed value is beyond the parameter limits a :exc:`ValueError` will be raised.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
@@ -1338,7 +1158,7 @@ class HtHeatpump:
 
     @property
     def in_error(self) -> bool:
-        """ Query whether the heat pump is malfunctioning.
+        """Query whether the heat pump is malfunctioning.
 
         :returns: :const:`True` if the heat pump is malfunctioning, :const:`False` otherwise.
         :rtype: ``bool``
@@ -1349,7 +1169,7 @@ class HtHeatpump:
         return self.get_param("Stoerung")  # type: ignore
 
     def query(self, *args: str) -> Dict[str, HtParamValueType]:
-        """ Query for the current values of parameters from the heat pump.
+        """Query for the current values of parameters from the heat pump.
 
         :param args: The parameter name(s) to request from the heat pump.
             If not specified all "known" parameters are requested.
@@ -1388,7 +1208,7 @@ class HtHeatpump:
         return values
 
     def fast_query(self, *args: str) -> Dict[str, HtParamValueType]:
-        """ Query for the current values of parameters from the heat pump the fast way.
+        """Query for the current values of parameters from the heat pump the fast way.
 
         .. note::
 
@@ -1495,7 +1315,7 @@ class HtHeatpump:
         return values
 
     def get_time_progs(self) -> List[TimeProgram]:
-        """ Return a list of all available time programs of the heat pump.
+        """Return a list of all available time programs of the heat pump.
 
         :returns: A list of :class:`~htheatpump.httimeprog.TimeProgram` instances.
         :rtype: ``list``
@@ -1542,7 +1362,7 @@ class HtHeatpump:
         return time_progs
 
     def _get_time_prog(self, idx: int) -> TimeProgram:
-        """ Return a specific time program (specified by their index) without their time program entries
+        """Return a specific time program (specified by their index) without their time program entries
         from the heat pump.
 
         :param idx: The time program index.
@@ -1585,7 +1405,7 @@ class HtHeatpump:
             raise
 
     def _get_time_prog_with_entries(self, idx: int) -> TimeProgram:
-        """ Return a specific time program (specified by their index) together with their time program entries
+        """Return a specific time program (specified by their index) together with their time program entries
         from the heat pump.
 
         :param idx: The time program index.
@@ -1650,7 +1470,7 @@ class HtHeatpump:
             raise
 
     def get_time_prog(self, idx: int, with_entries: bool = True) -> TimeProgram:
-        """ Return a specific time program (specified by their index) together with their time program entries
+        """Return a specific time program (specified by their index) together with their time program entries
         (if desired) from the heat pump.
 
         :param idx: The time program index.
@@ -1674,7 +1494,7 @@ class HtHeatpump:
         )
 
     def get_time_prog_entry(self, idx: int, day: int, num: int) -> TimeProgEntry:
-        """ Return a specific time program entry (specified by time program index, day and entry-of-day)
+        """Return a specific time program entry (specified by time program index, day and entry-of-day)
         of the heat pump.
 
         :param idx: The time program index.
@@ -1722,7 +1542,7 @@ class HtHeatpump:
     def set_time_prog_entry(
         self, idx: int, day: int, num: int, entry: TimeProgEntry
     ) -> TimeProgEntry:
-        """ Set a specific time program entry (specified by time program index, day and entry-of-day)
+        """Set a specific time program entry (specified by time program index, day and entry-of-day)
         of the heat pump.
 
         :param idx: The time program index.
@@ -1775,7 +1595,7 @@ class HtHeatpump:
             raise
 
     def set_time_prog(self, time_prog: TimeProgram) -> TimeProgram:
-        """ Set all time program entries of a specific time program. Any non-specified entry
+        """Set all time program entries of a specific time program. Any non-specified entry
         (which is :const:`None`) in the time program will be requested from the heat pump.
         The returned :class:`~htheatpump.httimeprog.TimeProgram` instance includes therefore
         all entries of this time program.

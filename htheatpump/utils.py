@@ -23,7 +23,7 @@ import timeit
 
 
 class Singleton:
-    """ Singleton base class.
+    """Singleton base class.
 
     Example:
 
@@ -47,15 +47,14 @@ class Singleton:
     """
 
     def __new__(cls, *args, **kwargs):
-        """ Create a new instance.
-        """
+        """Create a new instance."""
         if "_inst" not in vars(cls):
             cls._inst = object.__new__(cls)
         return cls._inst
 
 
 class Timer:
-    """ Context manager for execution time measurement.
+    """Context manager for execution time measurement.
 
     Example:
 
@@ -75,7 +74,7 @@ class Timer:
 
     @property
     def elapsed(self):
-        """ Return the elapsed time (in seconds).
+        """Return the elapsed time (in seconds).
 
         :returns: The elapsed time in seconds.
         :rtype: ``float``
