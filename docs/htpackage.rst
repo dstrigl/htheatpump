@@ -19,6 +19,10 @@ htheatpump.htparams
 .. automodule:: htheatpump.htparams
    :members:
 
+htheatpump.protocol
+---------------------
+.. automodule:: htheatpump.protocol
+   :members:
 
 htheatpump.utils
 ---------------------
