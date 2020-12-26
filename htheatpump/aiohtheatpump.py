@@ -127,7 +127,7 @@ class AioHtHeatpump(HtHeatpump):
             print(temp)
             # ...
         finally:
-            await hp.logout()  # try to logout for an ordinary cancellation (if possible)
+            await hp.logout_async()  # try to logout for an ordinary cancellation (if possible)
             hp.close_connection()
     """
 
