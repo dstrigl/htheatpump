@@ -4,6 +4,8 @@ History
 1.2.5 (202?-??-??)
 ------------------
 
+* Python code reformatting using *Black* and *isort*
+* moved protocol related constants and functions to ``protocol.py``
 * dropped support for Python 3.5
 
 1.2.4 (2020-04-20)
