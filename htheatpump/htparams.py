@@ -27,13 +27,12 @@
       - maximal value.
 """
 
-import enum
 import csv
+import enum
 from os import path
-from typing import Union, Dict, Optional, Any, KeysView, ItemsView, ValuesView
+from typing import Any, Dict, ItemsView, KeysView, Optional, Union, ValuesView
 
 from .utils import Singleton
-
 
 # ------------------------------------------------------------------------------------------------------------------- #
 # Constants and type aliases

@@ -18,8 +18,8 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-from htheatpump.protocol import calc_checksum
 
+from htheatpump.protocol import calc_checksum
 
 # header = b"\x02\xfd\xe0\xd0\x00\x00"
 header = b"\x02\xfd\xe0\xd0\x01\x00"

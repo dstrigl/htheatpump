@@ -19,9 +19,11 @@
 
 """ Tests for code in `htheatpump.httimeprog`. """
 
-import pytest
 from typing import Dict
-from htheatpump import TimeProgPeriod, TimeProgEntry, TimeProgram
+
+import pytest
+
+from htheatpump import TimeProgEntry, TimeProgPeriod, TimeProgram
 
 
 class TestTimeProgPeriod:

@@ -19,55 +19,55 @@
 
 """ This module is responsible for the communication with the Heliotherm heat pump. """
 
+import copy
+import datetime
+import enum
+import logging
+import re
+import time
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
+
+import serial
+
 from .htparams import HtParams, HtParamValueType
 from .httimeprog import TimeProgEntry, TimeProgram
 from .protocol import (
-    create_request,
-    RESPONSE_HEADER_LEN,
-    RESPONSE_HEADER,
-    LOGIN_CMD,
-    LOGIN_RESP,
-    LOGOUT_CMD,
-    LOGOUT_RESP,
-    RID_CMD,
-    RID_RESP,
-    VERSION_CMD,
-    VERSION_RESP,
-    CLK_CMD,
-    CLK_RESP,
     ALC_CMD,
     ALC_RESP,
     ALS_CMD,
     ALS_RESP,
     AR_CMD,
-    MAX_CMD_LENGTH,
     AR_RESP,
+    CLK_CMD,
+    CLK_RESP,
+    LOGIN_CMD,
+    LOGIN_RESP,
+    LOGOUT_CMD,
+    LOGOUT_RESP,
+    MAX_CMD_LENGTH,
     MR_CMD,
     MR_RESP,
-    PRL_CMD,
-    PRL_RESP,
-    PRI_CMD,
-    PRI_RESP,
     PRD_CMD,
     PRD_RESP,
     PRE_CMD,
     PRE_RESP,
+    PRI_CMD,
+    PRI_RESP,
+    PRL_CMD,
+    PRL_RESP,
+    RESPONSE_HEADER,
+    RESPONSE_HEADER_LEN,
+    RID_CMD,
+    RID_RESP,
+    VERSION_CMD,
+    VERSION_RESP,
+    create_request,
 )
-from typing import Optional, Union, List, Dict, Set, Tuple, Any
-
-import serial
-import time
-import re
-import datetime
-import enum
-import copy
-
 
 # ------------------------------------------------------------------------------------------------------------------- #
 # Logging
 # ------------------------------------------------------------------------------------------------------------------- #
 
-import logging
 
 _LOGGER = logging.getLogger(__name__)
 

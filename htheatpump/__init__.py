@@ -17,6 +17,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .htparams import HtDataTypes, HtParamValueType, HtParam, HtParams  # noqa
-from .httimeprog import TimeProgPeriod, TimeProgEntry, TimeProgram  # noqa
-from .htheatpump import VerifyAction, VerificationException, HtHeatpump  # noqa
+from .htheatpump import HtHeatpump, VerificationException, VerifyAction  # noqa
+from .htparams import HtDataTypes, HtParam, HtParams, HtParamValueType  # noqa
+from .httimeprog import TimeProgEntry, TimeProgPeriod, TimeProgram  # noqa

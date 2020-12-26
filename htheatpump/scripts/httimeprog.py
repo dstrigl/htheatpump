@@ -31,14 +31,15 @@
        idx=4, name='Mischer 2', ead=7, nos=3, ste=15, nod=7, entries=[]
 """
 
-import sys
 import argparse
-import textwrap
-import json
 import csv
+import json
+import logging
+import sys
+import textwrap
+
 from htheatpump import HtHeatpump
 from htheatpump.utils import Timer
-import logging
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -29,13 +29,14 @@
        Wednesday, 2008-09-03T20:56:35
 """
 
-import sys
 import argparse
-import textwrap
 import datetime
+import logging
+import sys
+import textwrap
+
 from htheatpump import HtHeatpump
 from htheatpump.utils import Timer
-import logging
 
 _LOGGER = logging.getLogger(__name__)
 

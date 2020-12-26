@@ -19,8 +19,9 @@
 
 """ Tests for code in htheatpump.utils. """
 
-from htheatpump.utils import Singleton, Timer
 import time
+
+from htheatpump.utils import Singleton, Timer
 
 
 # A simple Singleton class with one `int` member

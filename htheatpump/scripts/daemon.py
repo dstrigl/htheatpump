@@ -20,12 +20,11 @@
 """ Module to fork the current process into a daemon.
 """
 
-import sys
-import os
-import time
 import atexit
+import os
 import signal
-
+import sys
+import time
 
 # ------------------------------------------------------------------------------------------------------------------- #
 # Daemon class

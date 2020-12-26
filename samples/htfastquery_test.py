@@ -17,12 +17,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
-from htheatpump import HtHeatpump, HtParams
+import logging
 import random
+import sys
 import time
 from timeit import default_timer as timer
-import logging
+
+from htheatpump import HtHeatpump, HtParams
 
 # _LOGGER = logging.getLogger(__name__)
 

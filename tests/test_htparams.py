@@ -19,10 +19,12 @@
 
 """ Tests for code in `htheatpump.htparams`. """
 
-import pytest
 import re
-from htheatpump import HtDataTypes, HtParam, HtParams, HtParamValueType, HtHeatpump
 from typing import Optional
+
+import pytest
+
+from htheatpump import HtDataTypes, HtHeatpump, HtParam, HtParams, HtParamValueType
 
 
 class TestHtDataTypes:

@@ -30,12 +30,13 @@
        < 'AA,30,65534,15.09.14-09:17:12,Keine Stoerung'
 """
 
-import sys
 import argparse
+import logging
+import sys
 import textwrap
+
 from htheatpump import HtHeatpump
 from htheatpump.utils import Timer
-import logging
 
 _LOGGER = logging.getLogger(__name__)
 

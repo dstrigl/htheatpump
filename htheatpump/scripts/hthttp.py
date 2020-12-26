@@ -65,16 +65,18 @@
 """
 
 import argparse
-import textwrap
-import sys
 import json
+import logging
 import re
+import sys
+import textwrap
+from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib import parse as urlparse
-from htheatpump import HtHeatpump, HtDataTypes, HtParams
+
+from htheatpump import HtDataTypes, HtHeatpump, HtParams
+
 from .daemon import Daemon
-from datetime import datetime
-import logging
 
 _LOGGER = logging.getLogger(__name__)
 

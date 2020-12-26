@@ -27,12 +27,13 @@
        21.5
 """
 
-import sys
 import argparse
+import logging
+import sys
 import textwrap
+
 from htheatpump import HtHeatpump, HtParams
 from htheatpump.utils import Timer
-import logging
 
 _LOGGER = logging.getLogger(__name__)
 

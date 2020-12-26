@@ -34,15 +34,16 @@
        write data to: /home/pi/prog/htheatpump/htparams-123456-3_0_20-273.csv
 """
 
-import sys
 import argparse
-import textwrap
-import re
 import csv
-import os
-from htheatpump import HtHeatpump, HtParam, HtDataTypes
-from htheatpump.utils import Timer
 import logging
+import os
+import re
+import sys
+import textwrap
+
+from htheatpump import HtDataTypes, HtHeatpump, HtParam
+from htheatpump.utils import Timer
 
 _LOGGER = logging.getLogger(__name__)
 

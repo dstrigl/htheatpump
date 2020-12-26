@@ -34,13 +34,14 @@
        }
 """
 
-import sys
 import argparse
-import textwrap
 import json
-from htheatpump import HtHeatpump, HtDataTypes, HtParams
-from htheatpump.utils import Timer
 import logging
+import sys
+import textwrap
+
+from htheatpump import HtDataTypes, HtHeatpump, HtParams
+from htheatpump.utils import Timer
 
 _LOGGER = logging.getLogger(__name__)
 

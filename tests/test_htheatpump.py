@@ -19,20 +19,22 @@
 
 """ Tests for code in `htheatpump.htheatpump`. """
 
-import pytest
-import re
 import datetime
 import random
+import re
+from typing import List
+
+import pytest
+
 from htheatpump import (
     HtDataTypes,
+    HtHeatpump,
     HtParam,
     HtParams,
-    HtHeatpump,
-    VerifyAction,
     TimeProgEntry,
     TimeProgram,
+    VerifyAction,
 )
-from typing import List
 
 
 @pytest.mark.parametrize(

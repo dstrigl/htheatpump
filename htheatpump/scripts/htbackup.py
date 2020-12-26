@@ -34,15 +34,16 @@
        ...
 """
 
-import sys
 import argparse
-import textwrap
-import re
-import json
 import csv
+import json
+import logging
+import re
+import sys
+import textwrap
+
 from htheatpump import HtHeatpump
 from htheatpump.utils import Timer
-import logging
 
 _LOGGER = logging.getLogger(__name__)
 

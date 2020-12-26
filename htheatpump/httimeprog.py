@@ -19,12 +19,10 @@
 
 """ Classes representing the time programs of the Heliotherm heat pump. """
 
-from typing import Any, Optional, List, Dict, Tuple, Type, TypeVar
-from itertools import chain
-
-import re
 import copy
-
+import re
+from itertools import chain
+from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar
 
 # ------------------------------------------------------------------------------------------------------------------- #
 # TimeProgPeriod class
