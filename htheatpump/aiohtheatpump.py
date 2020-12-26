@@ -22,16 +22,14 @@
 import asyncio
 import copy
 import datetime
-import enum
 import logging
 import re
-import time
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 import aioserial
 import serial
 
-from .htheatpump import HtHeatpump, VerificationException, VerifyAction
+from .htheatpump import HtHeatpump, VerifyAction
 from .htparams import HtParams, HtParamValueType
 from .httimeprog import TimeProgEntry, TimeProgram
 from .protocol import (
