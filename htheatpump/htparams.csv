@@ -5,7 +5,7 @@ Temp. Aussen verzoegert,MP,1,r-,FLOAT,-20.0,40.0
 Temp. Brauchwasser,MP,2,r-,FLOAT,0.0,70.0
 Temp. Vorlauf,MP,3,r-,FLOAT,0.0,70.0
 Temp. Ruecklauf,MP,4,r-,FLOAT,0.0,70.0
-Temp. Pufferspeicher,MP,5,r-,FLOAT,0.0,70.0
+#Temp. Pufferspeicher,MP,5,r-,FLOAT,0.0,70.0
 Temp. EQ_Eintritt,MP,6,r-,FLOAT,-20.0,30.0
 Temp. EQ_Austritt,MP,7,r-,FLOAT,-20.0,30.0
 Temp. Sauggas,MP,9,r-,FLOAT,-20.0,30.0

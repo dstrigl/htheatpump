@@ -17,6 +17,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from .aiohtheatpump import AioHtHeatpump  # noqa
 from .htheatpump import HtHeatpump, VerificationException, VerifyAction  # noqa
 from .htparams import HtDataTypes, HtParam, HtParams, HtParamValueType  # noqa
 from .httimeprog import TimeProgEntry, TimeProgPeriod, TimeProgram  # noqa
