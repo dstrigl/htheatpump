@@ -91,7 +91,8 @@ class AioHtHeatpump(HtHeatpump):
     :type parity: str
     :param stopbits: The number of stop bits to use.
     :type stopbits: float or int
-    :param timeout: The read timeout value. Default is :attr:`htheatpump.HtHeatpump.DEFAULT_SERIAL_TIMEOUT`.
+    :param timeout: The read timeout value.
+        Default is :attr:`htheatpump.htheatpump.HtHeatpump.DEFAULT_SERIAL_TIMEOUT`.
     :type timeout: None, float or int
     :param xonxoff: Software flow control enabled.
     :type xonxoff: bool
@@ -334,7 +335,7 @@ class AioHtHeatpump(HtHeatpump):
         :type update_param_limits: bool
         :param max_retries: Maximal number of retries for a successful login. One regular try
             plus :const:`max_retries` retries.
-            Default is :attr:`htheatpump.HtHeatpump.DEFAULT_LOGIN_RETRIES`.
+            Default is :attr:`htheatpump.htheatpump.HtHeatpump.DEFAULT_LOGIN_RETRIES`.
         :type max_retries: int
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
