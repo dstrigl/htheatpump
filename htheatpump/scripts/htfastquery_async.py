@@ -35,14 +35,15 @@
        }
 """
 
-import asyncio
-import sys
 import argparse
-import textwrap
+import asyncio
 import json
+import logging
+import sys
+import textwrap
+
 from htheatpump import AioHtHeatpump, HtDataTypes, HtParams
 from htheatpump.utils import Timer
-import logging
 
 _LOGGER = logging.getLogger(__name__)
 

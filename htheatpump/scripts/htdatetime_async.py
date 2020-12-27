@@ -29,14 +29,15 @@
        Wednesday, 2008-09-03T20:56:35
 """
 
-import asyncio
-import sys
 import argparse
-import textwrap
+import asyncio
 import datetime
+import logging
+import sys
+import textwrap
+
 from htheatpump import AioHtHeatpump
 from htheatpump.utils import Timer
-import logging
 
 _LOGGER = logging.getLogger(__name__)
 

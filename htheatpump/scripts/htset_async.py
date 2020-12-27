@@ -27,13 +27,14 @@
        21.5
 """
 
-import asyncio
-import sys
 import argparse
+import asyncio
+import logging
+import sys
 import textwrap
+
 from htheatpump import AioHtHeatpump, HtParams
 from htheatpump.utils import Timer
-import logging
 
 _LOGGER = logging.getLogger(__name__)
 

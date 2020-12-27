@@ -34,16 +34,17 @@
        ...
 """
 
-import asyncio
-import sys
 import argparse
-import textwrap
-import re
-import json
+import asyncio
 import csv
+import json
+import logging
+import re
+import sys
+import textwrap
+
 from htheatpump import AioHtHeatpump
 from htheatpump.utils import Timer
-import logging
 
 _LOGGER = logging.getLogger(__name__)
 
