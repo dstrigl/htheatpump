@@ -109,12 +109,8 @@ class AioHtHeatpump(HtHeatpump):
     :type verify_param_action: None or set
     :param verify_param_error: Interpretation of parameter verification failure as error enabled.
     :type verify_param_error: bool
-    :param loop: TODO
-    :type loop: TODO asyncio.AbstractEventLoop
-    :param cancel_read_timeout: TODO
-    :type cancel_read_timeout: TODO
-    :param cancel_write_timeout: TODO
-    :type cancel_write_timeout: TODO
+    :param loop: The event loop, ``None`` fot the currently running event loop (default).
+    :type loop: None or asyncio.AbstractEventLoop
 
     Example::
 
@@ -337,7 +333,8 @@ class AioHtHeatpump(HtHeatpump):
             :class:`~htheatpump.htparams.HtParams` should be done or not. Default is :const:`False`.
         :type update_param_limits: bool
         :param max_retries: Maximal number of retries for a successful login. One regular try
-            plus :const:`max_retries` retries. Default is :attr:`HtHeatpump.DEFAULT_LOGIN_RETRIES`.
+            plus :const:`max_retries` retries.
+            Default is :attr:`htheatpump.HtHeatpump.DEFAULT_LOGIN_RETRIES`.
         :type max_retries: int
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid

@@ -471,7 +471,8 @@ class HtHeatpump:
             :class:`~htheatpump.htparams.HtParams` should be done or not. Default is :const:`False`.
         :type update_param_limits: bool
         :param max_retries: Maximal number of retries for a successful login. One regular try
-            plus :const:`max_retries` retries. Default is :attr:`DEFAULT_LOGIN_RETRIES`.
+            plus :const:`max_retries` retries.
+            Default is :attr:`DEFAULT_LOGIN_RETRIES`.
         :type max_retries: int
         :raises IOError:
             Will be raised when the serial connection is not open or received an incomplete/invalid
