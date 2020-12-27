@@ -156,7 +156,7 @@ class HtHeatpump:
     :type parity: str
     :param stopbits: The number of stop bits to use.
     :type stopbits: float or int
-    :param timeout: The read timeout value.
+    :param timeout: The read timeout value. Default is :attr:`DEFAULT_SERIAL_TIMEOUT`.
     :type timeout: None, float or int
     :param xonxoff: Software flow control enabled.
     :type xonxoff: bool
