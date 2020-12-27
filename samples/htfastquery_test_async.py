@@ -74,7 +74,7 @@ async def main():
 
     while True:
         print("\n" + "-" * 100)
-        rand_names = random.sample(names, random.randint(0, len(names)))
+        rand_names = random.sample(sorted(names), random.randint(0, len(names)))
         print("{!s}".format(rand_names))
         # fast query for the given parameter(s)
         values = await hp.fast_query_async(*rand_names)

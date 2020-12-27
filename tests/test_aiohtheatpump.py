@@ -540,7 +540,10 @@ class TestAioHtHeatpump:
     @pytest.mark.usefixtures("reconnect")
     @pytest.mark.parametrize(
         "names",
-        [random.sample(HtParams.keys(), cnt) for cnt in range(len(HtParams) + 1)],
+        [
+            random.sample(sorted(HtParams.keys()), cnt)
+            for cnt in range(len(HtParams) + 1)
+        ],
     )
     @pytest.mark.asyncio
     async def test_query_with_names(self, hthp: AioHtHeatpump, names: List[str]):
@@ -577,7 +580,7 @@ class TestAioHtHeatpump:
     @pytest.mark.parametrize(
         "names",
         [
-            random.sample(HtParams.of_type("MP").keys(), cnt)
+            random.sample(sorted(HtParams.of_type("MP").keys()), cnt)
             for cnt in range(len(HtParams.of_type("MP")) + 1)
         ],
     )
@@ -605,7 +608,7 @@ class TestAioHtHeatpump:
     @pytest.mark.parametrize(
         "names",
         [
-            random.sample(HtParams.of_type("SP").keys(), cnt)
+            random.sample(sorted(HtParams.of_type("SP").keys()), cnt)
             for cnt in range(1, len(HtParams.of_type("SP")) + 1)
         ],
     )
