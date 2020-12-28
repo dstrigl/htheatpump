@@ -112,6 +112,22 @@ parameters.
         hp.logout()  # try to logout for an ordinary cancellation (if possible)
         hp.close_connection()
 
+.. code:: python
+
+    from htheatpump import AioHtHeatpump
+
+    hp = AioHtHeatpump("/dev/ttyUSB0", baudrate=9600)
+    try:
+        hp.open_connection()
+        await hp.login_async()
+        # query for the outdoor temperature
+        temp = await hp.get_param_async("Temp. Aussen")
+        print(temp)
+        # ...
+    finally:
+        await hp.logout_async()  # try to logout for an ordinary cancellation (if possible)
+        hp.close_connection()
+
 A full list of supported functions can be found in the ``htheatpump`` documentation at
 `readthedocs.io <https://htheatpump.readthedocs.io/en/latest/?badge=latest>`_.
 
