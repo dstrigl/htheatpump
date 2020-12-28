@@ -4,7 +4,7 @@ History
 1.3.0 (202?-??-??)
 ------------------
 
-* added new class ``AioHtHeatpump`` for asynchronous communication (async/await)
+* added new class ``AioHtHeatpump`` for asynchronous communication (async/await) with the heat pump
 * Python code reformatting using *Black* and *isort*
 * moved protocol related constants and functions to ``protocol.py``
 * dropped support for Python 3.5 and 3.6
