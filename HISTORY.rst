@@ -1,7 +1,7 @@
 History
 =======
 
-1.3.0 (202?-??-??)
+1.3.0 (2020-12-28)
 ------------------
 
 * added new class ``AioHtHeatpump`` for asynchronous communication (async/await) with the heat pump
