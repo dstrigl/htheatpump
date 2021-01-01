@@ -118,17 +118,37 @@ setup(
     # Entry points specification
     entry_points={
         "console_scripts": [
+            #
             "htheatpump=htheatpump.__main__:main",
+            #
             "htbackup=htheatpump.scripts.htbackup:main",
+            "htbackup_async=htheatpump.scripts.htbackup_async:main",
+            #
             "htcomplparams=htheatpump.scripts.htcomplparams:main",
+            "htcomplparams_async=htheatpump.scripts.htcomplparams_async:main",
+            #
             "htdatetime=htheatpump.scripts.htdatetime:main",
+            "htdatetime_async=htheatpump.scripts.htdatetime_async:main",
+            #
             "htfastquery=htheatpump.scripts.htfastquery:main",
+            "htfastquery_async=htheatpump.scripts.htfastquery_async:main",
+            #
             "htfaultlist=htheatpump.scripts.htfaultlist:main",
-            "hthttp=htheatpump.scripts.hthttp:main",
+            "htfaultlist_async=htheatpump.scripts.htfaultlist_async:main",
+            #
             "htquery=htheatpump.scripts.htquery:main",
+            "htquery_async=htheatpump.scripts.htquery_async:main",
+            #
             "htset=htheatpump.scripts.htset:main",
+            "htset_async=htheatpump.scripts.htset_async:main",
+            #
             "htshell=htheatpump.scripts.htshell:main",
+            "htshell_async=htheatpump.scripts.htshell_async:main",
+            #
             "httimeprog=htheatpump.scripts.httimeprog:main",
+            "httimeprog_async=htheatpump.scripts.httimeprog_async:main",
+            #
+            "hthttp=htheatpump.scripts.hthttp:main",
         ],
     },
 )

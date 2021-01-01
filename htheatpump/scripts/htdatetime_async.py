@@ -54,7 +54,7 @@ WEEKDAYS = (
 
 
 # Main program
-async def main():
+async def main_async():
     parser = argparse.ArgumentParser(
         description=textwrap.dedent(
             """\
@@ -186,5 +186,10 @@ async def main():
     sys.exit(0)
 
 
+def main():
+    # run the async main application
+    asyncio.run(main_async())
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
