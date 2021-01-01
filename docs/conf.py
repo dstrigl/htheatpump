@@ -58,7 +58,7 @@ master_doc = "index"
 
 # General information about the project.
 project = u"HtHeatpump"
-copyright = u"2020, Daniel Strigl"
+copyright = u"2021, Daniel Strigl"
 
 # The version info for the project you're documenting, acts as replacement
 # for |version| and |release|, also used in various other places throughout

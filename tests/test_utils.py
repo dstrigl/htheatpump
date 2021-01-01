@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #  htheatpump - Serial communication module for Heliotherm heat pumps
-#  Copyright (C) 2020  Daniel Strigl
+#  Copyright (C) 2021  Daniel Strigl
 
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ from htheatpump.utils import Singleton, Timer
 
 # A simple Singleton class with one `int` member
 class MySingleton(Singleton):
-    val = -1  # type: int
+    val: int = -1
 
     def __init__(self, v: int):
         self.val = v

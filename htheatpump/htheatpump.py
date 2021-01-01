@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #  htheatpump - Serial communication module for Heliotherm heat pumps
-#  Copyright (C) 2020  Daniel Strigl
+#  Copyright (C) 2021  Daniel Strigl
 
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -190,10 +190,10 @@ class HtHeatpump:
             hp.close_connection()
     """
 
-    DEFAULT_SERIAL_TIMEOUT = 5  # type: int
+    DEFAULT_SERIAL_TIMEOUT: int = 5
     """Serial timeout value in seconds; normally no need to change it."""
 
-    DEFAULT_LOGIN_RETRIES = 2  # type: int
+    DEFAULT_LOGIN_RETRIES: int = 2
     """Maximum number of retries for a login attempt; 1 regular try + :const:`DEFAULT_LOGIN_RETRIES` retries."""
 
     def __init__(

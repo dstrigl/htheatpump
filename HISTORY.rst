@@ -1,6 +1,12 @@
 History
 =======
 
+1.3.1 (2021-??-??)
+------------------
+
+* updated copyright statements
+* some minor cleanup and improvements
+
 1.3.0 (2020-12-28)
 ------------------
 

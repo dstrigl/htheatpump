@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #  htheatpump - Serial communication module for Heliotherm heat pumps
-#  Copyright (C) 2020  Daniel Strigl
+#  Copyright (C) 2021  Daniel Strigl
 
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -112,6 +112,10 @@ class AioHtHeatpump(HtHeatpump):
     :type verify_param_error: bool
     :param loop: The event loop, ``None`` for the currently running event loop (default).
     :type loop: None or asyncio.AbstractEventLoop
+    :param cancel_read_timeout: TODO
+    :type cancel_read_timeout: int
+    :param cancel_write_timeout: TODO
+    :type cancel_write_timeout: int
 
     Example::
 
