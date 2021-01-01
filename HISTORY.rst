@@ -4,6 +4,7 @@ History
 1.3.1 (2021-??-??)
 ------------------
 
+* added async version of console scripts
 * updated copyright statements
 * some minor cleanup and improvements
 
