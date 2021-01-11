@@ -10,6 +10,7 @@ Tested with:
   * Heliotherm HP08E-K-BC, SW 3.0.7B
   * Heliotherm HP05S07W-WEB, SW 3.0.17 and SW 3.0.37
   * Heliotherm HP12L-M-BC, SW 3.0.21
+  * Heliotherm HP-30-L-M-WEB, SW 3.0.21
 
 
 SP Data Points
