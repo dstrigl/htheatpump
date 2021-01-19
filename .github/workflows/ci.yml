@@ -1,0 +1,39 @@
+name: CI
+
+on:
+#  push:
+#    branches:
+#      - '**' # run on all branches
+#  pull_request:
+#    branches:
+#      - '**' # run on all branches
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements/install.txt
+        pip install -r requirements/develop.txt
+        pip install -r requirements/test.txt
+        pip install -r requirements/doc.txt
+    - name: Lint with flake8
+      run: |
+        flake8 htheatpump tests samples setup.py
+    - name: Test with pytest
+      run: |
+        pytest htheatpump tests samples
+    - name: Build the doc
+      run: |
+        sphinx-build -b html -d {envtmpdir}/doctrees . {envtmpdir}/html
