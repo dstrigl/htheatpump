@@ -1,12 +1,12 @@
 name: CI
 
 on:
-#  push:
-#    branches:
-#      - '**' # run on all branches
-#  pull_request:
-#    branches:
-#      - '**' # run on all branches
+  push:
+    branches:
+      - '**'  # run on all branches
+  pull_request:
+    branches:
+      - '**'  # run on all branches
   workflow_dispatch:
 
 jobs:
