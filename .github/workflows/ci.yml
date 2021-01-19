@@ -21,6 +21,24 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Cache pip packages
+      uses: actions/cache@v2
+      env:
+        cache-name: cache-pypi-modules
+      with:
+        # pip cache files are stored in `~/.cache/pip` on Linux
+        path: ~/.cache/pip
+        # look to see if there is a cache hit for the corresponding
+        # requirements file
+        key: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ hashFiles('requirements/install.pip',
+                        'requirements/develop.pip',
+                        'requirements/test.pip',
+                        'requirements/doc.pip'
+                        ) }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
