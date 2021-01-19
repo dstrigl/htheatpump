@@ -35,5 +35,6 @@ jobs:
       run: |
         pytest htheatpump tests samples
     - name: Build the doc
+      working-directory: ./docs
       run: |
-        sphinx-build -b html -d {envtmpdir}/doctrees . {envtmpdir}/html
+        sphinx-build -b html . _build
