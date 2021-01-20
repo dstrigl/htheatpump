@@ -1,17 +1,11 @@
-# This workflows will upload a Python Package using Twine when a release is created
+# This workflows will upload a Python Package using Twine when a release is published
 # For more information see: https://help.github.com/en/actions/language-and-framework-guides/using-python-with-github-actions#publishing-to-package-registries
 
 name: Upload Python Package
 
 on:
-# https://github.community/t/what-is-the-created-type-in-on-release/17184
-#  push:
-#    tags:
-#      - 'v*'
-#  release:
-#    types: [published]
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+  release:
+    types: [published]
 
 jobs:
   deploy:

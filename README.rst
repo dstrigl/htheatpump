@@ -13,8 +13,8 @@ HtHeatpump
   :target: https://pypi.org/project/htheatpump
   :alt: License
 
-.. image:: https://img.shields.io/travis/dstrigl/htheatpump/master?logo=travis
-  :target: https://travis-ci.org/dstrigl/htheatpump
+.. image:: https://github.com/dstrigl/htheatpump/workflows/ci/badge.svg
+  :target: https://github.com/dstrigl/htheatpump/actions?query=workflow%3ACI
   :alt: Build status
 
 .. image:: https://readthedocs.org/projects/htheatpump/badge/?version=latest

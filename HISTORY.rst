@@ -4,6 +4,7 @@ History
 1.3.1 (2021-??-??)
 ------------------
 
+* replaced Travis CI by GitHub Actions
 * added async version of console scripts
 * updated copyright statements
 * some minor cleanup and improvements

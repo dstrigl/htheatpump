@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - '**'  # run on all branches
+  # allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
@@ -26,17 +27,12 @@ jobs:
       env:
         cache-name: cache-pypi-modules
       with:
-        # pip cache files are stored in `~/.cache/pip` on Linux
+        # pip cache files are stored in '~/.cache/pip' on Linux
         path: ~/.cache/pip
         # look to see if there is a cache hit for the corresponding
         # requirements file
         key: |
-          ${{ runner.os }}-build-${{ env.cache-name }}-
-          ${{ hashFiles('requirements/install.pip',
-                        'requirements/develop.pip',
-                        'requirements/test.pip',
-                        'requirements/doc.pip'
-                        ) }}
+          ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('requirements/install.pip', 'requirements/develop.pip', 'requirements/test.pip', 'requirements/doc.pip') }}
         restore-keys: |
           ${{ runner.os }}-build-${{ env.cache-name }}-
     - name: Install dependencies
