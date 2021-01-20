@@ -13,7 +13,7 @@ HtHeatpump
   :target: https://pypi.org/project/htheatpump
   :alt: License
 
-.. image:: https://github.com/dstrigl/htheatpump/workflows/ci/badge.svg
+.. image:: https://github.com/dstrigl/htheatpump/workflows/CI/badge.svg
   :target: https://github.com/dstrigl/htheatpump/actions?query=workflow%3ACI
   :alt: Build status
 
