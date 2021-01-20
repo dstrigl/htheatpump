@@ -1,7 +1,7 @@
 History
 =======
 
-1.3.1 (2021-??-??)
+1.3.1 (2021-01-20)
 ------------------
 
 * replaced Travis CI by GitHub Actions
