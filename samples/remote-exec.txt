@@ -1,7 +1,7 @@
 /etc/ser2net.conf (on the remote device, e.g. RPi @ 192.168.11.90)
 ==================================================================
 
-  4001:raw:0:/dev/ttyUSB0:115200 8DATABITS NONE 1STOPBIT XONOFF
+  4001:raw:0:/dev/ttyUSB0:115200 8DATABITS NONE 1STOPBIT XONXOFF LOCAL -RTSCTS
 
 
 socat call (on the local device, e.g. Ubuntu)
