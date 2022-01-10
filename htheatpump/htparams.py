@@ -392,7 +392,6 @@ class HtParam:
 
 
 class HtParamsMeta(type):  # pragma: no cover
-      
     def __init__(cls, *args, **kwargs):
         cls._params = dict()
         cls._csv_file = ""
