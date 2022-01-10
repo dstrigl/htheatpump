@@ -375,6 +375,10 @@ class TestHtParams:
         assert HtParams.dump() is None
         # assert 0
 
+    def test_definition_file(self):
+        assert HtParams.definition_file
+        # assert 0
+
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
     @pytest.mark.parametrize("name, param", HtParams.items())
