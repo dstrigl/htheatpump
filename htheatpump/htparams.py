@@ -30,7 +30,7 @@
 import csv
 import enum
 from os import path
-from typing import Any, Dict, ItemsView, KeysView, Optional, Union, ValuesView
+from typing import Any, Dict, ItemsView, KeysView, Optional, Tuple, Union, ValuesView
 
 from .utils import Singleton
 
@@ -401,32 +401,40 @@ class HtParamsMeta(type):  # pragma: no cover
     def __len__(cls):
         return len(cls._params)
 
+    @property
+    def definition_file(cls) -> str:
+        """Returns the path of the used parameter definition file."""
+        return cls._csv_file
+
 
 # ------------------------------------------------------------------------------------------------------------------- #
 # Parameter dictionary class
 # ------------------------------------------------------------------------------------------------------------------- #
 
 
-def _load_params_from_csv() -> Dict[str, HtParam]:
+def _load_params_from_csv() -> Tuple[Dict[str, HtParam], str]:
     """Helper function to load all supported heat pump parameter definitions from the CSV file.
 
-    :returns: Dictionary of the supported heat pump parameters:
+    :returns: A tuple with a dictionary of the supported heat pump parameters and a string with
+        the path of the used CSV file:
         ::
 
-            { "Parameter name": HtParam(dp_type=..., dp_number=...,
-                                        acl=..., data_type=...,
-                                        min_val=..., max_val=...),
-              # ...
-              }
+            ({ "Parameter name": HtParam(dp_type=..., dp_number=...,
+                                         acl=..., data_type=...,
+                                         min_val=..., max_val=...),
+               # ...
+               },
+             "/home/pi/htheatpump/htheatpump/htparams.csv"
+            )
 
-    :rtype: ``dict``
+    :rtype: ``tuple`` ( dict, str )
     """
     # search for a user defined parameter CSV file in "~/.htheatpump"
     filename = path.expanduser(path.join("~/.htheatpump", CSV_FILE))
     if not path.exists(filename):
         # ... and switch back to the default one if no one was found
         filename = path.join(path.dirname(path.abspath(__file__)), CSV_FILE)
-    print("HTHEATPUMP: load parameter definitions from: {}".format(filename))
+    # print("HTHEATPUMP: load parameter definitions from: {}".format(filename))
     params = {}
     with open(filename) as f:
         reader = csv.reader(f, delimiter=",", skipinitialspace=True)
@@ -468,7 +476,7 @@ def _load_params_from_csv() -> Dict[str, HtParam]:
                     )
                 }
             )
-    return params
+    return params, filename
 
 
 class HtParams(Singleton, metaclass=HtParamsMeta):
@@ -528,7 +536,7 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
             )
 
     # Dictionary of the supported Heliotherm heat pump parameters
-    _params = _load_params_from_csv()  # type: Dict[str, HtParam]
+    _params, _csv_file = _load_params_from_csv()
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
