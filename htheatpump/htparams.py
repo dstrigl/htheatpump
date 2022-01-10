@@ -391,26 +391,6 @@ class HtParam:
             return HtParam._to_str(self, arg)  # type: ignore
 
 
-class HtParamsMeta(type):  # pragma: no cover
-    def __init__(cls, *args, **kwargs):
-        cls._params = dict()
-        cls._csv_file = ""
-
-    def __contains__(cls, item):
-        return item in cls._params
-
-    def __getitem__(cls, key):
-        return cls._params[key]
-
-    def __len__(cls):
-        return len(cls._params)
-
-    @property
-    def definition_file(cls) -> str:
-        """Returns the path of the used parameter definition file."""
-        return cls._csv_file
-
-
 # ------------------------------------------------------------------------------------------------------------------- #
 # Parameter dictionary class
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -483,6 +463,26 @@ def _load_params_from_csv() -> Tuple[Dict[str, HtParam], str]:
     return params, filename
 
 
+class HtParamsMeta(type):  # pragma: no cover
+    def __init__(cls, *args, **kwargs):
+        # Load the supported Heliotherm heat pump parameters
+        cls._params, cls._csv_file = _load_params_from_csv()
+
+    def __contains__(cls, item):
+        return item in cls._params
+
+    def __getitem__(cls, key):
+        return cls._params[key]
+
+    def __len__(cls):
+        return len(cls._params)
+
+    @property
+    def definition_file(cls) -> str:
+        """Returns the path of the used parameter definition file."""
+        return cls._csv_file
+
+
 class HtParams(Singleton, metaclass=HtParamsMeta):
     """Dictionary of the supported Heliotherm heat pump parameters. [*]_
 
@@ -538,9 +538,6 @@ class HtParams(Singleton, metaclass=HtParamsMeta):
                     param.max_val,
                 )
             )
-
-    # Dictionary of the supported Heliotherm heat pump parameters
-    _params, _csv_file = _load_params_from_csv()
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
