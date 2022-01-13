@@ -1,6 +1,14 @@
 History
 =======
 
+1.3.2 (2022-01-13)
+------------------
+
+* updated copyright statements
+* some minor improvements in the tests
+* fix: removed log of loaded definition file path (``HTHEATPUMP: load parameter definitions ...``)
+  to get a clean JSON output in the sample scripts (e.g. ``htquery.py``)
+
 1.3.1 (2021-01-20)
 ------------------
 
