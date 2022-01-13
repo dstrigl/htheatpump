@@ -20,6 +20,7 @@
 """ Tests for code in `htheatpump.htparams`. """
 
 import re
+from os import path
 from typing import Optional
 
 import pytest
@@ -376,7 +377,9 @@ class TestHtParams:
         # assert 0
 
     def test_definition_file(self):
-        assert HtParams.definition_file
+        assert HtParams.definition_file == path.normpath(
+            path.join(path.dirname(path.abspath(__file__)), "../htheatpump/", "htparams.csv")
+        )
         # assert 0
 
     @pytest.mark.run_if_connected
