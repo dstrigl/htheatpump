@@ -32,13 +32,11 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/htheatpump/scripts/htd
 .. code-block:: shell
 
     $ htdatetime --device /dev/ttyUSB1 --baudrate 9600
-    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     Tuesday, 2017-11-21T21:48:04
 
 .. code-block:: shell
 
     $ htdatetime -d /dev/ttyUSB1 -b 9600 "2008-09-03T20:56:35"
-    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     Wednesday, 2008-09-03T20:56:35
 
 
@@ -57,7 +55,6 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/htheatpump/scripts/hts
 .. code-block:: shell
 
     $ htshell --device /dev/ttyUSB1 "AR,28,29,30" -r 3
-    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     > 'AR,28,29,30'
     < 'AA,28,19,14.09.14-02:08:56,EQ_Spreizung'
     < 'AA,29,20,14.09.14-11:52:08,EQ_Spreizung'
@@ -78,14 +75,12 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/htheatpump/scripts/htq
 .. code-block:: shell
 
     $ htquery --device /dev/ttyUSB1 "Temp. Aussen" "Stoerung"
-    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     Stoerung    : False
     Temp. Aussen: 5.0
 
 .. code-block:: shell
 
     $ htquery --json "Temp. Aussen" "Stoerung"
-    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     {
         "Stoerung": false,
         "Temp. Aussen": 3.2
@@ -104,7 +99,6 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/htheatpump/scripts/hts
 .. code-block:: shell
 
     $ htset --device /dev/ttyUSB1 "HKR Soll_Raum" "21.5"
-    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     21.5
 
 
@@ -123,7 +117,6 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/htheatpump/scripts/htf
 .. code-block:: shell
 
     $ htfaultlist --device /dev/ttyUSB1 --baudrate 9600
-    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     #000 [2000-01-01T00:00:00]: 65534, Keine Stoerung
     #001 [2000-01-01T00:00:00]: 65286, Info: Programmupdate 1
     #002 [2000-01-01T00:00:00]: 65285, Info: Initialisiert
@@ -153,7 +146,6 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/htheatpump/scripts/htb
 .. code-block:: shell
 
     $ htbackup --baudrate 9600 --csv backup.csv
-    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     'SP,NR=0' [Language]: VAL='0', MIN='0', MAX='4'
     'SP,NR=1' [TBF_BIT]: VAL='0', MIN='0', MAX='1'
     'SP,NR=2' [Rueckruferlaubnis]: VAL='1', MIN='0', MAX='1'
@@ -199,7 +191,6 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/htheatpump/scripts/hth
 .. code-block:: shell
 
     $ hthttp start --device /dev/ttyUSB1 --ip 192.168.1.80 --port 8080
-    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     hthttp started with PID 1234
 
     $ tail /tmp/hthttp-daemon.log
@@ -233,14 +224,12 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/htheatpump/scripts/htf
 .. code-block:: shell
 
     $ htfastquery --device /dev/ttyUSB1 "Temp. Vorlauf" "Temp. Ruecklauf"
-    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     Temp. Ruecklauf [MP,04]: 25.2
     Temp. Vorlauf   [MP,03]: 25.3
 
 .. code-block:: shell
 
     $ htfastquery --json "Temp. Vorlauf" "Temp. Ruecklauf"
-    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     {
         "Temp. Ruecklauf": 25.2,
         "Temp. Vorlauf": 25.3
@@ -262,7 +251,6 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/htheatpump/scripts/htt
 .. code-block:: shell
 
     $ httimeprog --device /dev/ttyUSB1 --csv timeprog.csv 1 1
-    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     [idx=1]: idx=1, name='Zirkulationspumpe', ead=7, nos=2, ste=15, nod=7, entries=[...]
     [day=1, entry=0]: state=0, time=00:00-06:00
     [day=1, entry=1]: state=1, time=06:00-08:00
@@ -293,7 +281,6 @@ Source: https://github.com/dstrigl/htheatpump/blob/master/htheatpump/scripts/htc
 .. code-block:: shell
 
     $ htcomplparams --device /dev/ttyUSB1 --baudrate 9600 --csv
-    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     connected successfully to heat pump with serial number 123456
     software version = 3.0.20 (273)
     'SP,NR=0' [Language]: VAL=0, MIN=0, MAX=4 (dtype=INT)

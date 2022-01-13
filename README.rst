@@ -138,7 +138,6 @@ can be run immediately after installation, e.g.:
 .. code-block:: shell
 
     $ htquery --device /dev/ttyUSB1 "Temp. Aussen" "Stoerung"
-    HTHEATPUMP: load parameter definitions from: /home/pi/prog/htheatpump/htheatpump/htparams.csv
     Stoerung    : False
     Temp. Aussen: 5.0
 
