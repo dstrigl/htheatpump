@@ -2,6 +2,6 @@ mypy==0.931
 coverage==6.3
 pytest==6.2.5
 pytest-asyncio==0.17.2
-pytest-mypy==0.8.1
+pytest-mypy==0.9.0
 pytest-cov==3.0.0
 pytest-sugar==0.9.4
