@@ -916,6 +916,42 @@ class AioHtHeatpump(HtHeatpump):
                 _LOGGER.error("set parameter '%s' failed: %s", name, e)
                 raise
 
+    async def overwrite_param_async(
+        self, name: str, val: Optional[HtParamValueType], ignore_limits: bool = False
+    ) -> HtParamValueType:
+        """TODO doc
+        """
+        async with self._lock:
+            # find the corresponding definition for the parameter
+            if name not in HtParams:
+                raise KeyError(
+                    "parameter definition for parameter {!r} not found".format(name)
+                )
+            param = HtParams[name]  # type: ignore
+            # check the passed value against the defined limits (if desired)
+            if not ignore_limits and not param.in_limits(val):
+                raise ValueError(
+                    "value {!r} is beyond the limits [{}, {}]".format(
+                        val, param.min_val, param.max_val
+                    )
+                )
+            # send command to the heat pump
+            if val is None:
+                await self.send_request_async("{},ORF=0".format(param.cmd()))
+            else:
+                val = param.to_str(val)
+                await self.send_request_async("{},ORV={},ORF=1".format(param.cmd(), val))
+            # ... and wait for the response
+            try:
+                resp = await self.read_response_async()
+                data = self._extract_param_data(name, resp)
+                ret = self._verify_param_resp(name, *data)
+                _LOGGER.debug("'%s' = %s", name, ret)
+                return ret  # type: ignore
+            except Exception as e:
+                _LOGGER.error("overwrite parameter '%s' failed: %s", name, e)
+                raise
+
     @property
     async def in_error_async(self) -> bool:
         """Query whether the heat pump is malfunctioning.
