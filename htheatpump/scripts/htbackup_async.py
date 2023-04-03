@@ -24,13 +24,13 @@
     .. code-block:: shell
 
        $ python3 htbackup_async.py --baudrate 9600 --csv backup.csv
-       'SP,NR=0' [Language]: VAL='0', MIN='0', MAX='4'
-       'SP,NR=1' [TBF_BIT]: VAL='0', MIN='0', MAX='1'
-       'SP,NR=2' [Rueckruferlaubnis]: VAL='1', MIN='0', MAX='1'
+       'SP,NR=0' [Language]: VAL='0', MIN='0', MAX='4', ORV='', ORF=''
+       'SP,NR=1' [TBF_BIT]: VAL='0', MIN='0', MAX='1', ORV='', ORF=''
+       'SP,NR=2' [Rueckruferlaubnis]: VAL='1', MIN='0', MAX='1', ORV='', ORF=''
        ...
-       'MP,NR=0' [Temp. Aussen]: VAL='-7.0', MIN='-20.0', MAX='40.0'
-       'MP,NR=1' [Temp. Aussen verzoegert]: VAL='-6.9', MIN='-20.0', MAX='40.0'
-       'MP,NR=2' [Temp. Brauchwasser]: VAL='45.7', MIN='0.0', MAX='70.0'
+       'MP,NR=0' [Temp. Aussen]: VAL='3.5', MIN='-20.0', MAX='40.0', ORV='0.0', ORF='0'
+       'MP,NR=1' [Temp. Aussen verzoegert]: VAL='3.8', MIN='-20.0', MAX='40.0', ORV='0.0', ORF='0'
+       'MP,NR=2' [Temp. Brauchwasser]: VAL='46.1', MIN='0.0', MAX='70.0', ORV='0.0', ORF='0'
        ...
 """
 
@@ -102,17 +102,11 @@ async def main_async():
         help="baudrate of the serial connection (same as configured on the heat pump), default: %(default)s",
     )
 
-    parser.add_argument(
-        "-j", "--json", type=str, help="write the result to the specified JSON file"
-    )
+    parser.add_argument("-j", "--json", type=str, help="write the result to the specified JSON file")
 
-    parser.add_argument(
-        "-c", "--csv", type=str, help="write the result to the specified CSV file"
-    )
+    parser.add_argument("-c", "--csv", type=str, help="write the result to the specified CSV file")
 
-    parser.add_argument(
-        "-t", "--time", action="store_true", help="measure the execution time"
-    )
+    parser.add_argument("-t", "--time", action="store_true", help="measure the execution time")
 
     parser.add_argument(
         "-v",
@@ -169,28 +163,35 @@ async def main_async():
                         # ... and wait for the response
                         try:
                             resp = await hp.read_response_async()
-                            # search for pattern "NAME=...", "VAL=...", "MAX=..." and "MIN=..." inside the answer
+                            # search for pattern "NAME=...", "VAL=...", "MAX=...", "MIN=...",
+                            #   "ORV=..." and "ORF=..." inside the answer
                             m = re.match(
-                                r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(
-                                    data_point
-                                ),
+                                r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+)"
+                                r".*ORV=([^,]+).*ORF=([^,]+).*$".format(data_point),
                                 resp,
                             )
-                            if not m:
-                                raise IOError(
-                                    "invalid response for query of data point {!r} [{}]".format(
-                                        data_point, resp
-                                    )
+                            if m:
+                                # extract name, value, min, max, orv and orf
+                                name, value, min_val, max_val, orv, orf = (
+                                    g.strip() for g in m.group(1, 2, 4, 3, 5, 6)
                                 )
-                            # extract name, value, min and max
-                            name, value, min_val, max_val = (
-                                g.strip() for g in m.group(1, 2, 4, 3)
-                            )
+                            else:
+                                m = re.match(
+                                    r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(data_point),
+                                    resp,
+                                )
+                                if not m:
+                                    raise IOError(
+                                        "invalid response for query of data point {!r} [{}]".format(data_point, resp)
+                                    )
+                                # extract name, value, min and max
+                                name, value, min_val, max_val = (g.strip() for g in m.group(1, 2, 4, 3))
+                                orv = orf = ""
                             if args.without_values:
-                                value = ""  # keep it blank (if desired)
+                                value = orv = ""  # keep it blank (if desired)
                             print(
-                                "{!r} [{}]: VAL={!r}, MIN={!r}, MAX={!r}".format(
-                                    data_point, name, value, min_val, max_val
+                                "{!r} [{}]: VAL={!r}, MIN={!r}, MAX={!r}, ORV={!r}, ORF={!r}".format(
+                                    data_point, name, value, min_val, max_val, orv, orf
                                 )
                             )
                             # store the determined data in the result dict
@@ -201,6 +202,8 @@ async def main_async():
                                         "value": value,
                                         "min": min_val,
                                         "max": max_val,
+                                        "orv": orv,
+                                        "orf": orf,
                                     }
                                 }
                             )
@@ -217,9 +220,7 @@ async def main_async():
                             # try a reconnect, maybe this will help
                             hp.reconnect()  # perform a reconnect
                             try:
-                                await hp.login_async(
-                                    max_retries=0
-                                )  # ... and a new login
+                                await hp.login_async(max_retries=0)  # ... and a new login
                             except Exception:
                                 pass  # ignore a potential problem
                     if not success:
@@ -239,7 +240,7 @@ async def main_async():
 
         if args.csv:  # write result to CSV file
             with open(args.csv, "w") as csvfile:
-                fieldnames = ["type", "number", "name", "value", "min", "max"]
+                fieldnames = ["type", "number", "name", "value", "min", "max", "orv", "orf"]
                 writer = csv.DictWriter(csvfile, delimiter=",", fieldnames=fieldnames)
                 writer.writeheader()
                 for dp_type, content in sorted(result.items(), reverse=True):
