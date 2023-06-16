@@ -30,7 +30,7 @@
 import csv
 import enum
 from os import path
-from typing import Any, Dict, ItemsView, KeysView, Optional, Tuple, Union, ValuesView
+from typing import Dict, ItemsView, KeysView, Optional, Tuple, Union, ValuesView
 
 from .utils import Singleton
 

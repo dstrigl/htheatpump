@@ -25,7 +25,7 @@ import enum
 import logging
 import re
 import time
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 import serial
 

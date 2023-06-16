@@ -24,7 +24,7 @@ import copy
 import datetime
 import logging
 import re
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 import aioserial
 import serial
