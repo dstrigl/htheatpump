@@ -63,10 +63,12 @@ Ready to contribute? Here's how to set up ``htheatpump`` for local development.
 
     $ git clone git@github.com:your_name_here/htheatpump.git
 
-3. Install your local copy into a virtualenv [1]_. Assuming you have ``virtualenvwrapper`` installed,
-   this is how you set up your fork for local development under Python 3.7::
+3. Install your local copy into a virtualenv [1]_. Assuming you have installed the
+   Python's ``venv`` module, this is how you set up your fork for local development
+   under Python 3.8::
 
-    $ mkvirtualenv hthp-py37 -p python3.7
+    $ python3.8 -m venv hthp-py38
+    $ source hthp-py38/bin/activate
     $ cd htheatpump/
     $ python setup.py develop
 
@@ -120,9 +122,7 @@ Before you submit a pull request, check that it meets these guidelines:
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
-3. The pull request should work for Python 3.7 and 3.8. Check
-   https://travis-ci.org/dstrigl/htheatpump/pull_requests
-   and make sure that the tests pass for all supported Python versions.
+3. The pull request should work for Python 3.8, 3.9 and 3.10.
 
 Tips
 ----
