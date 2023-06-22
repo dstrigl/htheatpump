@@ -39,14 +39,14 @@ import logging
 import sys
 import textwrap
 
-from htheatpump import AioHtHeatpump
+from htheatpump.aiohtheatpump import AioHtHeatpump
 from htheatpump.utils import Timer
 
 _LOGGER = logging.getLogger(__name__)
 
 
 # Main program
-async def main_async():
+async def main_async() -> None:
     parser = argparse.ArgumentParser(
         description=textwrap.dedent(
             """\
@@ -99,9 +99,7 @@ async def main_async():
         help="baudrate of the serial connection (same as configured on the heat pump), default: %(default)s",
     )
 
-    parser.add_argument(
-        "-t", "--time", action="store_true", help="measure the execution time"
-    )
+    parser.add_argument("-t", "--time", action="store_true", help="measure the execution time")
 
     parser.add_argument(
         "-v",
@@ -161,9 +159,7 @@ async def main_async():
 
         rid = await hp.get_serial_number_async()
         if args.verbose:
-            _LOGGER.info(
-                "connected successfully to heat pump with serial number %d", rid
-            )
+            _LOGGER.info("connected successfully to heat pump with serial number %d", rid)
         ver = await hp.get_version_async()
         if args.verbose:
             _LOGGER.info("software version = %s (%d)", *ver)
@@ -171,34 +167,20 @@ async def main_async():
         if args.index is not None and args.day is not None and args.entry is not None:
             # query for a specific time program entry of the heat pump
             with Timer() as timer:
-                time_prog_entry = await hp.get_time_prog_entry_async(
-                    args.index, args.day, args.entry
-                )
+                time_prog_entry = await hp.get_time_prog_entry_async(args.index, args.day, args.entry)
             exec_time = timer.elapsed
-            print(
-                "[idx={:d}, day={:d}, entry={:d}]: {!s}".format(
-                    args.index, args.day, args.entry, time_prog_entry
-                )
-            )
+            print("[idx={:d}, day={:d}, entry={:d}]: {!s}".format(args.index, args.day, args.entry, time_prog_entry))
 
             # write time program entry to JSON file
             if args.json:
                 with open(args.json, "w") as jsonfile:
-                    json.dump(
-                        time_prog_entry.as_json(), jsonfile, indent=4, sort_keys=True
-                    )
+                    json.dump(time_prog_entry.as_json(), jsonfile, indent=4, sort_keys=True)
             # write time program entry to CSV file
             if args.csv:
                 with open(args.csv, "w") as csvfile:
-                    csvfile.write(
-                        "# idx={:d}, day={:d}, entry={:d}".format(
-                            args.index, args.day, args.entry
-                        )
-                    )
+                    csvfile.write("# idx={:d}, day={:d}, entry={:d}".format(args.index, args.day, args.entry))
                     fieldnames = ["state", "start", "end"]
-                    writer = csv.DictWriter(
-                        csvfile, delimiter=",", fieldnames=fieldnames
-                    )
+                    writer = csv.DictWriter(csvfile, delimiter=",", fieldnames=fieldnames)
                     writer.writeheader()
                     writer.writerow(time_prog_entry.as_json())
 
@@ -210,17 +192,13 @@ async def main_async():
             print("[idx={:d}]: {!s}".format(args.index, time_prog))
             day_entries = time_prog.entries_of_day(args.day)
             for num in range(len(day_entries)):
-                print(
-                    "[day={:d}, entry={:d}]: {!s}".format(
-                        args.day, num, day_entries[num]
-                    )
-                )
+                print("[day={:d}, entry={:d}]: {!s}".format(args.day, num, day_entries[num]))
 
             # write time program entries of the specified day to JSON file
             if args.json:
                 with open(args.json, "w") as jsonfile:
                     json.dump(
-                        [entry.as_json() for entry in day_entries],
+                        [entry.as_json() for entry in day_entries if entry is not None],
                         jsonfile,
                         indent=4,
                         sort_keys=True,
@@ -230,13 +208,13 @@ async def main_async():
                 with open(args.csv, "w") as csvfile:
                     csvfile.write("# {!s}\n".format(time_prog))
                     fieldnames = ["day", "entry", "state", "start", "end"]
-                    writer = csv.DictWriter(
-                        csvfile, delimiter=",", fieldnames=fieldnames
-                    )
+                    writer = csv.DictWriter(csvfile, delimiter=",", fieldnames=fieldnames)
                     writer.writeheader()
                     for num in range(len(day_entries)):
                         row = {"day": args.day, "entry": num}
-                        row.update(day_entries[num].as_json())
+                        day_entry = day_entries[num]
+                        assert day_entry is not None
+                        row.update(day_entry.as_json())
                         writer.writerow(row)
 
         elif args.index is not None:
@@ -245,10 +223,8 @@ async def main_async():
                 time_prog = await hp.get_time_prog_async(args.index, with_entries=True)
             exec_time = timer.elapsed
             print("[idx={:d}]: {!s}".format(args.index, time_prog))
-            for (day, num) in [
-                (day, num)
-                for day in range(time_prog.number_of_days)
-                for num in range(time_prog.entries_a_day)
+            for day, num in [
+                (day, num) for day in range(time_prog.number_of_days) for num in range(time_prog.entries_a_day)
             ]:
                 entry = time_prog.entry(day, num)
                 print("[day={:d}, entry={:d}]: {!s}".format(day, num, entry))
@@ -262,17 +238,15 @@ async def main_async():
                 with open(args.csv, "w") as csvfile:
                     csvfile.write("# {!s}\n".format(time_prog))
                     fieldnames = ["day", "entry", "state", "start", "end"]
-                    writer = csv.DictWriter(
-                        csvfile, delimiter=",", fieldnames=fieldnames
-                    )
+                    writer = csv.DictWriter(csvfile, delimiter=",", fieldnames=fieldnames)
                     writer.writeheader()
-                    for (day, num) in [
-                        (day, num)
-                        for day in range(time_prog.number_of_days)
-                        for num in range(time_prog.entries_a_day)
+                    for day, num in [
+                        (day, num) for day in range(time_prog.number_of_days) for num in range(time_prog.entries_a_day)
                     ]:
                         row = {"day": day, "entry": num}
-                        row.update(time_prog.entry(day, num).as_json())
+                        entry = time_prog.entry(day, num)
+                        assert entry is not None
+                        row.update(entry.as_json())
                         writer.writerow(row)
 
         else:
@@ -312,7 +286,7 @@ async def main_async():
     sys.exit(0)
 
 
-def main():
+def main() -> None:
     # run the async main application
     asyncio.run(main_async())
 

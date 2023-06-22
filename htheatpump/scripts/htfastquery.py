@@ -41,14 +41,15 @@ import logging
 import sys
 import textwrap
 
-from htheatpump import HtDataTypes, HtHeatpump, HtParams
+from htheatpump.htheatpump import HtHeatpump
+from htheatpump.htparams import HtDataTypes, HtParams
 from htheatpump.utils import Timer
 
 _LOGGER = logging.getLogger(__name__)
 
 
 # Main program
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description=textwrap.dedent(
             """\
@@ -99,9 +100,7 @@ def main():
         help="baudrate of the serial connection (same as configured on the heat pump), default: %(default)s",
     )
 
-    parser.add_argument(
-        "-j", "--json", action="store_true", help="output will be in JSON format"
-    )
+    parser.add_argument("-j", "--json", action="store_true", help="output will be in JSON format")
 
     parser.add_argument(
         "--bool-as-int",
@@ -109,9 +108,7 @@ def main():
         help="boolean values will be stored as '0' and '1'",
     )
 
-    parser.add_argument(
-        "-t", "--time", action="store_true", help="measure the execution time"
-    )
+    parser.add_argument("-t", "--time", action="store_true", help="measure the execution time")
 
     parser.add_argument(
         "-v",
@@ -144,9 +141,7 @@ def main():
 
         rid = hp.get_serial_number()
         if args.verbose:
-            _LOGGER.info(
-                "connected successfully to heat pump with serial number %d", rid
-            )
+            _LOGGER.info("connected successfully to heat pump with serial number %d", rid)
         ver = hp.get_version()
         if args.verbose:
             _LOGGER.info("software version = %s (%d)", *ver)

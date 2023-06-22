@@ -15,8 +15,11 @@
 
 import os
 import sys
+from typing import Dict
 
 import sphinx_rtd_theme
+
+from htheatpump.__version__ import __version__
 
 # If extensions (or modules to document with autodoc) are in another
 # directory, add these directories to sys.path here. If the directory is
@@ -33,7 +36,6 @@ project_root = os.path.dirname(cwd)
 # version is used.
 sys.path.insert(0, project_root)
 
-from htheatpump.__version__ import __version__
 
 # -- General configuration ---------------------------------------------
 
@@ -57,8 +59,8 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"HtHeatpump"
-copyright = u"2022, Daniel Strigl"
+project = "HtHeatpump"
+copyright = "2022, Daniel Strigl"
 
 # The version info for the project you're documenting, acts as replacement
 # for |version| and |release|, also used in various other places throughout
@@ -197,14 +199,14 @@ htmlhelp_basename = "htheatpumpdoc"
 
 # -- Options for LaTeX output ------------------------------------------
 
-latex_elements = {
+latex_elements: Dict[str, str] = {
     # The paper size ('letterpaper' or 'a4paper').
-    #'papersize': 'letterpaper',
+    # 'papersize': 'letterpaper',
     # The font size ('10pt', '11pt' or '12pt').
-    #'pointsize': '10pt',
+    # 'pointsize': '10pt',
     # Additional stuff for the LaTeX preamble.
-    #'preamble': '',
-}  # type: dict
+    # 'preamble': '',
+}
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass
@@ -213,8 +215,8 @@ latex_documents = [
     (
         "index",
         "htheatpump.tex",
-        u"HtHeatpump Documentation",
-        u"Daniel Strigl",
+        "HtHeatpump Documentation",
+        "Daniel Strigl",
         "manual",
     ),
 ]
@@ -244,9 +246,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    ("index", "htheatpump", u"HtHeatpump Documentation", [u"Daniel Strigl"], 1)
-]
+man_pages = [("index", "htheatpump", "HtHeatpump Documentation", ["Daniel Strigl"], 1)]
 
 # If true, show URL addresses after external links.
 # man_show_urls = False
@@ -261,8 +261,8 @@ texinfo_documents = [
     (
         "index",
         "htheatpump",
-        u"HtHeatpump Documentation",
-        u"Daniel Strigl",
+        "HtHeatpump Documentation",
+        "Daniel Strigl",
         "htheatpump",
         "Easy-to-use Python communication module for Heliotherm heat pumps.",
         "Miscellaneous",

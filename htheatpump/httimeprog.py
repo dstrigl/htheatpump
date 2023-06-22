@@ -24,6 +24,8 @@ import re
 from itertools import chain
 from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar
 
+from typing_extensions import Final
+
 # ------------------------------------------------------------------------------------------------------------------- #
 # TimeProgPeriod class
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -46,13 +48,11 @@ class TimeProgPeriod:
         Will be raised for any invalid argument.
     """
 
-    TIME_PATTERN = r"^(\d?\d):(\d?\d)$"  # e.g. '23:45' or '2:5'
-    HOURS_RANGE = range(0, 25)  # 0..24
-    MINUTES_RANGE = range(0, 60)  # 0..59
+    TIME_PATTERN: Final = r"^(\d?\d):(\d?\d)$"  # e.g. '23:45' or '2:5'
+    HOURS_RANGE: Final = range(0, 25)  # 0..24
+    MINUTES_RANGE: Final = range(0, 60)  # 0..59
 
-    def __init__(
-        self, start_hour: int, start_minute: int, end_hour: int, end_minute: int
-    ) -> None:
+    def __init__(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
         # verify the passed time values
         self._verify(start_hour, start_minute, end_hour, end_minute)
         # ... and store it
@@ -95,9 +95,7 @@ class TimeProgPeriod:
             )
 
     @classmethod
-    def from_str(
-        cls: Type[TimeProgPeriodT], start_str: str, end_str: str
-    ) -> TimeProgPeriodT:
+    def from_str(cls: Type[TimeProgPeriodT], start_str: str, end_str: str) -> TimeProgPeriodT:
         """Create a :class:`~TimeProgPeriod` instance from string representations of the start- and end-time.
 
         :param start_str: The start-time of the time program entry as :obj:`str`.
@@ -111,26 +109,16 @@ class TimeProgPeriod:
         """
         m_start = re.match(cls.TIME_PATTERN, start_str)
         if not m_start:
-            raise ValueError(
-                "the provided 'start_str' does not represent a valid time value [{!r}]".format(
-                    start_str
-                )
-            )
+            raise ValueError("the provided 'start_str' does not represent a valid time value [{!r}]".format(start_str))
         m_end = re.match(cls.TIME_PATTERN, end_str)
         if not m_end:
-            raise ValueError(
-                "the provided 'end_str' does not represent a valid time value [{!r}]".format(
-                    end_str
-                )
-            )
+            raise ValueError("the provided 'end_str' does not represent a valid time value [{!r}]".format(end_str))
         start_hour, start_minute = [int(v) for v in m_start.group(1, 2)]
         end_hour, end_minute = [int(v) for v in m_end.group(1, 2)]
         return cls(start_hour, start_minute, end_hour, end_minute)
 
     @classmethod
-    def from_json(
-        cls: Type[TimeProgPeriodT], json_dict: Dict[str, str]
-    ) -> TimeProgPeriodT:
+    def from_json(cls: Type[TimeProgPeriodT], json_dict: Dict[str, str]) -> TimeProgPeriodT:
         """Create a :class:`~TimeProgPeriod` instance from a JSON representation.
 
         :param json_dict: The JSON representation of the time program period as :obj:`dict`.
@@ -141,9 +129,7 @@ class TimeProgPeriod:
         """
         return cls.from_str(json_dict["start"], json_dict["end"])
 
-    def set(
-        self, start_hour: int, start_minute: int, end_hour: int, end_minute: int
-    ) -> None:
+    def set(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
         """Set the start- and end-time of this time program period.
 
         :param start_hour: The hour value of the start-time.
@@ -173,7 +159,7 @@ class TimeProgPeriod:
             self._start_hour, self.start_minute, self.end_hour, self._end_minute
         )
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         """Implement the equal operator.
 
         :param other: Another instance of :class:`~TimeProgPeriod` to check against.
@@ -192,7 +178,7 @@ class TimeProgPeriod:
             and self._end_minute == other.end_minute
         )
 
-    def as_dict(self) -> Dict[str, object]:
+    def as_dict(self) -> Dict[str, Tuple[int, int]]:
         """Create a dict representation of this time program period.
 
         :returns: A dict representing this time program period.
@@ -203,7 +189,7 @@ class TimeProgPeriod:
             "end": (self._end_hour, self._end_minute),
         }
 
-    def as_json(self) -> Dict[str, object]:
+    def as_json(self) -> Dict[str, str]:
         """Create a json-readable dict representation of this time program period.
 
         :returns: A json-readable dict representing this time program period.
@@ -326,9 +312,7 @@ class TimeProgEntry:
         self._period = copy.deepcopy(period)
 
     @classmethod
-    def from_str(
-        cls: Type[TimeProgEntryT], state: str, start_str: str, end_str: str
-    ) -> TimeProgEntryT:
+    def from_str(cls: Type[TimeProgEntryT], state: str, start_str: str, end_str: str) -> TimeProgEntryT:
         """Create a :class:`~TimeProgEntry` instance from string representations of the state, start- and end-time.
 
         :param state: The state of the time program entry as :obj:`str`.
@@ -343,9 +327,7 @@ class TimeProgEntry:
         return cls(int(state), TimeProgPeriod.from_str(start_str, end_str))
 
     @classmethod
-    def from_json(
-        cls: Type[TimeProgEntryT], json_dict: Dict[str, Any]
-    ) -> TimeProgEntryT:
+    def from_json(cls: Type[TimeProgEntryT], json_dict: Dict[str, Any]) -> TimeProgEntryT:
         """Create a :class:`~TimeProgEntry` instance from a JSON representation.
 
         :param json_dict: The JSON representation of the time program entry as :obj:`dict`.
@@ -378,7 +360,7 @@ class TimeProgEntry:
         """
         return "state={:d}, time={!s}".format(self._state, self._period)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         """Implement the equal operator.
 
         :param other: Another instance of :class:`~TimeProgEntry` to check against.
@@ -392,23 +374,23 @@ class TimeProgEntry:
             raise TypeError()
         return self._state == other.state and self._period == other.period
 
-    def as_dict(self) -> Dict[str, object]:
+    def as_dict(self) -> Dict[str, Any]:
         """Create a dict representation of this time program entry.
 
         :returns: A dict representing this time program entry.
         :rtype: ``dict``
         """
-        ret = {"state": self._state}  # type: Dict[str, object]
+        ret: Dict[str, Any] = {"state": self._state}
         ret.update(self._period.as_dict())
         return ret
 
-    def as_json(self) -> Dict[str, object]:
+    def as_json(self) -> Dict[str, Any]:
         """Create a json-readable dict representation of this time program entry.
 
         :returns: A json-readable dict representing this time program entry.
         :rtype: ``dict``
         """
-        ret = {"state": self._state}  # type: Dict[str, object]
+        ret: Dict[str, Any] = {"state": self._state}
         ret.update(self._period.as_json())
         return ret
 
@@ -465,19 +447,16 @@ class TimeProgram:
     :type nod: int
     """
 
-    def __init__(
-        self, idx: int, name: str, ead: int, nos: int, ste: int, nod: int
-    ) -> None:
+    def __init__(self, idx: int, name: str, ead: int, nos: int, ste: int, nod: int) -> None:
         self._index = idx
         self._name = name
         self._entries_a_day = ead
         self._number_of_states = nos
         self._step_size = ste
         self._number_of_days = nod
-        self._entries = [
-            [None for _ in range(self._entries_a_day)]
-            for _ in range(self._number_of_days)
-        ]  # type: List[List[Optional[TimeProgEntry]]]
+        self._entries: List[List[Optional[TimeProgEntry]]] = [
+            [None for _ in range(self._entries_a_day)] for _ in range(self._number_of_days)
+        ]
         # TODO verify args?!
 
     def _verify_entry(self, entry: TimeProgEntry) -> None:
@@ -510,23 +489,19 @@ class TimeProgram:
         :raises ValueError:
             Will be raised for any invalid argument.
         """
-        idx = int(json_dict["index"])  # type: int
-        name = json_dict["name"]  # type: str
-        ead = int(json_dict["ead"])  # type: int
-        nos = int(json_dict["nos"])  # type: int
-        ste = int(json_dict["ste"])  # type: int
-        nod = int(json_dict["nod"])  # type: int
+        idx = int(json_dict["index"])
+        name = str(json_dict["name"])
+        ead = int(json_dict["ead"])
+        nos = int(json_dict["nos"])
+        ste = int(json_dict["ste"])
+        nod = int(json_dict["nod"])
         time_prog = cls(idx, name, ead, nos, ste, nod)
-        entries = json_dict.get(
-            "entries"
-        )  # type: Optional[List[List[Optional[Dict[str, Any]]]]]
+        entries = json_dict.get("entries")
         if entries is not None:
             for day_num, day_entries in enumerate(entries):
                 for entry_num, entry in enumerate(day_entries):
                     if entry is not None:
-                        time_prog.set_entry(
-                            day_num, entry_num, TimeProgEntry.from_json(entry)
-                        )
+                        time_prog.set_entry(day_num, entry_num, TimeProgEntry.from_json(entry))
         return time_prog
 
     def __str__(self) -> str:
@@ -535,12 +510,7 @@ class TimeProgram:
         :returns: A string representation of this time program.
         :rtype: ``str``
         """
-        any_entries = (
-            sum(
-                [1 for entry in chain.from_iterable(self._entries) if entry is not None]
-            )
-            > 0
-        )
+        any_entries = sum([1 for entry in chain.from_iterable(self._entries) if entry is not None]) > 0
         return "idx={:d}, name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}, entries=[{}]".format(
             self._index,
             self._name,
@@ -551,7 +521,7 @@ class TimeProgram:
             "..." if any_entries else "",
         )
 
-    def as_dict(self, with_entries: bool = True) -> Dict[str, object]:
+    def as_dict(self, with_entries: bool = True) -> Dict[str, Any]:
         """Create a dict representation of this time program.
 
         :param with_entries: Determines whether the single time program entries should be included or not.
@@ -572,7 +542,7 @@ class TimeProgram:
             ret.update({"entries": self._entries})
         return ret
 
-    def as_json(self, with_entries: bool = True) -> Dict[str, object]:
+    def as_json(self, with_entries: bool = True) -> Dict[str, Any]:
         """Create a json-readable dict representation of this time program.
 
         :param with_entries: Determines whether the single time program entries should be included or not.
@@ -593,10 +563,7 @@ class TimeProgram:
             ret.update(
                 {
                     "entries": [
-                        [
-                            entry.as_json() if entry is not None else None
-                            for entry in day_entries
-                        ]
+                        [entry.as_json() if entry is not None else None for entry in day_entries]
                         for day_entries in self._entries
                     ]
                 }

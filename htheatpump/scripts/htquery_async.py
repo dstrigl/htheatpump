@@ -41,14 +41,15 @@ import logging
 import sys
 import textwrap
 
-from htheatpump import AioHtHeatpump, HtDataTypes, HtParams
+from htheatpump.aiohtheatpump import AioHtHeatpump
+from htheatpump.htparams import HtDataTypes, HtParams
 from htheatpump.utils import Timer
 
 _LOGGER = logging.getLogger(__name__)
 
 
 # Main program
-async def main_async():
+async def main_async() -> None:
     parser = argparse.ArgumentParser(
         description=textwrap.dedent(
             """\
@@ -98,9 +99,7 @@ async def main_async():
         help="baudrate of the serial connection (same as configured on the heat pump), default: %(default)s",
     )
 
-    parser.add_argument(
-        "-j", "--json", action="store_true", help="output will be in JSON format"
-    )
+    parser.add_argument("-j", "--json", action="store_true", help="output will be in JSON format")
 
     parser.add_argument(
         "--bool-as-int",
@@ -108,9 +107,7 @@ async def main_async():
         help="boolean values will be stored as '0' and '1'",
     )
 
-    parser.add_argument(
-        "-t", "--time", action="store_true", help="measure the execution time"
-    )
+    parser.add_argument("-t", "--time", action="store_true", help="measure the execution time")
 
     parser.add_argument(
         "-v",
@@ -142,9 +139,7 @@ async def main_async():
 
         rid = await hp.get_serial_number_async()
         if args.verbose:
-            _LOGGER.info(
-                "connected successfully to heat pump with serial number %d", rid
-            )
+            _LOGGER.info("connected successfully to heat pump with serial number %d", rid)
         ver = await hp.get_version_async()
         if args.verbose:
             _LOGGER.info("software version = %s (%d)", *ver)
@@ -163,11 +158,7 @@ async def main_async():
         else:
             if len(values) > 1:
                 for name in sorted(values.keys()):
-                    print(
-                        "{:{width}}: {}".format(
-                            name, values[name], width=len(max(values.keys(), key=len))
-                        )
-                    )
+                    print("{:{width}}: {}".format(name, values[name], width=len(max(values.keys(), key=len))))
             elif len(values) == 1:
                 print(next(iter(values.values())))
 
@@ -185,7 +176,7 @@ async def main_async():
     sys.exit(0)
 
 
-def main():
+def main() -> None:
     # run the async main application
     asyncio.run(main_async())
 

@@ -57,15 +57,13 @@ class Daemon:
         daemon.start()  # start the sample daemon
     """
 
-    def __init__(
-        self, pidfile, stdin="/dev/null", stdout="/dev/null", stderr="/dev/null"
-    ):
+    def __init__(self, pidfile: str, stdin: str = "/dev/null", stdout: str = "/dev/null", stderr: str = "/dev/null"):
         self._pidfile = pidfile
         self._stdin = stdin if stdin is not None else "/dev/null"
         self._stdout = stdout if stdout is not None else "/dev/null"
         self._stderr = stderr if stderr is not None else "/dev/null"
 
-    def daemonize(self):
+    def daemonize(self) -> None:
         """Deamonize, do the double-fork magic.
 
         .. seealso::
@@ -74,7 +72,7 @@ class Daemon:
         """
         # do first fork
         try:
-            pid = os.fork()
+            pid = os.fork()  # type: ignore
             if pid > 0:
                 # exit first parent
                 sys.exit(0)
@@ -84,12 +82,12 @@ class Daemon:
 
         # decouple from parent environment
         os.chdir("/")
-        os.setsid()
+        os.setsid()  # type: ignore
         os.umask(0)
 
         # do second fork
         try:
-            pid = os.fork()
+            pid = os.fork()  # type: ignore
             if pid > 0:
                 # exit second parent
                 sys.exit(0)
@@ -117,11 +115,11 @@ class Daemon:
         with open(self._pidfile, "w+") as f:
             f.write("{}\n".format(os.getpid()))
 
-    def _delpid(self):
+    def _delpid(self) -> None:
         # remove pidfile
         os.remove(self._pidfile)
 
-    def start(self):
+    def start(self) -> None:
         """Start the daemon."""
         # check pidfile to see if the daemon already runs
         try:
@@ -131,27 +129,21 @@ class Daemon:
             pid = None
 
         if pid:
-            sys.stderr.write(
-                "pidfile {} already exist, daemon maybe already running?\n".format(
-                    self._pidfile
-                )
-            )
+            sys.stderr.write("pidfile {} already exist, daemon maybe already running?\n".format(self._pidfile))
             sys.exit(1)
 
         # start daemon
         self.daemonize()
         self.run()
 
-    def status(self):
+    def status(self) -> None:
         """Print the status of the daemon."""
         # get the PID from pidfile
         try:
             with open(self._pidfile, "r") as f:
                 pid = int(f.read().strip())
         except IOError:
-            sys.stderr.write(
-                "pidfile {} not found, daemon not running?\n".format(self._pidfile)
-            )
+            sys.stderr.write("pidfile {} not found, daemon not running?\n".format(self._pidfile))
             sys.exit(1)
 
         # look for daemon process in /proc
@@ -162,16 +154,14 @@ class Daemon:
         except IOError:
             sys.stdout.write("no process with PID {} found\n".format(pid))
 
-    def stop(self):
+    def stop(self) -> None:
         """Stop the daemon."""
         # get the PID from pidfile
         try:
             with open(self._pidfile, "r") as f:
                 pid = int(f.read().strip())
         except IOError:
-            sys.stderr.write(
-                "pidfile {} not found, daemon not running?\n".format(self._pidfile)
-            )
+            sys.stderr.write("pidfile {} not found, daemon not running?\n".format(self._pidfile))
             sys.exit(1)
 
         # try killing the daemon process
@@ -190,13 +180,13 @@ class Daemon:
             sys.stderr.write("failed to remove pidfile {}\n".format(self._pidfile))
             sys.exit(1)
 
-    def restart(self):
+    def restart(self) -> None:
         """Restart the daemon."""
         self.stop()
         time.sleep(1)
         self.start()
 
-    def run(self):
+    def run(self) -> None:
         """You should override this method when you subclass :class:`Daemon`.
         It will be called after the process has been daemonized by :meth:`start()`
         or :meth:`restart()`.
@@ -215,9 +205,10 @@ class Daemon:
 # Main program
 # ------------------------------------------------------------------------------------------------------------------- #
 
+
 # A simple example daemon
 class MySampleDaemon(Daemon):
-    def run(self):
+    def run(self) -> None:
         sys.stdout.write("Message to <stdout>.\n")
         sys.stderr.write("Message to <stderr>.\n")
         c = 0
@@ -230,7 +221,7 @@ class MySampleDaemon(Daemon):
 
 
 # Only for testing: starts the above example daemon
-def main():
+def main() -> None:
     daemon = MySampleDaemon(
         "/tmp/python-daemon.pid",
         stdout="/tmp/python-daemon.log",

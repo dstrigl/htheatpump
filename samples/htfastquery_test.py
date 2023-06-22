@@ -23,13 +23,14 @@ import sys
 import time
 from timeit import default_timer as timer
 
-from htheatpump import HtHeatpump, HtParams
+from htheatpump.htheatpump import HtHeatpump
+from htheatpump.htparams import HtParams
 
 # _LOGGER = logging.getLogger(__name__)
 
 
 # Main program
-def main():
+def main() -> None:
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s %(levelname)s [%(name)s|%(funcName)s]: %(message)s",
@@ -59,16 +60,8 @@ def main():
     t_fast_query = t_fast_query / i
 
     print("\n" + "-" * 100)
-    print(
-        "HtHeatpump.query({:d})      execution time: {:.3f} sec".format(
-            len(names), t_query
-        )
-    )
-    print(
-        "HtHeatpump.fast_query({:d}) execution time: {:.3f} sec".format(
-            len(names), t_fast_query
-        )
-    )
+    print("HtHeatpump.query({:d})      execution time: {:.3f} sec".format(len(names), t_query))
+    print("HtHeatpump.fast_query({:d}) execution time: {:.3f} sec".format(len(names), t_fast_query))
     print("-> {:.3f} x faster".format(t_query / t_fast_query))
 
     while True:
@@ -78,9 +71,7 @@ def main():
         # fast query for the given parameter(s)
         values = hp.fast_query(*rand_names)
         # print the current value(s) of the retrieved parameter(s)
-        print(
-            ", ".join(map(lambda name: "{!r} = {}".format(name, values[name]), values))
-        )
+        print(", ".join(map(lambda name: "{!r} = {}".format(name, values[name]), values)))
         # for name in sorted(values.keys()):
         #    print("{:{width}} [{},{:02d}]: {}".format(name,
         #                                              HtParams[name].dp_type,

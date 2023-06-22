@@ -40,15 +40,17 @@ import os
 import re
 import sys
 import textwrap
+from typing import Any, Dict
 
-from htheatpump import HtDataTypes, HtHeatpump, HtParam
+from htheatpump.htheatpump import HtHeatpump
+from htheatpump.htparams import HtDataTypes, HtParam
 from htheatpump.utils import Timer
 
 _LOGGER = logging.getLogger(__name__)
 
 
 # Main program
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description=textwrap.dedent(
             """\
@@ -112,9 +114,7 @@ def main():
         const="",
     )
 
-    parser.add_argument(
-        "-t", "--time", action="store_true", help="measure the execution time"
-    )
+    parser.add_argument("-t", "--time", action="store_true", help="measure the execution time")
 
     parser.add_argument(
         "-v",
@@ -150,7 +150,7 @@ def main():
         ver = hp.get_version()
         print("software version = {} ({:d})".format(ver[0], ver[1]))
 
-        result = {}
+        result: Dict[str, Dict[int, Dict[str, Any]]] = {}
         with Timer() as timer:
             for dp_type in ("SP", "MP"):  # for all known data point types
                 result.update({dp_type: {}})
@@ -167,21 +167,15 @@ def main():
                             resp = hp.read_response()
                             # search for pattern "NAME=...", "VAL=...", "MAX=..." and "MIN=..." inside the answer
                             m = re.match(
-                                r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(
-                                    data_point
-                                ),
+                                r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(data_point),
                                 resp,
                             )
                             if not m:
                                 raise IOError(
-                                    "invalid response for query of data point {!r} [{}]".format(
-                                        data_point, resp
-                                    )
+                                    "invalid response for query of data point {!r} [{}]".format(data_point, resp)
                                 )
                             # extract name, value, min and max
-                            name, value, min_val, max_val = (
-                                g.strip() for g in m.group(1, 2, 4, 3)
-                            )
+                            name, value, min_val, max_val = (g.strip() for g in m.group(1, 2, 4, 3))
                             # determine the data type of the data point
                             dtype = None
                             try:
@@ -192,15 +186,9 @@ def main():
                                 if min_val == 0 and max_val == 1 and value in (0, 1):
                                     dtype = "BOOL"
                             except ValueError:
-                                min_val = HtParam.from_str(
-                                    min_val, HtDataTypes.FLOAT, strict=False
-                                )
-                                max_val = HtParam.from_str(
-                                    max_val, HtDataTypes.FLOAT, strict=False
-                                )
-                                value = HtParam.from_str(
-                                    value, HtDataTypes.FLOAT, strict=False
-                                )
+                                min_val = HtParam.from_str(min_val, HtDataTypes.FLOAT, strict=False)
+                                max_val = HtParam.from_str(max_val, HtDataTypes.FLOAT, strict=False)
+                                value = HtParam.from_str(value, HtDataTypes.FLOAT, strict=False)
                                 dtype = "FLOAT"
                             assert dtype is not None
                             # print the determined values
@@ -253,9 +241,7 @@ def main():
             if filename == "":
                 filename = os.path.join(
                     os.getcwd(),
-                    "htparams-{}-{}-{}.csv".format(
-                        rid, ver[0].replace(".", "_"), ver[1]
-                    ),
+                    "htparams-{}-{}-{}.csv".format(rid, ver[0].replace(".", "_"), ver[1]),
                 )
             print("write data to: " + filename)
             with open(filename, "w") as csvfile:

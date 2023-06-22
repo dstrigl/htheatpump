@@ -19,12 +19,14 @@
 
 """ This module provides an asynchronous communication with the Heliotherm heat pump. """
 
+from __future__ import annotations
+
 import asyncio
 import copy
 import datetime
 import logging
 import re
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple, Union, cast
 
 import aioserial
 import serial
@@ -146,40 +148,39 @@ class AioHtHeatpump(HtHeatpump):
         dsrdtr: bool = False,
         inter_byte_timeout: Optional[Union[float, int]] = None,
         exclusive: Optional[bool] = None,
-        verify_param_action: Optional[Set["VerifyAction"]] = None,
+        verify_param_action: Optional[Set[VerifyAction]] = None,
         verify_param_error: bool = False,
         loop: Optional[asyncio.AbstractEventLoop] = None,
         cancel_read_timeout: int = 1,
         cancel_write_timeout: int = 1,
     ) -> None:
         """Initialize the AioHtHeatpump class."""
-        # store the serial settings for later connection establishment
-        self._ser_settings = {
-            "port": device,
-            "baudrate": baudrate,
-            "bytesize": bytesize,
-            "parity": parity,
-            "stopbits": stopbits,
-            "timeout": timeout,
-            "xonxoff": xonxoff,
-            "rtscts": rtscts,
-            "write_timeout": write_timeout,
-            "dsrdtr": dsrdtr,
-            "inter_byte_timeout": inter_byte_timeout,
-            "exclusive": exclusive,
-            "loop": loop,
-            "cancel_read_timeout": cancel_read_timeout,
-            "cancel_write_timeout": cancel_write_timeout,
-        }
-        self._ser = None
-        self._lock = asyncio.Lock()
-        # store settings for parameter verification
-        self._verify_param_action = (
-            {VerifyAction.NAME} if verify_param_action is None else verify_param_action
+
+        super().__init__(
+            device,
+            baudrate,
+            bytesize,
+            parity,
+            stopbits,
+            timeout,
+            xonxoff,
+            rtscts,
+            write_timeout,
+            dsrdtr,
+            inter_byte_timeout,
+            exclusive,
+            verify_param_action,
+            verify_param_error,
         )
-        assert isinstance(self._verify_param_action, set)
-        self._verify_param_error = verify_param_error
-        assert isinstance(self._verify_param_error, bool)
+        # update the settings for later connection establishment
+        self._ser_settings.update(
+            {
+                "loop": loop,
+                "cancel_read_timeout": cancel_read_timeout,
+                "cancel_write_timeout": cancel_write_timeout,
+            }
+        )
+        self._lock = asyncio.Lock()
 
     def open_connection(self) -> None:
         """Open the serial connection with the defined settings.
@@ -272,9 +273,7 @@ class AioHtHeatpump(HtHeatpump):
             while payload[-2:] != b"\r\n":
                 tmp = await self._ser.read_async(1)
                 if not tmp:
-                    raise IOError(
-                        "data stream broken during reading payload ending with '\\r\\n'"
-                    )
+                    raise IOError("data stream broken during reading payload ending with '\\r\\n'")
                 payload += tmp
             # compute the payload length by counting the number of read bytes
             payload_len = len(payload)
@@ -292,9 +291,7 @@ class AioHtHeatpump(HtHeatpump):
             raise IOError("data stream broken during reading checksum")
         checksum = checksum[0]
         # compute the checksum over header, payload length and the payload itself (depending on the header)
-        comp_checksum = RESPONSE_HEADER[header]["checksum"](
-            header, payload_len, payload
-        )
+        comp_checksum = RESPONSE_HEADER[header]["checksum"](header, payload_len, payload)
         if checksum != comp_checksum:
             raise IOError(
                 "invalid checksum [{}] of response "
@@ -319,9 +316,7 @@ class AioHtHeatpump(HtHeatpump):
         # extract the relevant data from the payload (without header '~' and trailer ';\r\n')
         m = re.match(r"^~([^;]*);\r\n$", payload.decode("ascii"))
         if not m:
-            raise IOError(
-                "failed to extract response data from payload [{}]".format(payload)
-            )
+            raise IOError("failed to extract response data from payload [{}]".format(payload))
         return m.group(1)
 
     async def login_async(
@@ -357,9 +352,7 @@ class AioHtHeatpump(HtHeatpump):
                     resp = await self.read_response_async()
                     m = re.match(LOGIN_RESP, resp)
                     if not m:
-                        raise IOError(
-                            "invalid response for LOGIN command [{!r}]".format(resp)
-                        )
+                        raise IOError("invalid response for LOGIN command [{!r}]".format(resp))
                     else:
                         success = True
                 except Exception as e:
@@ -385,9 +378,7 @@ class AioHtHeatpump(HtHeatpump):
                 resp = await self.read_response_async()
                 m = re.match(LOGOUT_RESP, resp)
                 if not m:
-                    raise IOError(
-                        "invalid response for LOGOUT command [{!r}]".format(resp)
-                    )
+                    raise IOError("invalid response for LOGOUT command [{!r}]".format(resp))
                 _LOGGER.info("logout successfully")
             except Exception as e:
                 # just a warning, because it's possible that we can continue without any further problems
@@ -411,9 +402,7 @@ class AioHtHeatpump(HtHeatpump):
                 resp = await self.read_response_async()  # e.g. "RID,123456"
                 m = re.match(RID_RESP, resp)
                 if not m:
-                    raise IOError(
-                        "invalid response for RID command [{!r}]".format(resp)
-                    )
+                    raise IOError("invalid response for RID command [{!r}]".format(resp))
                 rid = int(m.group(1))
                 _LOGGER.debug("manufacturer's serial number = %d", rid)
                 return rid  # return the received manufacturer's serial number as an int
@@ -451,11 +440,7 @@ class AioHtHeatpump(HtHeatpump):
                 #   => software version = 3.0.20
                 m = re.match(VERSION_RESP, resp)
                 if not m:
-                    raise IOError(
-                        "invalid response for query of the software version [{!r}]".format(
-                            resp
-                        )
-                    )
+                    raise IOError("invalid response for query of the software version [{!r}]".format(resp))
                 ver = (m.group(1).strip(), int(m.group(2)))
                 _LOGGER.debug("software version = %s (%d)", *ver)
                 return ver
@@ -484,18 +469,12 @@ class AioHtHeatpump(HtHeatpump):
             await self.send_request_async(CLK_CMD[0])
             # ... and wait for the response
             try:
-                resp = (
-                    await self.read_response_async()
-                )  # e.g. "CLK,DA=26.11.15,TI=21:28:57,WD=4"
+                resp = await self.read_response_async()  # e.g. "CLK,DA=26.11.15,TI=21:28:57,WD=4"
                 m = re.match(CLK_RESP, resp)
                 if not m:
-                    raise IOError(
-                        "invalid response for CLK command [{!r}]".format(resp)
-                    )
+                    raise IOError("invalid response for CLK command [{!r}]".format(resp))
                 year = 2000 + int(m.group(3))
-                month, day, hour, minute, second = [
-                    int(g) for g in m.group(2, 1, 4, 5, 6)
-                ]
+                month, day, hour, minute, second = [int(g) for g in m.group(2, 1, 4, 5, 6)]
                 weekday = int(m.group(7))  # weekday 1-7 (Monday through Sunday)
                 # create datetime object from extracted data
                 dt = datetime.datetime(year, month, day, hour, minute, second)
@@ -508,9 +487,7 @@ class AioHtHeatpump(HtHeatpump):
                 _LOGGER.error("query for date and time failed: %s", e)
                 raise
 
-    async def set_date_time_async(
-        self, dt: Optional[datetime.datetime] = None
-    ) -> Tuple[datetime.datetime, int]:
+    async def set_date_time_async(self, dt: Optional[datetime.datetime] = None) -> Tuple[datetime.datetime, int]:
         """Set the current date and time of the heat pump.
 
         :param dt: The date and time to set. If :const:`None` current date and time
@@ -531,9 +508,7 @@ class AioHtHeatpump(HtHeatpump):
             if dt is None:
                 dt = datetime.datetime.now()
             elif not isinstance(dt, datetime.datetime):
-                raise TypeError(
-                    "argument 'dt' must be None or of type datetime.datetime"
-                )
+                raise TypeError("argument 'dt' must be None or of type datetime.datetime")
             # create CLK set command
             cmd = CLK_CMD[1].format(
                 dt.day,
@@ -548,18 +523,12 @@ class AioHtHeatpump(HtHeatpump):
             await self.send_request_async(cmd)
             # ... and wait for the response
             try:
-                resp = (
-                    await self.read_response_async()
-                )  # e.g. "CLK,DA=26.11.15,TI=21:28:57,WD=4"
+                resp = await self.read_response_async()  # e.g. "CLK,DA=26.11.15,TI=21:28:57,WD=4"
                 m = re.match(CLK_RESP, resp)
                 if not m:
-                    raise IOError(
-                        "invalid response for CLK command [{!r}]".format(resp)
-                    )
+                    raise IOError("invalid response for CLK command [{!r}]".format(resp))
                 year = 2000 + int(m.group(3))
-                month, day, hour, minute, second = [
-                    int(g) for g in m.group(2, 1, 4, 5, 6)
-                ]
+                month, day, hour, minute, second = [int(g) for g in m.group(2, 1, 4, 5, 6)]
                 weekday = int(m.group(7))  # weekday 1-7 (Monday through Sunday)
                 # create datetime object from extracted data
                 dt = datetime.datetime(year, month, day, hour, minute, second)
@@ -596,27 +565,17 @@ class AioHtHeatpump(HtHeatpump):
             await self.send_request_async(ALC_CMD)
             # ... and wait for the response
             try:
-                resp = (
-                    await self.read_response_async()
-                )  # e.g. "AA,29,20,14.09.14-11:52:08,EQ_Spreizung"
+                resp = await self.read_response_async()  # e.g. "AA,29,20,14.09.14-11:52:08,EQ_Spreizung"
                 m = re.match(ALC_RESP, resp)
                 if not m:
-                    raise IOError(
-                        "invalid response for ALC command [{!r}]".format(resp)
-                    )
-                idx, err = [
-                    int(g) for g in m.group(1, 2)
-                ]  # fault list index, error code (?)
+                    raise IOError("invalid response for ALC command [{!r}]".format(resp))
+                idx, err = [int(g) for g in m.group(1, 2)]  # fault list index, error code (?)
                 year = 2000 + int(m.group(5))
-                month, day, hour, minute, second = [
-                    int(g) for g in m.group(4, 3, 6, 7, 8)
-                ]
+                month, day, hour, minute, second = [int(g) for g in m.group(4, 3, 6, 7, 8)]
                 # create datetime object from extracted data
                 dt = datetime.datetime(year, month, day, hour, minute, second)
                 msg = m.group(9).strip()
-                _LOGGER.debug(
-                    "(idx: %d, err: %d)[%s]: %s", idx, err, dt.isoformat(), msg
-                )
+                _LOGGER.debug("(idx: %d, err: %d)[%s]: %s", idx, err, dt.isoformat(), msg)
                 return idx, err, dt, msg
             except Exception as e:
                 _LOGGER.error("query for last fault message failed: %s", e)
@@ -639,9 +598,7 @@ class AioHtHeatpump(HtHeatpump):
                 resp = await self.read_response_async()  # e.g. "SUM=2757"
                 m = re.match(ALS_RESP, resp)
                 if not m:
-                    raise IOError(
-                        "invalid response for ALS command [{!r}]".format(resp)
-                    )
+                    raise IOError("invalid response for ALS command [{!r}]".format(resp))
                 size = int(m.group(1))
                 _LOGGER.debug("fault list size = %d", size)
                 return size
@@ -672,7 +629,7 @@ class AioHtHeatpump(HtHeatpump):
             response (e.g. broken data stream, invalid checksum).
         """
         if not args:
-            args = range(await self.get_fault_list_size_async())  # type: ignore
+            args = tuple(range(await self.get_fault_list_size_async()))
         # TODO args = set(args) ???
         async with self._lock:
             fault_list = []
@@ -697,23 +654,15 @@ class AioHtHeatpump(HtHeatpump):
                     resp = []
                     # read all requested fault list entries
                     for _ in range(cnt):
-                        resp.append(
-                            await self.read_response_async()
-                        )  # e.g. "AA,29,20,14.09.14-11:52:08,EQ_Spreizung"
+                        resp.append(await self.read_response_async())  # e.g. "AA,29,20,14.09.14-11:52:08,EQ_Spreizung"
                     # extract data (fault list index, error code, date, time and message)
                     for i, r in enumerate(resp):
                         m = re.match(AR_RESP, r)
                         if not m:
-                            raise IOError(
-                                "invalid response for AR command [{!r}]".format(r)
-                            )
-                        idx, err = [
-                            int(g) for g in m.group(1, 2)
-                        ]  # fault list index, error code
+                            raise IOError("invalid response for AR command [{!r}]".format(r))
+                        idx, err = [int(g) for g in m.group(1, 2)]  # fault list index, error code
                         year = 2000 + int(m.group(5))
-                        month, day, hour, minute, second = [
-                            int(g) for g in m.group(4, 3, 6, 7, 8)
-                        ]
+                        month, day, hour, minute, second = [int(g) for g in m.group(4, 3, 6, 7, 8)]
                         # create datetime object from extracted data
                         dt = datetime.datetime(year, month, day, hour, minute, second)
                         msg = m.group(9).strip()
@@ -726,9 +675,7 @@ class AioHtHeatpump(HtHeatpump):
                         )
                         if idx != args[n - cnt + i]:
                             raise IOError(
-                                "fault list index doesn't match [{:d}, should be {:d}]".format(
-                                    idx, args[n - cnt + i]
-                                )
+                                "fault list index doesn't match [{:d}, should be {:d}]".format(idx, args[n - cnt + i])
                             )
                         # add the received fault list entry to the result list
                         fault_list.append(
@@ -744,9 +691,7 @@ class AioHtHeatpump(HtHeatpump):
                     raise
             return fault_list
 
-    async def _get_param_async(
-        self, name: str
-    ) -> Tuple[str, HtParamValueType, HtParamValueType, HtParamValueType]:
+    async def _get_param_async(self, name: str) -> Tuple[str, HtParamValueType, HtParamValueType, HtParamValueType]:
         """Read the data (NAME, MIN, MAX, VAL) of a specific parameter of the heat pump.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
@@ -765,9 +710,7 @@ class AioHtHeatpump(HtHeatpump):
         """
         async with self._lock:
             # get the corresponding definition for the requested parameter
-            assert (
-                name in HtParams
-            ), "parameter definition for parameter {!r} not found".format(name)
+            assert name in HtParams, "parameter definition for parameter {!r} not found".format(name)
             param = HtParams[name]  # type: ignore
             # send command to the heat pump
             await self.send_request_async(param.cmd())
@@ -799,12 +742,8 @@ class AioHtHeatpump(HtHeatpump):
             # update the limit values in the HtParams database and count the number of updated entries
             if HtParams[name].set_limits(resp_min, resp_max):
                 updated_params.append(name)
-                _LOGGER.debug(
-                    "updated param '%s': MIN=%s, MAX=%s", name, resp_min, resp_max
-                )
-        _LOGGER.info(
-            "updated %d (of %d) parameter limits", len(updated_params), len(HtParams)
-        )
+                _LOGGER.debug("updated param '%s': MIN=%s, MAX=%s", name, resp_min, resp_max)
+        _LOGGER.info("updated %d (of %d) parameter limits", len(updated_params), len(HtParams))
         return updated_params
 
     async def get_param_async(self, name: str) -> HtParamValueType:
@@ -836,21 +775,18 @@ class AioHtHeatpump(HtHeatpump):
         """
         # find the corresponding definition for the parameter
         if name not in HtParams:
-            raise KeyError(
-                "parameter definition for parameter {!r} not found".format(name)
-            )
+            raise KeyError("parameter definition for parameter {!r} not found".format(name))
         try:
             resp = await self._get_param_async(name)
             val = self._verify_param_resp(name, *resp)
             _LOGGER.debug("'%s' = %s", name, val)
-            return val  # type: ignore
+            assert val is not None
+            return val
         except Exception as e:
             _LOGGER.error("get parameter '%s' failed: %s", name, e)
             raise
 
-    async def set_param_async(
-        self, name: str, val: HtParamValueType, ignore_limits: bool = False
-    ) -> HtParamValueType:
+    async def set_param_async(self, name: str, val: HtParamValueType, ignore_limits: bool = False) -> HtParamValueType:
         """Set the value of a specific parameter of the heat pump. If :attr:`ignore_limits` is :const:`False`
         and the passed value is beyond the parameter limits a :exc:`ValueError` will be raised.
 
@@ -891,17 +827,11 @@ class AioHtHeatpump(HtHeatpump):
             assert val is not None, "'val' must not be None"
             # find the corresponding definition for the parameter
             if name not in HtParams:
-                raise KeyError(
-                    "parameter definition for parameter {!r} not found".format(name)
-                )
+                raise KeyError("parameter definition for parameter {!r} not found".format(name))
             param = HtParams[name]  # type: ignore
             # check the passed value against the defined limits (if desired)
             if not ignore_limits and not param.in_limits(val):
-                raise ValueError(
-                    "value {!r} is beyond the limits [{}, {}]".format(
-                        val, param.min_val, param.max_val
-                    )
-                )
+                raise ValueError("value {!r} is beyond the limits [{}, {}]".format(val, param.min_val, param.max_val))
             # send command to the heat pump
             val = param.to_str(val)
             await self.send_request_async("{},VAL={}".format(param.cmd(), val))
@@ -911,7 +841,8 @@ class AioHtHeatpump(HtHeatpump):
                 data = self._extract_param_data(name, resp)
                 ret = self._verify_param_resp(name, *data)
                 _LOGGER.debug("'%s' = %s", name, ret)
-                return ret  # type: ignore
+                assert ret is not None
+                return ret
             except Exception as e:
                 _LOGGER.error("set parameter '%s' failed: %s", name, e)
                 raise
@@ -926,7 +857,7 @@ class AioHtHeatpump(HtHeatpump):
             Will be raised when the serial connection is not open or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
-        return await self.get_param_async("Stoerung")  # type: ignore
+        return cast(bool, await self.get_param_async("Stoerung"))
 
     async def query_async(self, *args: str) -> Dict[str, HtParamValueType]:
         """Query for the current values of parameters from the heat pump.
@@ -956,7 +887,7 @@ class AioHtHeatpump(HtHeatpump):
             :attr:`~HtHeatpump.verify_param_action`.
         """
         if not args:
-            args = HtParams.keys()  # type: ignore
+            args = tuple(HtParams.keys())
         values = {}
         try:
             # query for each parameter in the given list
@@ -998,15 +929,13 @@ class AioHtHeatpump(HtHeatpump):
         """
         async with self._lock:
             if not args:
-                args = (name for name, param in HtParams.items() if param.dp_type == "MP")  # type: ignore
+                args = tuple(name for name, param in HtParams.items() if param.dp_type == "MP")
             # TODO args = set(args) ???
             dp_list = []
             dp_dict = {}
             for name in args:
                 if name not in HtParams:
-                    raise KeyError(
-                        "parameter definition for parameter {!r} not found".format(name)
-                    )
+                    raise KeyError("parameter definition for parameter {!r} not found".format(name))
                 param = HtParams[name]  # type: ignore
                 if param.dp_type != "MP":
                     raise ValueError(
@@ -1038,27 +967,17 @@ class AioHtHeatpump(HtHeatpump):
                     resp = []
                     # read all requested data point (parameter) values
                     for _ in range(cnt):
-                        resp.append(
-                            await self.read_response_async()
-                        )  # e.g. "MA,11,46.0,16"
+                        resp.append(await self.read_response_async())  # e.g. "MA,11,46.0,16"
                     # extract data (MP data point number, data point value and "unknown" value)
                     for r in resp:
                         m = re.match(MR_RESP, r)
                         if not m:
-                            raise IOError(
-                                "invalid response for MR command [{!r}]".format(r)
-                            )
+                            raise IOError("invalid response for MR command [{!r}]".format(r))
                         # MP data point number, value and ?
-                        dp_number, dp_value, unknown_val = m.group(
-                            1, 2, 3
-                        )  # type: Any, str, str
+                        dp_number, dp_value, unknown_val = m.group(1, 2, 3)
                         dp_number = int(dp_number)
                         if dp_number not in dp_dict:
-                            raise IOError(
-                                "non requested data point value received [MP,{:d}]".format(
-                                    dp_number
-                                )
-                            )
+                            raise IOError("non requested data point value received [MP,{:d}]".format(dp_number))
                         name, param = dp_dict[dp_number]
                         val = param.from_str(dp_value)
                         _LOGGER.debug("'%s' = %s (%s)", name, val, unknown_val)
@@ -1095,9 +1014,7 @@ class AioHtHeatpump(HtHeatpump):
                 resp = await self.read_response_async()  # e.g. "SUM=5"
                 m = re.match(PRL_RESP[0], resp)
                 if not m:
-                    raise IOError(
-                        "invalid response for PRL command [{!r}]".format(resp)
-                    )
+                    raise IOError("invalid response for PRL command [{!r}]".format(resp))
                 sum = int(m.group(1))
                 _LOGGER.debug("number of time programs = %d", sum)
                 for idx in range(sum):
@@ -1106,9 +1023,7 @@ class AioHtHeatpump(HtHeatpump):
                     )  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
                     m = re.match(PRL_RESP[1].format(idx), resp)
                     if not m:
-                        raise IOError(
-                            "invalid response for PRL command [{!r}]".format(resp)
-                        )
+                        raise IOError("invalid response for PRL command [{!r}]".format(resp))
                     # extract data (NAME, EAD, NOS, STE and NOD)
                     name = m.group(1)
                     ead, nos, ste, nod = [int(g) for g in m.group(2, 3, 4, 5)]
@@ -1152,9 +1067,7 @@ class AioHtHeatpump(HtHeatpump):
                 )  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
                 m = re.match(PRI_RESP.format(idx), resp)
                 if not m:
-                    raise IOError(
-                        "invalid response for PRI command [{!r}]".format(resp)
-                    )
+                    raise IOError("invalid response for PRI command [{!r}]".format(resp))
                 # extract data (NAME, EAD, NOS, STE and NOD)
                 name = m.group(1)
                 ead, nos, ste, nod = [int(g) for g in m.group(2, 3, 4, 5)]
@@ -1198,9 +1111,7 @@ class AioHtHeatpump(HtHeatpump):
                 )  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
                 m = re.match(PRD_RESP[0].format(idx), resp)
                 if not m:
-                    raise IOError(
-                        "invalid response for PRD command [{!r}]".format(resp)
-                    )
+                    raise IOError("invalid response for PRD command [{!r}]".format(resp))
                 # extract data (NAME, EAD, NOS, STE and NOD)
                 name = m.group(1)
                 ead, nos, ste, nod = [int(g) for g in m.group(2, 3, 4, 5)]
@@ -1215,17 +1126,11 @@ class AioHtHeatpump(HtHeatpump):
                 )
                 time_prog = TimeProgram(idx, name, ead, nos, ste, nod)
                 # read the single time program entries for each day
-                for (day, num) in [
-                    (day, num) for day in range(nod) for num in range(ead)
-                ]:
-                    resp = (
-                        await self.read_response_async()
-                    )  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
+                for day, num in [(day, num) for day in range(nod) for num in range(ead)]:
+                    resp = await self.read_response_async()  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
                     m = re.match(PRD_RESP[1].format(idx, day, num), resp)
                     if not m:
-                        raise IOError(
-                            "invalid response for PRD command [{!r}]".format(resp)
-                        )
+                        raise IOError("invalid response for PRD command [{!r}]".format(resp))
                     # extract data (ST, BEG, END)
                     st, beg, end = m.group(1, 2, 3)
                     _LOGGER.debug(
@@ -1243,9 +1148,7 @@ class AioHtHeatpump(HtHeatpump):
                 _LOGGER.error("query for time program with entries failed: %s", e)
                 raise
 
-    async def get_time_prog_async(
-        self, idx: int, with_entries: bool = True
-    ) -> TimeProgram:
+    async def get_time_prog_async(self, idx: int, with_entries: bool = True) -> TimeProgram:
         """Return a specific time program (specified by their index) together with their time program entries
         (if desired) from the heat pump.
 
@@ -1264,14 +1167,10 @@ class AioHtHeatpump(HtHeatpump):
         assert isinstance(idx, int)
         assert isinstance(with_entries, bool)
         return (
-            await self._get_time_prog_with_entries_async(idx)
-            if with_entries
-            else await self._get_time_prog_async(idx)
+            await self._get_time_prog_with_entries_async(idx) if with_entries else await self._get_time_prog_async(idx)
         )
 
-    async def get_time_prog_entry_async(
-        self, idx: int, day: int, num: int
-    ) -> TimeProgEntry:
+    async def get_time_prog_entry_async(self, idx: int, day: int, num: int) -> TimeProgEntry:
         """Return a specific time program entry (specified by time program index, day and entry-of-day)
         of the heat pump.
 
@@ -1296,14 +1195,10 @@ class AioHtHeatpump(HtHeatpump):
             await self.send_request_async(PRE_CMD[0].format(idx, day, num))
             # ... and wait for the response
             try:
-                resp = (
-                    await self.read_response_async()
-                )  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
+                resp = await self.read_response_async()  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
                 m = re.match(PRE_RESP.format(idx, day, num), resp)
                 if not m:
-                    raise IOError(
-                        "invalid response for PRE command [{!r}]".format(resp)
-                    )
+                    raise IOError("invalid response for PRE command [{!r}]".format(resp))
                 # extract data (ST, BEG, END)
                 st, beg, end = m.group(1, 2, 3)
                 _LOGGER.debug(
@@ -1320,9 +1215,7 @@ class AioHtHeatpump(HtHeatpump):
                 _LOGGER.error("query for time program entry failed: %s", e)
                 raise
 
-    async def set_time_prog_entry_async(
-        self, idx: int, day: int, num: int, entry: TimeProgEntry
-    ) -> TimeProgEntry:
+    async def set_time_prog_entry_async(self, idx: int, day: int, num: int, entry: TimeProgEntry) -> TimeProgEntry:
         """Set a specific time program entry (specified by time program index, day and entry-of-day)
         of the heat pump.
 
@@ -1359,14 +1252,10 @@ class AioHtHeatpump(HtHeatpump):
             )
             # ... and wait for the response
             try:
-                resp = (
-                    await self.read_response_async()
-                )  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
+                resp = await self.read_response_async()  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
                 m = re.match(PRE_RESP.format(idx, day, num), resp)
                 if not m:
-                    raise IOError(
-                        "invalid response for PRE command [{!r}]".format(resp)
-                    )
+                    raise IOError("invalid response for PRE command [{!r}]".format(resp))
                 # extract data (ST, BEG, END)
                 st, beg, end = m.group(1, 2, 3)
                 _LOGGER.debug(
@@ -1400,19 +1289,13 @@ class AioHtHeatpump(HtHeatpump):
         """
         assert isinstance(time_prog, TimeProgram)
         ret = copy.deepcopy(time_prog)
-        for (day, num) in [
-            (day, num)
-            for day in range(time_prog.number_of_days)
-            for num in range(time_prog.entries_a_day)
+        for day, num in [
+            (day, num) for day in range(time_prog.number_of_days) for num in range(time_prog.entries_a_day)
         ]:
             entry = time_prog.entry(day, num)
-            _LOGGER.debug(
-                "[idx=%d, day=%d, entry=%d]: %s", time_prog.index, day, num, entry
-            )
+            _LOGGER.debug("[idx=%d, day=%d, entry=%d]: %s", time_prog.index, day, num, entry)
             if entry is not None:
-                entry = await self.set_time_prog_entry_async(
-                    time_prog.index, day, num, entry
-                )
+                entry = await self.set_time_prog_entry_async(time_prog.index, day, num, entry)
             else:
                 entry = await self.get_time_prog_entry_async(time_prog.index, day, num)
             ret.set_entry(day, num, entry)

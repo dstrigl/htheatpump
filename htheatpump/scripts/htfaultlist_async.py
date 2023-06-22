@@ -41,19 +41,21 @@
 import argparse
 import asyncio
 import csv
+import datetime
 import json
 import logging
 import sys
 import textwrap
+from typing import cast
 
-from htheatpump import AioHtHeatpump
+from htheatpump.aiohtheatpump import AioHtHeatpump
 from htheatpump.utils import Timer
 
 _LOGGER = logging.getLogger(__name__)
 
 
 # Main program
-async def main_async():
+async def main_async() -> None:
     parser = argparse.ArgumentParser(
         description=textwrap.dedent(
             """\
@@ -106,9 +108,7 @@ async def main_async():
         help="baudrate of the serial connection (same as configured on the heat pump), default: %(default)s",
     )
 
-    parser.add_argument(
-        "-t", "--time", action="store_true", help="measure the execution time"
-    )
+    parser.add_argument("-t", "--time", action="store_true", help="measure the execution time")
 
     parser.add_argument(
         "-v",
@@ -124,17 +124,11 @@ async def main_async():
         help="print only the last fault message of the heat pump",
     )
 
-    parser.add_argument(
-        "-j", "--json", type=str, help="write the fault list to the specified JSON file"
-    )
+    parser.add_argument("-j", "--json", type=str, help="write the fault list to the specified JSON file")
 
-    parser.add_argument(
-        "-c", "--csv", type=str, help="write the fault list to the specified CSV file"
-    )
+    parser.add_argument("-c", "--csv", type=str, help="write the fault list to the specified CSV file")
 
-    parser.add_argument(
-        "index", type=int, nargs="*", help="fault list index/indices to query for"
-    )
+    parser.add_argument("index", type=int, nargs="*", help="fault list index/indices to query for")
 
     args = parser.parse_args()
 
@@ -152,9 +146,7 @@ async def main_async():
 
         rid = await hp.get_serial_number_async()
         if args.verbose:
-            _LOGGER.info(
-                "connected successfully to heat pump with serial number %d", rid
-            )
+            _LOGGER.info("connected successfully to heat pump with serial number %d", rid)
         ver = await hp.get_version_async()
         if args.verbose:
             _LOGGER.info("software version = %s (%d)", *ver)
@@ -179,15 +171,15 @@ async def main_async():
                 fault_list = await hp.get_fault_list_async(*args.index)
             exec_time = timer.elapsed
             for entry in fault_list:
-                entry["datetime"] = entry[
-                    "datetime"
-                ].isoformat()  # convert "datetime" dict entry to str
+                entry["datetime"] = cast(
+                    datetime.datetime, entry["datetime"]
+                ).isoformat()  # convert "datetime" dict entry to str
                 print(
                     "#{:03d} [{}]: {:05d}, {}".format(
-                        entry["index"],
-                        entry["datetime"],
-                        entry["error"],
-                        entry["message"],
+                        cast(int, entry["index"]),
+                        cast(str, entry["datetime"]),
+                        cast(int, entry["error"]),
+                        cast(str, entry["message"]),
                     )
                 )
 
@@ -217,7 +209,7 @@ async def main_async():
     sys.exit(0)
 
 
-def main():
+def main() -> None:
     # run the async main application
     asyncio.run(main_async())
 

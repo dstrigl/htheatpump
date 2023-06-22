@@ -40,7 +40,7 @@ Introduction
 
 This library provides a pure Python interface to access `Heliotherm <http://www.heliotherm.com/>`_ and
 `Brötje BSW NEO <https://www.broetje.de/>`_ heat pumps
-over a serial connection. It's compatible with Python version 3.8, 3.9 and 3.10.
+over a serial connection. It's compatible with Python version 3.7, 3.8, 3.9 and 3.10.
 
 
 Features

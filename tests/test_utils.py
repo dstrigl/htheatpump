@@ -32,7 +32,7 @@ class MySingleton(Singleton):
         self.val = v
 
 
-def test_SingletonClass():
+def test_SingletonClass() -> None:
     s1 = MySingleton(1)
     assert s1.val == 1
     s2 = MySingleton(2)
@@ -40,7 +40,7 @@ def test_SingletonClass():
     assert s1.val == 2  # now, 's1' should also be 2
 
 
-def test_Timer():
+def test_Timer() -> None:
     with Timer() as timer:
         time.sleep(1)  # wait for 1s
     assert timer.elapsed >= 1

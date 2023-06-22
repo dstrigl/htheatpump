@@ -23,12 +23,8 @@ from .__version__ import __version__
 
 
 # Main program
-def main():
-    print(
-        "[htheatpump=={}]: Easy-to-use Python communication module for Heliotherm heat pumps.".format(
-            __version__
-        )
-    )
+def main() -> None:
+    print("[htheatpump=={}]: Easy-to-use Python communication module for Heliotherm heat pumps.".format(__version__))
     sys.exit(0)
 
 

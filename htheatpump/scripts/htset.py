@@ -32,14 +32,15 @@ import logging
 import sys
 import textwrap
 
-from htheatpump import HtHeatpump, HtParams
+from htheatpump.htheatpump import HtHeatpump
+from htheatpump.htparams import HtParams
 from htheatpump.utils import Timer
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class ParamNameAction(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
+    def __call__(self, parser, namespace, values, option_string=None):  # type: ignore
         for name in values:
             if name not in HtParams:
                 raise ValueError("Unknown parameter {!r}".format(name))
@@ -47,7 +48,7 @@ class ParamNameAction(argparse.Action):
 
 
 # Main program
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description=textwrap.dedent(
             """\
@@ -96,9 +97,7 @@ def main():
         help="baudrate of the serial connection (same as configured on the heat pump), default: %(default)s",
     )
 
-    parser.add_argument(
-        "-t", "--time", action="store_true", help="measure the execution time"
-    )
+    parser.add_argument("-t", "--time", action="store_true", help="measure the execution time")
 
     parser.add_argument(
         "-v",
@@ -133,9 +132,7 @@ def main():
 
         rid = hp.get_serial_number()
         if args.verbose:
-            _LOGGER.info(
-                "connected successfully to heat pump with serial number %d", rid
-            )
+            _LOGGER.info("connected successfully to heat pump with serial number %d", rid)
         ver = hp.get_version()
         if args.verbose:
             _LOGGER.info("software version = %s (%d)", *ver)
