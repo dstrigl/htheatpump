@@ -19,8 +19,6 @@ from typing import Dict
 
 import sphinx_rtd_theme
 
-from htheatpump.__version__ import __version__
-
 # If extensions (or modules to document with autodoc) are in another
 # directory, add these directories to sys.path here. If the directory is
 # relative to the documentation root, use os.path.abspath to make it
@@ -36,6 +34,7 @@ project_root = os.path.dirname(cwd)
 # version is used.
 sys.path.insert(0, project_root)
 
+from htheatpump.__version__ import __version__  # noqa
 
 # -- General configuration ---------------------------------------------
 
