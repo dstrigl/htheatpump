@@ -20,7 +20,7 @@
 """ Protocol constants and functions for the Heliotherm heat pump communication. """
 
 
-from typing_extensions import Final
+from typing import Final
 
 # ------------------------------------------------------------------------------------------------------------------- #
 # Protocol constants

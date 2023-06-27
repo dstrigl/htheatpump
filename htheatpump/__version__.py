@@ -17,6 +17,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing_extensions import Final
+from typing import Final
 
 __version__: Final = "1.3.2"

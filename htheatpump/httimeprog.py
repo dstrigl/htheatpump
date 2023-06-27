@@ -22,9 +22,7 @@
 import copy
 import re
 from itertools import chain
-from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar
-
-from typing_extensions import Final
+from typing import Final, Any, Dict, List, Optional, Tuple, Type, TypeVar
 
 # ------------------------------------------------------------------------------------------------------------------- #
 # TimeProgPeriod class

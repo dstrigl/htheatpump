@@ -28,10 +28,9 @@ import logging
 import re
 import time
 from types import TracebackType
-from typing import Dict, List, Optional, Set, Tuple, Type, Union, cast
+from typing import Final, Dict, List, Optional, Set, Tuple, Type, Union, cast
 
 import serial
-from typing_extensions import Final
 
 from .htparams import HtParams, HtParamValueType
 from .httimeprog import TimeProgEntry, TimeProgram

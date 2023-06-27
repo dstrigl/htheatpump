@@ -32,9 +32,7 @@ from __future__ import annotations
 import csv
 import enum
 from os import path
-from typing import Any, Dict, ItemsView, KeysView, Optional, Tuple, Union, ValuesView
-
-# TODO from typing_extensions import get_args
+from typing import Any, Dict, ItemsView, KeysView, Optional, Tuple, Union, ValuesView, get_args
 
 from .utils import Singleton
 

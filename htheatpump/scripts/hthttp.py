@@ -75,7 +75,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any, cast
 from urllib import parse as urlparse
 
-from typing_extensions import Final
+from typing import Final
 
 from htheatpump.htheatpump import HtHeatpump
 from htheatpump.htparams import HtDataTypes, HtParams
