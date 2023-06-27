@@ -309,8 +309,8 @@ class HtParam:
             Will be raised if the passed value has an invalid type.
         """
         if isinstance(self, HtParam):  # called as a member method of HtParam
-            # TODO assert isinstance(arg, get_args(HtParamValueType))
-            HtParam._check_value_type(arg, self.data_type)  # type: ignore
+            assert isinstance(arg, get_args(HtParamValueType))
+            HtParam._check_value_type(arg, self.data_type)
         else:  # called as a static method of HtParam
             assert isinstance(arg, HtDataTypes)
             HtParam._check_value_type(self, arg)
@@ -364,8 +364,8 @@ class HtParam:
         :rtype: ``str``
         """
         if isinstance(self, HtParam):  # called as a member method of HtParam
-            # TODO assert isinstance(arg, get_args(HtParamValueType))
-            return HtParam._to_str(arg, self.data_type)  # type: ignore
+            assert isinstance(arg, get_args(HtParamValueType))
+            return HtParam._to_str(arg, self.data_type)
         else:  # called as a static method of HtParam
             assert isinstance(arg, HtDataTypes)
             return HtParam._to_str(self, arg)
