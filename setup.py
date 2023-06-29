@@ -20,7 +20,7 @@ def read(*parts: str) -> str:
 
 def get_version() -> str:
     """Get current version from code."""
-    regex = r"__version__\s=\s\"(?P<version>[\d\.]+?)\""
+    regex = r"__version__:\sFinal\s=\s\"(?P<version>[\d\.]+?)\""
     path = ("htheatpump", "__version__.py")
     match = re.search(regex, read(*path))
     assert match is not None
