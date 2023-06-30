@@ -24,6 +24,7 @@ from os import path
 from typing import Any, AsyncGenerator, Generator, Optional
 
 import pytest
+import pytest_asyncio
 
 from htheatpump.aiohtheatpump import AioHtHeatpump
 from htheatpump.htparams import HtDataTypes, HtParam, HtParams, HtParamValueType
@@ -331,7 +332,7 @@ def hthp(cmdopt_device: str, cmdopt_baudrate: int) -> Generator[AioHtHeatpump, N
         hthp.close_connection()
 
 
-@pytest.fixture()
+@pytest_asyncio.fixture()
 async def reconnect(hthp: AioHtHeatpump) -> AsyncGenerator[None, None]:
     hthp.reconnect()
     await hthp.login_async()
