@@ -32,7 +32,7 @@ from __future__ import annotations
 import csv
 import enum
 from os import path
-from typing import Any, Dict, ItemsView, KeysView, Optional, Tuple, Union, ValuesView  # , get_args
+from typing import Any, Dict, ItemsView, KeysView, Optional, Tuple, Union, ValuesView
 
 from .utils import Singleton
 
@@ -64,7 +64,7 @@ class HtDataTypes(enum.Enum):
     FLOAT = 3
 
     @staticmethod
-    def from_str(s: str) -> "HtDataTypes":
+    def from_str(s: str) -> HtDataTypes:
         """Create a corresponding enum representation for the passed string.
 
         :param s: The passed string.
@@ -309,7 +309,6 @@ class HtParam:
             Will be raised if the passed value has an invalid type.
         """
         if isinstance(self, HtParam):  # called as a member method of HtParam
-            # TODO assert isinstance(arg, get_args(HtParamValueType))
             HtParam._check_value_type(arg, self.data_type)  # type: ignore
         else:  # called as a static method of HtParam
             assert isinstance(arg, HtDataTypes)
@@ -364,7 +363,6 @@ class HtParam:
         :rtype: ``str``
         """
         if isinstance(self, HtParam):  # called as a member method of HtParam
-            # TODO assert isinstance(arg, get_args(HtParamValueType))
             return HtParam._to_str(arg, self.data_type)  # type: ignore
         else:  # called as a static method of HtParam
             assert isinstance(arg, HtDataTypes)
@@ -400,8 +398,8 @@ def _load_params_from_csv() -> Tuple[Dict[str, HtParam], str]:
         filename = path.join(path.dirname(path.abspath(__file__)), CSV_FILE)
     # print("HTHEATPUMP: load parameter definitions from: {}".format(filename))
     params = {}
-    with open(filename) as f:
-        reader = csv.reader(f, delimiter=",", skipinitialspace=True)
+    with open(filename, "r", encoding="utf-8") as file:
+        reader = csv.reader(file, delimiter=",", skipinitialspace=True)
         for row in reader:
             # continue for empty rows or comments (starts with character '#')
             if not row or row[0].startswith("#"):

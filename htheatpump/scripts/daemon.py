@@ -76,8 +76,8 @@ class Daemon:
             if pid > 0:
                 # exit first parent
                 sys.exit(0)
-        except OSError as e:
-            sys.stderr.write("fork #1 failed: {}\n".format(e))
+        except OSError as ex:
+            sys.stderr.write("fork #1 failed: {}\n".format(ex))
             sys.exit(1)
 
         # decouple from parent environment
@@ -91,8 +91,8 @@ class Daemon:
             if pid > 0:
                 # exit second parent
                 sys.exit(0)
-        except OSError as e:
-            sys.stderr.write("fork #2 failed: {}\n".format(e))
+        except OSError as ex:
+            sys.stderr.write("fork #2 failed: {}\n".format(ex))
             sys.exit(1)
 
         # write start message
@@ -112,8 +112,8 @@ class Daemon:
         atexit.register(self._delpid)
 
         # write pidfile
-        with open(self._pidfile, "w+") as f:
-            f.write("{}\n".format(os.getpid()))
+        with open(self._pidfile, "w+") as file:
+            file.write("{}\n".format(os.getpid()))
 
     def _delpid(self) -> None:
         # remove pidfile
@@ -123,8 +123,8 @@ class Daemon:
         """Start the daemon."""
         # check pidfile to see if the daemon already runs
         try:
-            with open(self._pidfile, "r") as f:
-                pid = int(f.read().strip())
+            with open(self._pidfile, "r") as file:
+                pid = int(file.read().strip())
         except IOError:
             pid = None
 
@@ -140,8 +140,8 @@ class Daemon:
         """Print the status of the daemon."""
         # get the PID from pidfile
         try:
-            with open(self._pidfile, "r") as f:
-                pid = int(f.read().strip())
+            with open(self._pidfile, "r") as file:
+                pid = int(file.read().strip())
         except IOError:
             sys.stderr.write("pidfile {} not found, daemon not running?\n".format(self._pidfile))
             sys.exit(1)
@@ -158,8 +158,8 @@ class Daemon:
         """Stop the daemon."""
         # get the PID from pidfile
         try:
-            with open(self._pidfile, "r") as f:
-                pid = int(f.read().strip())
+            with open(self._pidfile, "r") as file:
+                pid = int(file.read().strip())
         except IOError:
             sys.stderr.write("pidfile {} not found, daemon not running?\n".format(self._pidfile))
             sys.exit(1)
@@ -168,8 +168,8 @@ class Daemon:
         try:
             os.kill(pid, signal.SIGTERM)
             time.sleep(1)
-        except OSError as e:
-            sys.stderr.write("killing daemon process failed: {}\n".format(e))
+        except OSError as ex:
+            sys.stderr.write("killing daemon process failed: {}\n".format(ex))
             sys.exit(1)
 
         # remove pidfile
@@ -211,12 +211,12 @@ class MySampleDaemon(Daemon):
     def run(self) -> None:
         sys.stdout.write("Message to <stdout>.\n")
         sys.stderr.write("Message to <stderr>.\n")
-        c = 0
+        cnt = 0
         while True:
             # write counter and current time to stdout
-            sys.stdout.write("%d: %s\n" % (c, time.ctime(time.time())))
+            sys.stdout.write("%d: %s\n" % (cnt, time.ctime(time.time())))
             sys.stdout.flush()
-            c += 1
+            cnt += 1
             time.sleep(1)  # wait for 1s
 
 

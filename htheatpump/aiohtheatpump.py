@@ -355,9 +355,9 @@ class AioHtHeatpump(HtHeatpump):
                         raise IOError("invalid response for LOGIN command [{!r}]".format(resp))
                     else:
                         success = True
-                except Exception as e:
+                except Exception as ex:
                     retry += 1
-                    _LOGGER.warning("login try #%d failed: %s", retry, e)
+                    _LOGGER.warning("login try #%d failed: %s", retry, ex)
                     # try a reconnect, maybe this will help ;-)
                     self.reconnect()
             if not success:
@@ -380,9 +380,9 @@ class AioHtHeatpump(HtHeatpump):
                 if not m:
                     raise IOError("invalid response for LOGOUT command [{!r}]".format(resp))
                 _LOGGER.info("logout successfully")
-            except Exception as e:
+            except Exception as ex:
                 # just a warning, because it's possible that we can continue without any further problems
-                _LOGGER.warning("logout failed: %s", e)
+                _LOGGER.warning("logout failed: %s", ex)
                 # raise  # logout_async() should not fail!
 
     async def get_serial_number_async(self) -> int:
@@ -406,8 +406,8 @@ class AioHtHeatpump(HtHeatpump):
                 rid = int(m.group(1))
                 _LOGGER.debug("manufacturer's serial number = %d", rid)
                 return rid  # return the received manufacturer's serial number as an int
-            except Exception as e:
-                _LOGGER.error("query for manufacturer's serial number failed: %s", e)
+            except Exception as ex:
+                _LOGGER.error("query for manufacturer's serial number failed: %s", ex)
                 raise
 
     async def get_version_async(self) -> Tuple[str, int]:
@@ -444,8 +444,8 @@ class AioHtHeatpump(HtHeatpump):
                 ver = (m.group(1).strip(), int(m.group(2)))
                 _LOGGER.debug("software version = %s (%d)", *ver)
                 return ver
-            except Exception as e:
-                _LOGGER.error("query for software version failed: %s", e)
+            except Exception as ex:
+                _LOGGER.error("query for software version failed: %s", ex)
                 raise
 
     async def get_date_time_async(self) -> Tuple[datetime.datetime, int]:
@@ -483,8 +483,8 @@ class AioHtHeatpump(HtHeatpump):
                     dt,
                     weekday,
                 )  # return the heat pump's date and time as a datetime object
-            except Exception as e:
-                _LOGGER.error("query for date and time failed: %s", e)
+            except Exception as ex:
+                _LOGGER.error("query for date and time failed: %s", ex)
                 raise
 
     async def set_date_time_async(self, dt: Optional[datetime.datetime] = None) -> Tuple[datetime.datetime, int]:
@@ -537,8 +537,8 @@ class AioHtHeatpump(HtHeatpump):
                     dt,
                     weekday,
                 )  # return the heat pump's date and time as a datetime object
-            except Exception as e:
-                _LOGGER.error("set of date and time failed: %s", e)
+            except Exception as ex:
+                _LOGGER.error("set of date and time failed: %s", ex)
                 raise
 
     async def get_last_fault_async(self) -> Tuple[int, int, datetime.datetime, str]:
@@ -577,8 +577,8 @@ class AioHtHeatpump(HtHeatpump):
                 msg = m.group(9).strip()
                 _LOGGER.debug("(idx: %d, err: %d)[%s]: %s", idx, err, dt.isoformat(), msg)
                 return idx, err, dt, msg
-            except Exception as e:
-                _LOGGER.error("query for last fault message failed: %s", e)
+            except Exception as ex:
+                _LOGGER.error("query for last fault message failed: %s", ex)
                 raise
 
     async def get_fault_list_size_async(self) -> int:
@@ -602,8 +602,8 @@ class AioHtHeatpump(HtHeatpump):
                 size = int(m.group(1))
                 _LOGGER.debug("fault list size = %d", size)
                 return size
-            except Exception as e:
-                _LOGGER.error("query for fault list size failed: %s", e)
+            except Exception as ex:
+                _LOGGER.error("query for fault list size failed: %s", ex)
                 raise
 
     async def get_fault_list_async(self, *args: int) -> List[Dict[str, object]]:
@@ -686,8 +686,8 @@ class AioHtHeatpump(HtHeatpump):
                                 "message": msg,  # error message
                             }
                         )
-                except Exception as e:
-                    _LOGGER.error("query for fault list failed: %s", e)
+                except Exception as ex:
+                    _LOGGER.error("query for fault list failed: %s", ex)
                     raise
             return fault_list
 
@@ -718,8 +718,8 @@ class AioHtHeatpump(HtHeatpump):
             try:
                 resp = await self.read_response_async()
                 return self._extract_param_data(name, resp)
-            except Exception as e:
-                _LOGGER.error("query of parameter '%s' failed: %s", name, e)
+            except Exception as ex:
+                _LOGGER.error("query of parameter '%s' failed: %s", name, ex)
                 raise
 
     async def update_param_limits_async(self) -> List[str]:
@@ -782,8 +782,8 @@ class AioHtHeatpump(HtHeatpump):
             _LOGGER.debug("'%s' = %s", name, val)
             assert val is not None
             return val
-        except Exception as e:
-            _LOGGER.error("get parameter '%s' failed: %s", name, e)
+        except Exception as ex:
+            _LOGGER.error("get parameter '%s' failed: %s", name, ex)
             raise
 
     async def set_param_async(self, name: str, val: HtParamValueType, ignore_limits: bool = False) -> HtParamValueType:
@@ -843,8 +843,8 @@ class AioHtHeatpump(HtHeatpump):
                 _LOGGER.debug("'%s' = %s", name, ret)
                 assert ret is not None
                 return ret
-            except Exception as e:
-                _LOGGER.error("set parameter '%s' failed: %s", name, e)
+            except Exception as ex:
+                _LOGGER.error("set parameter '%s' failed: %s", name, ex)
                 raise
 
     @property
@@ -893,8 +893,8 @@ class AioHtHeatpump(HtHeatpump):
             # query for each parameter in the given list
             for name in args:
                 values.update({name: await self.get_param_async(name)})
-        except Exception as e:
-            _LOGGER.error("query of parameter(s) failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("query of parameter(s) failed: %s", ex)
             raise
         return values
 
@@ -991,8 +991,8 @@ class AioHtHeatpump(HtHeatpump):
                                 param.max_val,
                             )
                         values.update({name: val})
-                except Exception as e:
-                    _LOGGER.error("fast query of parameter(s) failed: %s", e)
+                except Exception as ex:
+                    _LOGGER.error("fast query of parameter(s) failed: %s", ex)
                     raise
             return values
 
@@ -1037,8 +1037,8 @@ class AioHtHeatpump(HtHeatpump):
                         nod,
                     )
                     time_progs.append(TimeProgram(idx, name, ead, nos, ste, nod))
-            except Exception as e:
-                _LOGGER.error("query for time programs failed: %s", e)
+            except Exception as ex:
+                _LOGGER.error("query for time programs failed: %s", ex)
                 raise
             return time_progs
 
@@ -1082,8 +1082,8 @@ class AioHtHeatpump(HtHeatpump):
                 )
                 time_prog = TimeProgram(idx, name, ead, nos, ste, nod)
                 return time_prog
-            except Exception as e:
-                _LOGGER.error("query for time program failed: %s", e)
+            except Exception as ex:
+                _LOGGER.error("query for time program failed: %s", ex)
                 raise
 
     async def _get_time_prog_with_entries_async(self, idx: int) -> TimeProgram:
@@ -1144,8 +1144,8 @@ class AioHtHeatpump(HtHeatpump):
                     )
                     time_prog.set_entry(day, num, TimeProgEntry.from_str(st, beg, end))
                 return time_prog
-            except Exception as e:
-                _LOGGER.error("query for time program with entries failed: %s", e)
+            except Exception as ex:
+                _LOGGER.error("query for time program with entries failed: %s", ex)
                 raise
 
     async def get_time_prog_async(self, idx: int, with_entries: bool = True) -> TimeProgram:
@@ -1211,8 +1211,8 @@ class AioHtHeatpump(HtHeatpump):
                     end,
                 )
                 return TimeProgEntry.from_str(st, beg, end)
-            except Exception as e:
-                _LOGGER.error("query for time program entry failed: %s", e)
+            except Exception as ex:
+                _LOGGER.error("query for time program entry failed: %s", ex)
                 raise
 
     async def set_time_prog_entry_async(self, idx: int, day: int, num: int, entry: TimeProgEntry) -> TimeProgEntry:
@@ -1268,8 +1268,8 @@ class AioHtHeatpump(HtHeatpump):
                     end,
                 )
                 return TimeProgEntry.from_str(st, beg, end)
-            except Exception as e:
-                _LOGGER.error("set time program entry failed: %s", e)
+            except Exception as ex:
+                _LOGGER.error("set time program entry failed: %s", ex)
                 raise
 
     async def set_time_prog_async(self, time_prog: TimeProgram) -> TimeProgram:

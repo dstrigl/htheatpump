@@ -211,14 +211,14 @@ async def main_async() -> None:
                                 }
                             )
                             success = True
-                        except Exception as e:
+                        except Exception as ex:
                             retry += 1
                             _LOGGER.warning(
                                 "try #%d/%d for query of data point '%s' failed: %s",
                                 retry,
                                 args.max_retries + 1,
                                 data_point,
-                                e,
+                                ex,
                             )
                             # try a reconnect, maybe this will help
                             hp.reconnect()  # perform a reconnect
@@ -245,7 +245,7 @@ async def main_async() -> None:
                     "htparams-{}-{}-{}.csv".format(rid, ver[0].replace(".", "_"), ver[1]),
                 )
             print("write data to: " + filename)
-            with open(filename, "w") as csvfile:
+            with open(filename, "w", encoding="utf-8") as csvfile:
                 header = (
                     "# name",
                     "data point type (MP;SP)",

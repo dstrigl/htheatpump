@@ -173,11 +173,11 @@ async def main_async() -> None:
 
             # write time program entry to JSON file
             if args.json:
-                with open(args.json, "w") as jsonfile:
+                with open(args.json, "w", encoding="utf-8") as jsonfile:
                     json.dump(time_prog_entry.as_json(), jsonfile, indent=4, sort_keys=True)
             # write time program entry to CSV file
             if args.csv:
-                with open(args.csv, "w") as csvfile:
+                with open(args.csv, "w", encoding="utf-8") as csvfile:
                     csvfile.write("# idx={:d}, day={:d}, entry={:d}".format(args.index, args.day, args.entry))
                     fieldnames = ["state", "start", "end"]
                     writer = csv.DictWriter(csvfile, delimiter=",", fieldnames=fieldnames)
@@ -191,12 +191,12 @@ async def main_async() -> None:
             exec_time = timer.elapsed
             print("[idx={:d}]: {!s}".format(args.index, time_prog))
             day_entries = time_prog.entries_of_day(args.day)
-            for num in range(len(day_entries)):
-                print("[day={:d}, entry={:d}]: {!s}".format(args.day, num, day_entries[num]))
+            for num, day_entry in enumerate(day_entries):
+                print("[day={:d}, entry={:d}]: {!s}".format(args.day, num, day_entry))
 
             # write time program entries of the specified day to JSON file
             if args.json:
-                with open(args.json, "w") as jsonfile:
+                with open(args.json, "w", encoding="utf-8") as jsonfile:
                     json.dump(
                         [entry.as_json() for entry in day_entries if entry is not None],
                         jsonfile,
@@ -205,14 +205,13 @@ async def main_async() -> None:
                     )
             # write time program entries of the specified day to CSV file
             if args.csv:
-                with open(args.csv, "w") as csvfile:
+                with open(args.csv, "w", encoding="utf-8") as csvfile:
                     csvfile.write("# {!s}\n".format(time_prog))
                     fieldnames = ["day", "entry", "state", "start", "end"]
                     writer = csv.DictWriter(csvfile, delimiter=",", fieldnames=fieldnames)
                     writer.writeheader()
-                    for num in range(len(day_entries)):
+                    for num, day_entry in enumerate(day_entries):
                         row = {"day": args.day, "entry": num}
-                        day_entry = day_entries[num]
                         assert day_entry is not None
                         row.update(day_entry.as_json())
                         writer.writerow(row)
@@ -231,11 +230,11 @@ async def main_async() -> None:
 
             # write time program entries to JSON file
             if args.json:
-                with open(args.json, "w") as jsonfile:
+                with open(args.json, "w", encoding="utf-8") as jsonfile:
                     json.dump(time_prog.as_json(), jsonfile, indent=4, sort_keys=True)
             # write time program entries to CSV file
             if args.csv:
-                with open(args.csv, "w") as csvfile:
+                with open(args.csv, "w", encoding="utf-8") as csvfile:
                     csvfile.write("# {!s}\n".format(time_prog))
                     fieldnames = ["day", "entry", "state", "start", "end"]
                     writer = csv.DictWriter(csvfile, delimiter=",", fieldnames=fieldnames)
@@ -263,11 +262,11 @@ async def main_async() -> None:
                 data.append(time_prog.as_json(with_entries=False))
             # write time programs to JSON file
             if args.json:
-                with open(args.json, "w") as jsonfile:
+                with open(args.json, "w", encoding="utf-8") as jsonfile:
                     json.dump(data, jsonfile, indent=4, sort_keys=True)
             # write time programs to CSV file
             if args.csv:
-                with open(args.csv, "w") as csvfile:
+                with open(args.csv, "w", encoding="utf-8") as csvfile:
                     writer = csv.DictWriter(csvfile, delimiter=",", fieldnames=keys)
                     writer.writeheader()
                     writer.writerows(data)

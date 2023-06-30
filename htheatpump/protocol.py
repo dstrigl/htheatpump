@@ -165,8 +165,7 @@ def calc_checksum(s: bytes) -> int:
     """
     assert isinstance(s, bytes)
     checksum = 0x0
-    for i in range(len(s)):
-        databyte = s[i]
+    for databyte in s:
         checksum ^= databyte
         databyte = (databyte << 1) & 0xFF
         checksum ^= databyte

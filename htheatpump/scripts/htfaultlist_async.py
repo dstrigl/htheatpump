@@ -184,11 +184,11 @@ async def main_async() -> None:
                 )
 
         if args.json:  # write fault list entries to JSON file
-            with open(args.json, "w") as jsonfile:
+            with open(args.json, "w", encoding="utf-8") as jsonfile:
                 json.dump(fault_list, jsonfile, indent=4, sort_keys=True)
 
         if args.csv:  # write fault list entries to CSV file
-            with open(args.csv, "w") as csvfile:
+            with open(args.csv, "w", encoding="utf-8") as csvfile:
                 fieldnames = ["index", "datetime", "error", "message"]
                 writer = csv.DictWriter(csvfile, delimiter=",", fieldnames=fieldnames)
                 writer.writeheader()

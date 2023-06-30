@@ -245,7 +245,7 @@ class HtHeatpump:
         if self._ser and self._ser.is_open:
             self._ser.close()
 
-    def __enter__(self) -> "HtHeatpump":
+    def __enter__(self) -> HtHeatpump:
         self.open_connection()
         return self
 
@@ -494,9 +494,9 @@ class HtHeatpump:
                     raise IOError("invalid response for LOGIN command [{!r}]".format(resp))
                 else:
                     success = True
-            except Exception as e:
+            except Exception as ex:
                 retry += 1
-                _LOGGER.warning("login try #%d failed: %s", retry, e)
+                _LOGGER.warning("login try #%d failed: %s", retry, ex)
                 # try a reconnect, maybe this will help ;-)
                 self.reconnect()
         if not success:
@@ -518,9 +518,9 @@ class HtHeatpump:
             if not m:
                 raise IOError("invalid response for LOGOUT command [{!r}]".format(resp))
             _LOGGER.info("logout successfully")
-        except Exception as e:
+        except Exception as ex:
             # just a warning, because it's possible that we can continue without any further problems
-            _LOGGER.warning("logout failed: %s", e)
+            _LOGGER.warning("logout failed: %s", ex)
             # raise  # logout() should not fail!
 
     def get_serial_number(self) -> int:
@@ -543,8 +543,8 @@ class HtHeatpump:
             rid = int(m.group(1))
             _LOGGER.debug("manufacturer's serial number = %d", rid)
             return rid  # return the received manufacturer's serial number as an int
-        except Exception as e:
-            _LOGGER.error("query for manufacturer's serial number failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("query for manufacturer's serial number failed: %s", ex)
             raise
 
     def get_version(self) -> Tuple[str, int]:
@@ -580,8 +580,8 @@ class HtHeatpump:
             ver = (m.group(1).strip(), int(m.group(2)))
             _LOGGER.debug("software version = %s (%d)", *ver)
             return ver
-        except Exception as e:
-            _LOGGER.error("query for software version failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("query for software version failed: %s", ex)
             raise
 
     def get_date_time(self) -> Tuple[datetime.datetime, int]:
@@ -618,8 +618,8 @@ class HtHeatpump:
                 dt,
                 weekday,
             )  # return the heat pump's date and time as a datetime object
-        except Exception as e:
-            _LOGGER.error("query for date and time failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("query for date and time failed: %s", ex)
             raise
 
     def set_date_time(self, dt: Optional[datetime.datetime] = None) -> Tuple[datetime.datetime, int]:
@@ -671,8 +671,8 @@ class HtHeatpump:
                 dt,
                 weekday,
             )  # return the heat pump's date and time as a datetime object
-        except Exception as e:
-            _LOGGER.error("set of date and time failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("set of date and time failed: %s", ex)
             raise
 
     def get_last_fault(self) -> Tuple[int, int, datetime.datetime, str]:
@@ -710,8 +710,8 @@ class HtHeatpump:
             msg = m.group(9).strip()
             _LOGGER.debug("(idx: %d, err: %d)[%s]: %s", idx, err, dt.isoformat(), msg)
             return idx, err, dt, msg
-        except Exception as e:
-            _LOGGER.error("query for last fault message failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("query for last fault message failed: %s", ex)
             raise
 
     def get_fault_list_size(self) -> int:
@@ -734,8 +734,8 @@ class HtHeatpump:
             size = int(m.group(1))
             _LOGGER.debug("fault list size = %d", size)
             return size
-        except Exception as e:
-            _LOGGER.error("query for fault list size failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("query for fault list size failed: %s", ex)
             raise
 
     def get_fault_list(self, *args: int) -> List[Dict[str, object]]:
@@ -811,8 +811,8 @@ class HtHeatpump:
                             "message": msg,  # error message
                         }
                     )
-            except Exception as e:
-                _LOGGER.error("query for fault list failed: %s", e)
+            except Exception as ex:
+                _LOGGER.error("query for fault list failed: %s", ex)
                 raise
         return fault_list
 
@@ -887,8 +887,8 @@ class HtHeatpump:
         try:
             resp = self.read_response()
             return self._extract_param_data(name, resp)
-        except Exception as e:
-            _LOGGER.error("query of parameter '%s' failed: %s", name, e)
+        except Exception as ex:
+            _LOGGER.error("query of parameter '%s' failed: %s", name, ex)
             raise
 
     def _verify_param_resp(
@@ -958,11 +958,11 @@ class HtHeatpump:
                     param.min_val,
                     param.max_val,
                 )
-        except Exception as e:
+        except Exception as ex:
             if self._verify_param_error:  # interpret as error?
                 raise
             else:  # ... or only as a warning?
-                _LOGGER.warning("response verification of param '%s' failed: %s", name, e)
+                _LOGGER.warning("response verification of param '%s' failed: %s", name, ex)
         return resp_val
 
     def update_param_limits(self) -> List[str]:
@@ -1025,8 +1025,8 @@ class HtHeatpump:
             _LOGGER.debug("'%s' = %s", name, val)
             assert val is not None
             return val
-        except Exception as e:
-            _LOGGER.error("get parameter '%s' failed: %s", name, e)
+        except Exception as ex:
+            _LOGGER.error("get parameter '%s' failed: %s", name, ex)
             raise
 
     def set_param(self, name: str, val: HtParamValueType, ignore_limits: bool = False) -> HtParamValueType:
@@ -1085,8 +1085,8 @@ class HtHeatpump:
             _LOGGER.debug("'%s' = %s", name, ret)
             assert ret is not None
             return ret
-        except Exception as e:
-            _LOGGER.error("set parameter '%s' failed: %s", name, e)
+        except Exception as ex:
+            _LOGGER.error("set parameter '%s' failed: %s", name, ex)
             raise
 
     @property
@@ -1135,8 +1135,8 @@ class HtHeatpump:
             # query for each parameter in the given list
             for name in args:
                 values.update({name: self.get_param(name)})
-        except Exception as e:
-            _LOGGER.error("query of parameter(s) failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("query of parameter(s) failed: %s", ex)
             raise
         return values
 
@@ -1230,8 +1230,8 @@ class HtHeatpump:
                             param.max_val,
                         )
                     values.update({name: val})
-            except Exception as e:
-                _LOGGER.error("fast query of parameter(s) failed: %s", e)
+            except Exception as ex:
+                _LOGGER.error("fast query of parameter(s) failed: %s", ex)
                 raise
         return values
 
@@ -1273,8 +1273,8 @@ class HtHeatpump:
                     nod,
                 )
                 time_progs.append(TimeProgram(idx, name, ead, nos, ste, nod))
-        except Exception as e:
-            _LOGGER.error("query for time programs failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("query for time programs failed: %s", ex)
             raise
         return time_progs
 
@@ -1315,8 +1315,8 @@ class HtHeatpump:
             )
             time_prog = TimeProgram(idx, name, ead, nos, ste, nod)
             return time_prog
-        except Exception as e:
-            _LOGGER.error("query for time program failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("query for time program failed: %s", ex)
             raise
 
     def _get_time_prog_with_entries(self, idx: int) -> TimeProgram:
@@ -1374,8 +1374,8 @@ class HtHeatpump:
                 )
                 time_prog.set_entry(day, num, TimeProgEntry.from_str(st, beg, end))
             return time_prog
-        except Exception as e:
-            _LOGGER.error("query for time program with entries failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("query for time program with entries failed: %s", ex)
             raise
 
     def get_time_prog(self, idx: int, with_entries: bool = True) -> TimeProgram:
@@ -1438,8 +1438,8 @@ class HtHeatpump:
                 end,
             )
             return TimeProgEntry.from_str(st, beg, end)
-        except Exception as e:
-            _LOGGER.error("query for time program entry failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("query for time program entry failed: %s", ex)
             raise
 
     def set_time_prog_entry(self, idx: int, day: int, num: int, entry: TimeProgEntry) -> TimeProgEntry:
@@ -1485,8 +1485,8 @@ class HtHeatpump:
                 end,
             )
             return TimeProgEntry.from_str(st, beg, end)
-        except Exception as e:
-            _LOGGER.error("set time program entry failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("set time program entry failed: %s", ex)
             raise
 
     def set_time_prog(self, time_prog: TimeProgram) -> TimeProgram:

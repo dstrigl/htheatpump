@@ -72,10 +72,8 @@ import sys
 import textwrap
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from typing import Any, cast
+from typing import Final, Any, cast
 from urllib import parse as urlparse
-
-from typing import Final
 
 from htheatpump.htheatpump import HtHeatpump
 from htheatpump.htparams import HtDataTypes, HtParams

@@ -26,18 +26,18 @@ from htheatpump.utils import Singleton, Timer
 
 # A simple Singleton class with one `int` member
 class MySingleton(Singleton):
-    val: int = -1
+    value: int = -1
 
-    def __init__(self, v: int):
-        self.val = v
+    def __init__(self, value: int):
+        self.value = value
 
 
 def test_SingletonClass() -> None:
     s1 = MySingleton(1)
-    assert s1.val == 1
+    assert s1.value == 1
     s2 = MySingleton(2)
-    assert s2.val == 2
-    assert s1.val == 2  # now, 's1' should also be 2
+    assert s2.value == 2
+    assert s1.value == 2  # now, 's1' should also be 2
 
 
 def test_Timer() -> None:

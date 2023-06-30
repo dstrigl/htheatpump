@@ -193,14 +193,14 @@ def main() -> None:
                                 }
                             )
                             success = True
-                        except Exception as e:
+                        except Exception as ex:
                             retry += 1
                             _LOGGER.warning(
                                 "try #%d/%d for query of data point '%s' failed: %s",
                                 retry,
                                 args.max_retries + 1,
                                 data_point,
-                                e,
+                                ex,
                             )
                             # try a reconnect, maybe this will help
                             hp.reconnect()  # perform a reconnect
@@ -220,11 +220,11 @@ def main() -> None:
         exec_time = timer.elapsed
 
         if args.json:  # write result to JSON file
-            with open(args.json, "w") as jsonfile:
+            with open(args.json, "w", encoding="utf-8") as jsonfile:
                 json.dump(result, jsonfile, indent=4, sort_keys=True)
 
         if args.csv:  # write result to CSV file
-            with open(args.csv, "w") as csvfile:
+            with open(args.csv, "w", encoding="utf-8") as csvfile:
                 fieldnames = ["type", "number", "name", "value", "min", "max"]
                 writer = csv.DictWriter(csvfile, delimiter=",", fieldnames=fieldnames)
                 writer.writeheader()
