@@ -1,7 +1,14 @@
 History
 =======
 
-1.3.2 (2022-01-13)
+1.3.3 (2023-??-??)
+------------------
+
+* updated copyright statements
+* dropped support for Python 3.7
+* added support for Python 3.9 and 3.10
+
+1.3.2 (2023-01-13)
 ------------------
 
 * updated copyright statements
