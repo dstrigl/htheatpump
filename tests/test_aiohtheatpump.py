@@ -25,6 +25,7 @@ import re
 from typing import AsyncGenerator, Generator, List, Set
 
 import pytest
+import pytest_asyncio
 
 from htheatpump.aiohtheatpump import AioHtHeatpump
 from htheatpump.htheatpump import VerifyAction
@@ -168,7 +169,7 @@ def hthp(cmdopt_device: str, cmdopt_baudrate: int) -> Generator[AioHtHeatpump, N
         hthp.close_connection()
 
 
-@pytest.fixture()
+@pytest_asyncio.fixture()
 async def reconnect(hthp: AioHtHeatpump) -> AsyncGenerator[None, None]:
     hthp.reconnect()
     await hthp.login_async()
