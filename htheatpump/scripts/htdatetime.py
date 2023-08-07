@@ -34,14 +34,15 @@ import datetime
 import logging
 import sys
 import textwrap
+from typing import Final
 
 from htheatpump.htheatpump import HtHeatpump
 from htheatpump.utils import Timer
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER: Final = logging.getLogger(__name__)
 
 
-WEEKDAYS = (
+WEEKDAYS: Final = (
     "Monday",
     "Tuesday",
     "Wednesday",
@@ -110,7 +111,9 @@ def main() -> None:
         help="baudrate of the serial connection (same as configured on the heat pump), default: %(default)s",
     )
 
-    parser.add_argument("-t", "--time", action="store_true", help="measure the execution time")
+    parser.add_argument(
+        "-t", "--time", action="store_true", help="measure the execution time"
+    )
 
     parser.add_argument(
         "-v",
@@ -143,7 +146,9 @@ def main() -> None:
 
         rid = hp.get_serial_number()
         if args.verbose:
-            _LOGGER.info("connected successfully to heat pump with serial number %d", rid)
+            _LOGGER.info(
+                "connected successfully to heat pump with serial number %d", rid
+            )
         ver = hp.get_version()
         if args.verbose:
             _LOGGER.info("software version = %s (%d)", *ver)

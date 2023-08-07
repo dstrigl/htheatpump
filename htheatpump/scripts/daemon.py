@@ -57,7 +57,13 @@ class Daemon:
         daemon.start()  # start the sample daemon
     """
 
-    def __init__(self, pidfile: str, stdin: str = "/dev/null", stdout: str = "/dev/null", stderr: str = "/dev/null"):
+    def __init__(
+        self,
+        pidfile: str,
+        stdin: str = "/dev/null",
+        stdout: str = "/dev/null",
+        stderr: str = "/dev/null",
+    ):
         self._pidfile = pidfile
         self._stdin = stdin if stdin is not None else "/dev/null"
         self._stdout = stdout if stdout is not None else "/dev/null"
@@ -101,9 +107,9 @@ class Daemon:
         # redirect standard file descriptors
         sys.stdout.flush()
         sys.stderr.flush()
-        si = open(self._stdin, "r")
-        so = open(self._stdout, "a+")
-        se = open(self._stderr, "a+")
+        si = open(self._stdin, "r")  # pylint: disable=W1514
+        so = open(self._stdout, "a+")  # pylint: disable=W1514
+        se = open(self._stderr, "a+")  # pylint: disable=W1514
         os.dup2(si.fileno(), sys.stdin.fileno())
         os.dup2(so.fileno(), sys.stdout.fileno())
         os.dup2(se.fileno(), sys.stderr.fileno())
@@ -112,7 +118,7 @@ class Daemon:
         atexit.register(self._delpid)
 
         # write pidfile
-        with open(self._pidfile, "w+") as file:
+        with open(self._pidfile, "w+") as file:  # pylint: disable=W1514
             file.write("{}\n".format(os.getpid()))
 
     def _delpid(self) -> None:
@@ -123,13 +129,17 @@ class Daemon:
         """Start the daemon."""
         # check pidfile to see if the daemon already runs
         try:
-            with open(self._pidfile, "r") as file:
+            with open(self._pidfile, "r") as file:  # pylint: disable=W1514
                 pid = int(file.read().strip())
         except IOError:
             pid = None
 
         if pid:
-            sys.stderr.write("pidfile {} already exist, daemon maybe already running?\n".format(self._pidfile))
+            sys.stderr.write(
+                "pidfile {} already exist, daemon maybe already running?\n".format(
+                    self._pidfile
+                )
+            )
             sys.exit(1)
 
         # start daemon
@@ -140,15 +150,17 @@ class Daemon:
         """Print the status of the daemon."""
         # get the PID from pidfile
         try:
-            with open(self._pidfile, "r") as file:
+            with open(self._pidfile, "r") as file:  # pylint: disable=W1514
                 pid = int(file.read().strip())
         except IOError:
-            sys.stderr.write("pidfile {} not found, daemon not running?\n".format(self._pidfile))
+            sys.stderr.write(
+                "pidfile {} not found, daemon not running?\n".format(self._pidfile)
+            )
             sys.exit(1)
 
         # look for daemon process in /proc
         try:
-            with open("/proc/{}/status".format(pid), "r"):
+            with open("/proc/{}/status".format(pid), "r"):  # pylint: disable=W1514
                 pass
             sys.stdout.write("process with PID {} found\n".format(pid))
         except IOError:
@@ -158,10 +170,12 @@ class Daemon:
         """Stop the daemon."""
         # get the PID from pidfile
         try:
-            with open(self._pidfile, "r") as file:
+            with open(self._pidfile, "r") as file:  # pylint: disable=W1514
                 pid = int(file.read().strip())
         except IOError:
-            sys.stderr.write("pidfile {} not found, daemon not running?\n".format(self._pidfile))
+            sys.stderr.write(
+                "pidfile {} not found, daemon not running?\n".format(self._pidfile)
+            )
             sys.exit(1)
 
         # try killing the daemon process

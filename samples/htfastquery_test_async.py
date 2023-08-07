@@ -27,7 +27,7 @@ from timeit import default_timer as timer
 from htheatpump.aiohtheatpump import AioHtHeatpump
 from htheatpump.htparams import HtParams
 
-# _LOGGER = logging.getLogger(__name__)
+# _LOGGER: Final = logging.getLogger(__name__)
 
 
 # Main program

@@ -45,12 +45,12 @@ import json
 import logging
 import sys
 import textwrap
-from typing import cast
+from typing import Final, cast
 
 from htheatpump.htheatpump import HtHeatpump
 from htheatpump.utils import Timer
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER: Final = logging.getLogger(__name__)
 
 
 # Main program
@@ -107,7 +107,9 @@ def main() -> None:
         help="baudrate of the serial connection (same as configured on the heat pump), default: %(default)s",
     )
 
-    parser.add_argument("-t", "--time", action="store_true", help="measure the execution time")
+    parser.add_argument(
+        "-t", "--time", action="store_true", help="measure the execution time"
+    )
 
     parser.add_argument(
         "-v",
@@ -123,11 +125,17 @@ def main() -> None:
         help="print only the last fault message of the heat pump",
     )
 
-    parser.add_argument("-j", "--json", type=str, help="write the fault list to the specified JSON file")
+    parser.add_argument(
+        "-j", "--json", type=str, help="write the fault list to the specified JSON file"
+    )
 
-    parser.add_argument("-c", "--csv", type=str, help="write the fault list to the specified CSV file")
+    parser.add_argument(
+        "-c", "--csv", type=str, help="write the fault list to the specified CSV file"
+    )
 
-    parser.add_argument("index", type=int, nargs="*", help="fault list index/indices to query for")
+    parser.add_argument(
+        "index", type=int, nargs="*", help="fault list index/indices to query for"
+    )
 
     args = parser.parse_args()
 
@@ -145,7 +153,9 @@ def main() -> None:
 
         rid = hp.get_serial_number()
         if args.verbose:
-            _LOGGER.info("connected successfully to heat pump with serial number %d", rid)
+            _LOGGER.info(
+                "connected successfully to heat pump with serial number %d", rid
+            )
         ver = hp.get_version()
         if args.verbose:
             _LOGGER.info("software version = %s (%d)", *ver)

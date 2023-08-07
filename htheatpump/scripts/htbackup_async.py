@@ -42,12 +42,12 @@ import logging
 import re
 import sys
 import textwrap
-from typing import Any, Dict
+from typing import Any, Dict, Final
 
 from htheatpump.aiohtheatpump import AioHtHeatpump
 from htheatpump.utils import Timer
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER: Final = logging.getLogger(__name__)
 
 
 # Main program
@@ -103,11 +103,17 @@ async def main_async() -> None:
         help="baudrate of the serial connection (same as configured on the heat pump), default: %(default)s",
     )
 
-    parser.add_argument("-j", "--json", type=str, help="write the result to the specified JSON file")
+    parser.add_argument(
+        "-j", "--json", type=str, help="write the result to the specified JSON file"
+    )
 
-    parser.add_argument("-c", "--csv", type=str, help="write the result to the specified CSV file")
+    parser.add_argument(
+        "-c", "--csv", type=str, help="write the result to the specified CSV file"
+    )
 
-    parser.add_argument("-t", "--time", action="store_true", help="measure the execution time")
+    parser.add_argument(
+        "-t", "--time", action="store_true", help="measure the execution time"
+    )
 
     parser.add_argument(
         "-v",
@@ -166,15 +172,21 @@ async def main_async() -> None:
                             resp = await hp.read_response_async()
                             # search for pattern "NAME=...", "VAL=...", "MAX=..." and "MIN=..." inside the answer
                             m = re.match(
-                                r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(data_point),
+                                r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(
+                                    data_point
+                                ),
                                 resp,
                             )
                             if not m:
                                 raise IOError(
-                                    "invalid response for query of data point {!r} [{}]".format(data_point, resp)
+                                    "invalid response for query of data point {!r} [{}]".format(
+                                        data_point, resp
+                                    )
                                 )
                             # extract name, value, min and max
-                            name, value, min_val, max_val = (g.strip() for g in m.group(1, 2, 4, 3))
+                            name, value, min_val, max_val = (
+                                g.strip() for g in m.group(1, 2, 4, 3)
+                            )
                             if args.without_values:
                                 value = ""  # keep it blank (if desired)
                             print(
@@ -206,7 +218,9 @@ async def main_async() -> None:
                             # try a reconnect, maybe this will help
                             hp.reconnect()  # perform a reconnect
                             try:
-                                await hp.login_async(max_retries=0)  # ... and a new login
+                                await hp.login_async(
+                                    max_retries=0
+                                )  # ... and a new login
                             except Exception:
                                 pass  # ignore a potential problem
                     if not success:
