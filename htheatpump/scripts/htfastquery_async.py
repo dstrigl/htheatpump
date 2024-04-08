@@ -41,12 +41,13 @@ import json
 import logging
 import sys
 import textwrap
+from typing import Final
 
 from htheatpump.aiohtheatpump import AioHtHeatpump
 from htheatpump.htparams import HtDataTypes, HtParams
 from htheatpump.utils import Timer
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER: Final = logging.getLogger(__name__)
 
 
 # Main program
@@ -101,7 +102,9 @@ async def main_async() -> None:
         help="baudrate of the serial connection (same as configured on the heat pump), default: %(default)s",
     )
 
-    parser.add_argument("-j", "--json", action="store_true", help="output will be in JSON format")
+    parser.add_argument(
+        "-j", "--json", action="store_true", help="output will be in JSON format"
+    )
 
     parser.add_argument(
         "--bool-as-int",
@@ -109,7 +112,9 @@ async def main_async() -> None:
         help="boolean values will be stored as '0' and '1'",
     )
 
-    parser.add_argument("-t", "--time", action="store_true", help="measure the execution time")
+    parser.add_argument(
+        "-t", "--time", action="store_true", help="measure the execution time"
+    )
 
     parser.add_argument(
         "-v",
@@ -142,7 +147,9 @@ async def main_async() -> None:
 
         rid = await hp.get_serial_number_async()
         if args.verbose:
-            _LOGGER.info("connected successfully to heat pump with serial number %d", rid)
+            _LOGGER.info(
+                "connected successfully to heat pump with serial number %d", rid
+            )
         ver = await hp.get_version_async()
         if args.verbose:
             _LOGGER.info("software version = %s (%d)", *ver)

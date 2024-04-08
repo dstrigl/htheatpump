@@ -181,7 +181,9 @@ class TestHtParam:
             # ...
         ],
     )
-    def test_to_str_static(self, val: HtParamValueType, data_type: HtDataTypes, exp_str: str) -> None:
+    def test_to_str_static(
+        self, val: HtParamValueType, data_type: HtDataTypes, exp_str: str
+    ) -> None:
         if exp_str is None:
             with pytest.raises(TypeError):
                 HtParam.to_str(val, data_type)
@@ -192,9 +194,13 @@ class TestHtParam:
     @pytest.mark.parametrize("param", HtParams.values())
     def test_to_str_member(self, param: HtParam) -> None:
         assert param.min_val is not None
-        assert param.to_str(param.min_val) == HtParam.to_str(param.min_val, param.data_type)
+        assert param.to_str(param.min_val) == HtParam.to_str(
+            param.min_val, param.data_type
+        )
         assert param.max_val is not None
-        assert param.to_str(param.max_val) == HtParam.to_str(param.max_val, param.data_type)
+        assert param.to_str(param.max_val) == HtParam.to_str(
+            param.max_val, param.data_type
+        )
         # assert 0
 
     @pytest.mark.parametrize("name, param", HtParams.items())
@@ -209,10 +215,14 @@ class TestHtParam:
         )
         # assert 0
 
-    @pytest.mark.parametrize("name, cmd", [(name, param.cmd()) for name, param in HtParams.items()])
+    @pytest.mark.parametrize(
+        "name, cmd", [(name, param.cmd()) for name, param in HtParams.items()]
+    )
     def test_cmd(self, name: str, cmd: str) -> None:
         m = re.match(r"^[S|M]P,NR=(\d+)$", cmd)
-        assert m is not None, "non valid command string for parameter {!r} [{!r}]".format(name, cmd)
+        assert (
+            m is not None
+        ), "non valid command string for parameter {!r} [{!r}]".format(name, cmd)
         # assert 0
 
     @pytest.mark.parametrize("name, param", HtParams.items())
@@ -262,7 +272,10 @@ class TestHtParam:
         ],
     )
     def test_set_limits_raises_TypeError(
-        self, data_type: HtDataTypes, min_val: Optional[HtParamValueType], max_val: Optional[HtParamValueType]
+        self,
+        data_type: HtDataTypes,
+        min_val: Optional[HtParamValueType],
+        max_val: Optional[HtParamValueType],
     ) -> None:
         param = HtParam("MP", 123, "r-", data_type)
         with pytest.raises(TypeError):
@@ -296,7 +309,9 @@ class TestHtParam:
             # ...
         ],
     )
-    def test_check_value_type(self, val: HtParamValueType, data_type: HtDataTypes) -> None:
+    def test_check_value_type(
+        self, val: HtParamValueType, data_type: HtDataTypes
+    ) -> None:
         HtParam.check_value_type(val, data_type)
         # assert 0
 
@@ -316,20 +331,24 @@ class TestHtParam:
             # ...
         ],
     )
-    def test_check_value_type_raises_TypeError(self, val: Any, data_type: HtDataTypes) -> None:
+    def test_check_value_type_raises_TypeError(
+        self, val: Any, data_type: HtDataTypes
+    ) -> None:
         with pytest.raises(TypeError):
             HtParam.check_value_type(val, data_type)
         # assert 0
 
 
 @pytest.fixture(scope="class")
-def hthp(cmdopt_device: str, cmdopt_baudrate: int) -> Generator[AioHtHeatpump, None, None]:
-    hthp = AioHtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
+def hthp(
+    cmdopt_device: str, cmdopt_baudrate: int
+) -> Generator[AioHtHeatpump, None, None]:
+    ht_hp = AioHtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
     try:
-        hthp.open_connection()
-        yield hthp  # provide the heat pump instance
+        ht_hp.open_connection()
+        yield ht_hp  # provide the heat pump instance
     finally:
-        hthp.close_connection()
+        ht_hp.close_connection()
 
 
 @pytest_asyncio.fixture()
@@ -341,20 +360,30 @@ async def reconnect(hthp: AioHtHeatpump) -> AsyncGenerator[None, None]:
 
 
 class TestHtParams:
-    @pytest.mark.parametrize("name, acl", [(name, param.acl) for name, param in HtParams.items()])
+    @pytest.mark.parametrize(
+        "name, acl", [(name, param.acl) for name, param in HtParams.items()]
+    )
     def test_acl(self, name: str, acl: str) -> None:
         assert acl is not None, "'acl' must not be None"
         m = re.match(r"^(r-|-w|rw)$", acl)
-        assert m is not None, "invalid acl definition for parameter {!r} [{!r}]".format(name, acl)
+        assert m is not None, "invalid acl definition for parameter {!r} [{!r}]".format(
+            name, acl
+        )
         # assert 0
 
     @pytest.mark.parametrize(
         "name, min_val, max_val",
         [(name, param.min_val, param.max_val) for name, param in HtParams.items()],
     )
-    def test_limits(self, name: str, min_val: HtParamValueType, max_val: HtParamValueType) -> None:
-        assert min_val is not None, "minimal value for parameter {!r} must not be None".format(name)
-        assert max_val is not None, "maximal value for parameter {!r} must not be None".format(name)
+    def test_limits(
+        self, name: str, min_val: HtParamValueType, max_val: HtParamValueType
+    ) -> None:
+        assert (
+            min_val is not None
+        ), "minimal value for parameter {!r} must not be None".format(name)
+        assert (
+            max_val is not None
+        ), "maximal value for parameter {!r} must not be None".format(name)
         assert min_val <= max_val
         assert max_val >= min_val
         # assert 0
@@ -370,7 +399,9 @@ class TestHtParams:
 
     def test_definition_file(self) -> None:
         assert HtParams.definition_file == path.normpath(
-            path.join(path.dirname(path.abspath(__file__)), "../htheatpump/", "htparams.csv")
+            path.join(
+                path.dirname(path.abspath(__file__)), "../htheatpump/", "htparams.csv"
+            )
         )
         # assert 0
 
@@ -378,31 +409,42 @@ class TestHtParams:
     @pytest.mark.usefixtures("reconnect")
     @pytest.mark.parametrize("name, param", HtParams.items())
     @pytest.mark.asyncio
-    async def test_validate_param(self, hthp: AioHtHeatpump, name: str, param: HtParam) -> None:
+    async def test_validate_param(
+        self, hthp: AioHtHeatpump, name: str, param: HtParam
+    ) -> None:
         await hthp.send_request_async(param.cmd())
         resp = await hthp.read_response_async()
         m = re.match(
-            r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(param.cmd()),
+            r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(
+                param.cmd()
+            ),
             resp,
         )
-        assert m is not None, "invalid response for query of parameter {!r} [{!r}]".format(name, resp)
+        assert (
+            m is not None
+        ), "invalid response for query of parameter {!r} [{!r}]".format(name, resp)
         dp_name = m.group(1).strip()
-        assert dp_name == name, "data point name doesn't match with the parameter name {!r} [{!r}]".format(
+        assert (
+            dp_name == name
+        ), "data point name doesn't match with the parameter name {!r} [{!r}]".format(
             name, dp_name
         )
         dp_value = param.from_str(m.group(2))
-        assert dp_value is not None, "data point value must not be None [{}]".format(dp_value)
+        assert dp_value is not None, "data point value must not be None [{}]".format(
+            dp_value
+        )
         dp_max = param.from_str(m.group(3))
         assert (
             dp_max == param.max_val
-        ), "data point max value doesn't match with the parameter's one {!s} [{!s}]".format(param.max_val, dp_max)
+        ), "data point max value doesn't match with the parameter's one {!s} [{!s}]".format(
+            param.max_val, dp_max
+        )
         dp_min = param.from_str(m.group(4))
         if name == "Verdichter laeuft seit" and dp_min == 10:
             dp_min = 0  # seems to be incorrect for the data point "Verdichter laeuft seit" [10 == 0]
         assert (
             dp_min == param.min_val
-        ), "data point min value doesn't match with the parameter's one {!s} [{!s}]".format(param.min_val, dp_min)
+        ), "data point min value doesn't match with the parameter's one {!s} [{!s}]".format(
+            param.min_val, dp_min
+        )
         # assert 0
-
-
-# TODO: add some more tests here

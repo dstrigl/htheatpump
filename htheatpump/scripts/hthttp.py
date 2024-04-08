@@ -80,7 +80,7 @@ from htheatpump.htparams import HtDataTypes, HtParams
 
 from .daemon import Daemon
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER: Final = logging.getLogger(__name__)
 
 
 class HttpGetException(Exception):
@@ -186,7 +186,10 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                     for name in HtParams.keys():
                         value = hp.get_param(name)
                         # convert boolean values to 0/1 (if desired)
-                        if args.bool_as_int and HtParams[name].data_type == HtDataTypes.BOOL:
+                        if (
+                            args.bool_as_int
+                            and HtParams[name].data_type == HtDataTypes.BOOL
+                        ):
                             value = 1 if value else 0
                         result.update({name: value})
                         _LOGGER.debug("%s: %s", name, value)
@@ -196,7 +199,10 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                     try:
                         # check if all requested/given parameter names are known and all passed values are valid
                         for query in qsl:
-                            name, value = query  # value is '' (blank string) for non given values
+                            (
+                                name,
+                                value,
+                            ) = query  # value is '' (blank string) for non given values
                             # try to convert the passed value (if given) to the specific data type
                             value = HtParams[name].from_str(value) if value else None
                             params.update({name: value})
@@ -215,14 +221,19 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                             # set the parameter of the heat pump to the passed value
                             value = hp.set_param(name, value)
                         # convert boolean values to 0/1 (if desired)
-                        if args.bool_as_int and HtParams[name].data_type == HtDataTypes.BOOL:
+                        if (
+                            args.bool_as_int
+                            and HtParams[name].data_type == HtDataTypes.BOOL
+                        ):
                             value = 1 if value else 0
                         result.update({name: value})
                         _LOGGER.debug("%s: %s", name, value)
 
             elif parsed_path.path.lower() == "/":
                 # query for some properties of the connected heat pump
-                property_id = hp.get_param("Liegenschaft") if "Liegenschaft" in HtParams else 0
+                property_id = (
+                    hp.get_param("Liegenschaft") if "Liegenschaft" in HtParams else 0
+                )
                 serial_number = hp.get_serial_number()
                 software_version, _ = hp.get_version()
                 dt, _ = hp.get_date_time()
@@ -242,7 +253,9 @@ class HttpGetHandler(BaseHTTPRequestHandler):
 
             else:
                 # for an invalid url request: HTTP response 400 = Bad Request
-                raise HttpGetException(400, "invalid url request {!r}".format(parsed_path.path.lower()))
+                raise HttpGetException(
+                    400, "invalid url request {!r}".format(parsed_path.path.lower())
+                )
 
         except HttpGetException as ex:
             _LOGGER.exception(ex)
@@ -277,7 +290,9 @@ class HtHttpDaemon(Daemon):
             hp.open_connection()
             hp.login()
             rid = hp.get_serial_number()
-            _LOGGER.info("Connected successfully to heat pump with serial number: %d", rid)
+            _LOGGER.info(
+                "Connected successfully to heat pump with serial number: %d", rid
+            )
             ver = hp.get_version()
             _LOGGER.info("Software version: %s (%d)", *ver)
             hp.logout()

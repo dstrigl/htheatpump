@@ -42,7 +42,7 @@ from htheatpump.httimeprog import TimeProgEntry, TimeProgram
     ],
 )
 def test_calc_checksum(s: bytes, checksum: int) -> None:
-    from htheatpump.protocol import calc_checksum
+    from htheatpump.protocol import calc_checksum  # pylint: disable=C0415
 
     assert calc_checksum(s) == checksum
     # assert 0
@@ -50,7 +50,7 @@ def test_calc_checksum(s: bytes, checksum: int) -> None:
 
 @pytest.mark.parametrize("s", [b"", b"\x01"])
 def test_verify_checksum_raises_ValueError(s: bytes) -> None:
-    from htheatpump.protocol import verify_checksum
+    from htheatpump.protocol import verify_checksum  # pylint: disable=C0415
 
     with pytest.raises(ValueError):
         verify_checksum(s)
@@ -68,7 +68,7 @@ def test_verify_checksum_raises_ValueError(s: bytes) -> None:
     ],
 )
 def test_verify_checksum(s: bytes, result: bool) -> None:
-    from htheatpump.protocol import verify_checksum
+    from htheatpump.protocol import verify_checksum  # pylint: disable=C0415
 
     assert verify_checksum(s) == result
     # assert 0
@@ -76,7 +76,7 @@ def test_verify_checksum(s: bytes, result: bool) -> None:
 
 @pytest.mark.parametrize("s", [b""])
 def test_add_checksum_raises_ValueError(s: bytes) -> None:
-    from htheatpump.protocol import add_checksum
+    from htheatpump.protocol import add_checksum  # pylint: disable=C0415
 
     with pytest.raises(ValueError):
         add_checksum(s)
@@ -106,7 +106,7 @@ def test_add_checksum_raises_ValueError(s: bytes) -> None:
     ],
 )
 def test_add_checksum(s: bytes, result: bytes) -> None:
-    from htheatpump.protocol import add_checksum
+    from htheatpump.protocol import add_checksum  # pylint: disable=C0415
 
     assert add_checksum(s) == result
     # assert 0
@@ -114,7 +114,7 @@ def test_add_checksum(s: bytes, result: bytes) -> None:
 
 @pytest.mark.parametrize("cmd", ["?" * 254])
 def test_create_request_raises_ValueError(cmd: str) -> None:
-    from htheatpump.protocol import create_request
+    from htheatpump.protocol import create_request  # pylint: disable=C0415
 
     with pytest.raises(ValueError):
         create_request(cmd)
@@ -131,7 +131,7 @@ def test_create_request_raises_ValueError(cmd: str) -> None:
     ],
 )
 def test_create_request(cmd: str, result: bytes) -> None:
-    from htheatpump.protocol import create_request
+    from htheatpump.protocol import create_request  # pylint: disable=C0415
 
     assert create_request(cmd) == result
     # assert 0
@@ -159,12 +159,12 @@ def test_HtHeatpump_enter_exit(cmdopt_device: str, cmdopt_baudrate: int) -> None
 
 @pytest.fixture(scope="class")
 def hthp(cmdopt_device: str, cmdopt_baudrate: int) -> Generator[HtHeatpump, None, None]:
-    hthp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
+    ht_hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
     try:
-        hthp.open_connection()
-        yield hthp  # provide the heat pump instance
+        ht_hp.open_connection()
+        yield ht_hp  # provide the heat pump instance
     finally:
-        hthp.close_connection()
+        ht_hp.close_connection()
 
 
 @pytest.fixture()
@@ -197,7 +197,9 @@ class TestHtHeatpump:
             VerifyAction.ALL(),
         ],
     )
-    def test_verify_param_action(self, cmdopt_device: str, cmdopt_baudrate: int, action: Set[VerifyAction]) -> None:
+    def test_verify_param_action(
+        self, cmdopt_device: str, cmdopt_baudrate: int, action: Set[VerifyAction]
+    ) -> None:
         hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
         val = hp.verify_param_action
         assert isinstance(val, set)
@@ -253,7 +255,9 @@ class TestHtHeatpump:
         hthp.send_request(r"SP,NR=9")
         resp = hthp.read_response()
         m = re.match(r"^SP,NR=9,.*NAME=([^,]+).*VAL=([^,]+).*$", resp)
-        assert m is not None, "invalid response for query of the software version [{!r}]".format(resp)
+        assert (
+            m is not None
+        ), "invalid response for query of the software version [{!r}]".format(resp)
         assert ver_str == m.group(1).strip()
         assert ver_num == int(m.group(2))
         # assert 0
@@ -277,7 +281,9 @@ class TestHtHeatpump:
         pass  # TODO
         # assert 0
 
-    def test_set_date_time_raises_TypeError(self, cmdopt_device: str, cmdopt_baudrate: int) -> None:
+    def test_set_date_time_raises_TypeError(
+        self, cmdopt_device: str, cmdopt_baudrate: int
+    ) -> None:
         hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
         with pytest.raises(TypeError):
             hp.set_date_time(123)  # type: ignore
@@ -420,7 +426,9 @@ class TestHtHeatpump:
                 assert isinstance(error, int), "'error' must be of type int"
                 assert error >= 0
                 dt = entry["datetime"]
-                assert isinstance(dt, datetime.datetime), "'dt' must be of type datetime"
+                assert isinstance(
+                    dt, datetime.datetime
+                ), "'dt' must be of type datetime"
                 msg = entry["message"]
                 assert isinstance(msg, str), "'msg' must be of type str"
         # assert 0
@@ -434,7 +442,9 @@ class TestHtHeatpump:
         assert param.in_limits(value)
         # assert 0
 
-    def test_get_param_raises_KeyError(self, cmdopt_device: str, cmdopt_baudrate: int) -> None:
+    def test_get_param_raises_KeyError(
+        self, cmdopt_device: str, cmdopt_baudrate: int
+    ) -> None:
         hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
         with pytest.raises(KeyError):
             hp.get_param("BlaBlaBla")
@@ -447,7 +457,9 @@ class TestHtHeatpump:
         pass  # TODO
         # assert 0
 
-    def test_set_param_raises_KeyError(self, cmdopt_device: str, cmdopt_baudrate: int) -> None:
+    def test_set_param_raises_KeyError(
+        self, cmdopt_device: str, cmdopt_baudrate: int
+    ) -> None:
         hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
         with pytest.raises(KeyError):
             hp.set_param("BlaBlaBla", 123)
@@ -455,7 +467,11 @@ class TestHtHeatpump:
 
     @pytest.mark.parametrize(
         "name, param",
-        [(name, param) for name, param in HtParams.items() if param.data_type in (HtDataTypes.INT, HtDataTypes.FLOAT)],
+        [
+            (name, param)
+            for name, param in HtParams.items()
+            if param.data_type in (HtDataTypes.INT, HtDataTypes.FLOAT)
+        ],
     )
     def test_set_param_raises_ValueError(
         self, cmdopt_device: str, cmdopt_baudrate: int, name: str, param: HtParam
@@ -499,7 +515,10 @@ class TestHtHeatpump:
     @pytest.mark.usefixtures("reconnect")
     @pytest.mark.parametrize(
         "names",
-        [random.sample(sorted(HtParams.keys()), cnt) for cnt in range(len(HtParams) + 1)],
+        [
+            random.sample(sorted(HtParams.keys()), cnt)
+            for cnt in range(len(HtParams) + 1)
+        ],
     )
     def test_query_with_names(self, hthp: HtHeatpump, names: List[str]) -> None:
         values = hthp.query(*names)
@@ -533,7 +552,10 @@ class TestHtHeatpump:
     @pytest.mark.usefixtures("reconnect")
     @pytest.mark.parametrize(
         "names",
-        [random.sample(sorted(HtParams.of_type("MP").keys()), cnt) for cnt in range(len(HtParams.of_type("MP")) + 1)],
+        [
+            random.sample(sorted(HtParams.of_type("MP").keys()), cnt)
+            for cnt in range(len(HtParams.of_type("MP")) + 1)
+        ],
     )
     def test_fast_query_with_names(self, hthp: HtHeatpump, names: List[str]) -> None:
         values = hthp.fast_query(*names)
@@ -546,7 +568,9 @@ class TestHtHeatpump:
             assert HtParams[name].in_limits(value)
         # assert 0
 
-    def test_fast_query_with_names_raises_KeyError(self, cmdopt_device: str, cmdopt_baudrate: int) -> None:
+    def test_fast_query_with_names_raises_KeyError(
+        self, cmdopt_device: str, cmdopt_baudrate: int
+    ) -> None:
         hp = HtHeatpump(device=cmdopt_device, baudrate=cmdopt_baudrate)
         with pytest.raises(KeyError):
             hp.fast_query("BlaBlaBla")
@@ -573,7 +597,9 @@ class TestHtHeatpump:
     def test_fast_query_in_several_pieces(self, hthp: HtHeatpump) -> None:
         args = []
         cmd = ""
-        mp_data_points = [(name, param) for name, param in HtParams.items() if param.dp_type == "MP"]
+        mp_data_points = [
+            (name, param) for name, param in HtParams.items() if param.dp_type == "MP"
+        ]
         while len(cmd) < 255 * 2:  # request has do be done in 3 parts
             name, param = random.choice(mp_data_points)
             cmd += ",{}".format(param.dp_number)
@@ -599,12 +625,18 @@ class TestHtHeatpump:
 
     @pytest.mark.run_if_connected
     @pytest.mark.usefixtures("reconnect")
-    @pytest.mark.parametrize("index", range(5))  # TODO range(5) -> range(len(hthp.get_time_progs()))
+    @pytest.mark.parametrize(
+        "index", range(5)
+    )  # TODO range(5) -> range(len(hthp.get_time_progs()))
     def test_get_time_prog(self, hthp: HtHeatpump, index: int) -> None:
         time_prog = hthp.get_time_prog(index, with_entries=False)
-        assert isinstance(time_prog, TimeProgram), "'time_prog' must be of type TimeProgram"
+        assert isinstance(
+            time_prog, TimeProgram
+        ), "'time_prog' must be of type TimeProgram"
         time_prog = hthp.get_time_prog(index, with_entries=True)
-        assert isinstance(time_prog, TimeProgram), "'time_prog' must be of type TimeProgram"
+        assert isinstance(
+            time_prog, TimeProgram
+        ), "'time_prog' must be of type TimeProgram"
         # assert 0
 
     @pytest.mark.run_if_connected
@@ -622,10 +654,15 @@ class TestHtHeatpump:
     @pytest.mark.parametrize(
         "index, day, num",
         [  # for ALL time program entries
-            (index, day, num) for index in range(5) for day in range(7) for num in range(7)
+            (index, day, num)
+            for index in range(5)
+            for day in range(7)
+            for num in range(7)
         ],
     )
-    def test_get_time_prog_entry(self, hthp: HtHeatpump, index: int, day: int, num: int) -> None:
+    def test_get_time_prog_entry(
+        self, hthp: HtHeatpump, index: int, day: int, num: int
+    ) -> None:
         entry = hthp.get_time_prog_entry(index, day, num)
         assert isinstance(entry, TimeProgEntry), "'entry' must be of type TimeProgEntry"
         # assert 0
@@ -640,7 +677,9 @@ class TestHtHeatpump:
             (0, 0, 7),  # num=7 is invalid
         ],
     )
-    def test_get_time_prog_entry_raises_IOError(self, hthp: HtHeatpump, index: int, day: int, num: int) -> None:
+    def test_get_time_prog_entry_raises_IOError(
+        self, hthp: HtHeatpump, index: int, day: int, num: int
+    ) -> None:
         with pytest.raises(IOError):
             hthp.get_time_prog_entry(index, day, num)
         # assert 0
@@ -656,6 +695,3 @@ class TestHtHeatpump:
     def test_set_time_prog(self, hthp: HtHeatpump) -> None:
         pass  # TODO
         # assert 0
-
-
-# TODO: add some more tests here

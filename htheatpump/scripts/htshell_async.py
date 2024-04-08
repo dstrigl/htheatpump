@@ -35,11 +35,12 @@ import asyncio
 import logging
 import sys
 import textwrap
+from typing import Final
 
 from htheatpump.aiohtheatpump import AioHtHeatpump
 from htheatpump.utils import Timer
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER: Final = logging.getLogger(__name__)
 
 
 # Main program
@@ -107,7 +108,9 @@ async def main_async() -> None:
         help="number of expected responses for each given command, default: %(default)s",
     )
 
-    parser.add_argument("-t", "--time", action="store_true", help="measure the execution time")
+    parser.add_argument(
+        "-t", "--time", action="store_true", help="measure the execution time"
+    )
 
     parser.add_argument(
         "-v",
@@ -139,7 +142,9 @@ async def main_async() -> None:
 
         rid = await hp.get_serial_number_async()
         if args.verbose:
-            _LOGGER.info("connected successfully to heat pump with serial number %d", rid)
+            _LOGGER.info(
+                "connected successfully to heat pump with serial number %d", rid
+            )
         ver = await hp.get_version_async()
         if args.verbose:
             _LOGGER.info("software version = %s (%d)", *ver)

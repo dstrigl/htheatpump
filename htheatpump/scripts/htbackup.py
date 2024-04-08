@@ -41,12 +41,12 @@ import logging
 import re
 import sys
 import textwrap
-from typing import Any, Dict
+from typing import Any, Dict, Final
 
 from htheatpump.htheatpump import HtHeatpump
 from htheatpump.utils import Timer
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER: Final = logging.getLogger(__name__)
 
 
 # Main program
@@ -102,11 +102,17 @@ def main() -> None:
         help="baudrate of the serial connection (same as configured on the heat pump), default: %(default)s",
     )
 
-    parser.add_argument("-j", "--json", type=str, help="write the result to the specified JSON file")
+    parser.add_argument(
+        "-j", "--json", type=str, help="write the result to the specified JSON file"
+    )
 
-    parser.add_argument("-c", "--csv", type=str, help="write the result to the specified CSV file")
+    parser.add_argument(
+        "-c", "--csv", type=str, help="write the result to the specified CSV file"
+    )
 
-    parser.add_argument("-t", "--time", action="store_true", help="measure the execution time")
+    parser.add_argument(
+        "-t", "--time", action="store_true", help="measure the execution time"
+    )
 
     parser.add_argument(
         "-v",
