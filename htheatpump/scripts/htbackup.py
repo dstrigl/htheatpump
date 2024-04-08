@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #  htheatpump - Serial communication module for Heliotherm heat pumps
-#  Copyright (C) 2022  Daniel Strigl
+#  Copyright (C) 2023  Daniel Strigl
 
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -41,15 +41,16 @@ import logging
 import re
 import sys
 import textwrap
+from typing import Any, Dict
 
-from htheatpump import HtHeatpump
+from htheatpump.htheatpump import HtHeatpump
 from htheatpump.utils import Timer
 
 _LOGGER = logging.getLogger(__name__)
 
 
 # Main program
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description=textwrap.dedent(
             """\
@@ -147,7 +148,7 @@ def main():
         ver = hp.get_version()
         print("software version = {} ({:d})".format(ver[0], ver[1]))
 
-        result = {}
+        result: Dict[str, Dict[int, Dict[str, Any]]] = {}
         with Timer() as timer:
             for dp_type in ("SP", "MP"):  # for all known data point types
                 result.update({dp_type: {}})
@@ -207,14 +208,14 @@ def main():
                                 }
                             )
                             success = True
-                        except Exception as e:
+                        except Exception as ex:
                             retry += 1
                             _LOGGER.warning(
                                 "try #%d/%d for query of data point '%s' failed: %s",
                                 retry,
                                 args.max_retries + 1,
                                 data_point,
-                                e,
+                                ex,
                             )
                             # try a reconnect, maybe this will help
                             hp.reconnect()  # perform a reconnect
@@ -234,7 +235,7 @@ def main():
         exec_time = timer.elapsed
 
         if args.json:  # write result to JSON file
-            with open(args.json, "w") as jsonfile:
+            with open(args.json, "w", encoding="utf-8") as jsonfile:
                 json.dump(result, jsonfile, indent=4, sort_keys=True)
 
         if args.csv:  # write result to CSV file

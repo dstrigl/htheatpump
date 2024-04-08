@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #  htheatpump - Serial communication module for Heliotherm heat pumps
-#  Copyright (C) 2022  Daniel Strigl
+#  Copyright (C) 2023  Daniel Strigl
 
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -23,12 +23,8 @@ from .__version__ import __version__
 
 
 # Main program
-def main():
-    print(
-        "[htheatpump=={}]: Easy-to-use Python communication module for Heliotherm heat pumps.".format(
-            __version__
-        )
-    )
+def main() -> None:
+    print("[htheatpump=={}]: Easy-to-use Python communication module for Heliotherm heat pumps.".format(__version__))
     sys.exit(0)
 
 

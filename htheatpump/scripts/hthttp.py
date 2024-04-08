@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #  htheatpump - Serial communication module for Heliotherm heat pumps
-#  Copyright (C) 2022  Daniel Strigl
+#  Copyright (C) 2023  Daniel Strigl
 
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -72,9 +72,11 @@ import sys
 import textwrap
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from typing import Final, Any, cast
 from urllib import parse as urlparse
 
-from htheatpump import HtDataTypes, HtHeatpump, HtParams
+from htheatpump.htheatpump import HtHeatpump
+from htheatpump.htparams import HtDataTypes, HtParams
 
 from .daemon import Daemon
 
@@ -82,29 +84,34 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class HttpGetException(Exception):
-    def __init__(self, response_code, message):
+    def __init__(self, response_code: int, message: str):
         super().__init__(self, message)
         self._response_code = response_code
 
     @property
-    def response_code(self):
+    def response_code(self) -> int:
         return self._response_code
 
 
+args: argparse.Namespace
+hp: HtHeatpump
+
+
 class HttpGetHandler(BaseHTTPRequestHandler):
+    DATETIME_SYNC_PATH: Final = r"^\/datetime\/sync\/?$"
+    DATETIME_PATH: Final = r"^\/datetime\/?$"
+    FAULTLIST_LAST_PATH: Final = r"^\/faultlist\/last\/?$"
+    FAULTLIST_PATH: Final = r"^\/faultlist\/?$"
+    TIMEPROG_PATH: Final = r"^\/timeprog\/(\d+)\/?$"
+    TIMEPROGS_PATH: Final = r"^\/timeprog\/?$"
+    PARAM_PATH: Final = r"^\/param\/?$"
 
-    DATETIME_SYNC_PATH = r"^\/datetime\/sync\/?$"
-    DATETIME_PATH = r"^\/datetime\/?$"
-    FAULTLIST_LAST_PATH = r"^\/faultlist\/last\/?$"
-    FAULTLIST_PATH = r"^\/faultlist\/?$"
-    TIMEPROG_PATH = r"^\/timeprog\/(\d+)\/?$"
-    TIMEPROGS_PATH = r"^\/timeprog\/?$"
-    PARAM_PATH = r"^\/param\/?$"
-
-    def do_GET(self):
+    def do_GET(self) -> None:
         parsed_path = urlparse.urlparse(self.path)
         _LOGGER.info(parsed_path.path.lower())
 
+        result: Any
+        value: Any
         try:
             hp.reconnect()
             hp.login()
@@ -137,7 +144,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                 result = []
                 for entry in hp.get_fault_list():
                     entry.update(
-                        {"datetime": entry["datetime"].isoformat()}
+                        {"datetime": cast(datetime, entry["datetime"]).isoformat()}
                     )  # convert datetime dict entry to string
                     result.append(entry)
                     _LOGGER.debug(
@@ -151,6 +158,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
             elif re.match(self.TIMEPROG_PATH, parsed_path.path.lower()):
                 # query for a specific time program of the heat pump (including all time program entries)
                 m = re.match(self.TIMEPROG_PATH, parsed_path.path.lower())
+                assert m is not None  # TODO
                 try:
                     idx = int(m.group(1))
                 except ValueError as ex:
@@ -178,10 +186,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                     for name in HtParams.keys():
                         value = hp.get_param(name)
                         # convert boolean values to 0/1 (if desired)
-                        if (
-                            args.bool_as_int
-                            and HtParams[name].data_type == HtDataTypes.BOOL
-                        ):
+                        if args.bool_as_int and HtParams[name].data_type == HtDataTypes.BOOL:
                             value = 1 if value else 0
                         result.update({name: value})
                         _LOGGER.debug("%s: %s", name, value)
@@ -191,10 +196,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                     try:
                         # check if all requested/given parameter names are known and all passed values are valid
                         for query in qsl:
-                            (
-                                name,
-                                value,
-                            ) = query  # value is '' (blank string) for non given values
+                            name, value = query  # value is '' (blank string) for non given values
                             # try to convert the passed value (if given) to the specific data type
                             value = HtParams[name].from_str(value) if value else None
                             params.update({name: value})
@@ -213,19 +215,14 @@ class HttpGetHandler(BaseHTTPRequestHandler):
                             # set the parameter of the heat pump to the passed value
                             value = hp.set_param(name, value)
                         # convert boolean values to 0/1 (if desired)
-                        if (
-                            args.bool_as_int
-                            and HtParams[name].data_type == HtDataTypes.BOOL
-                        ):
+                        if args.bool_as_int and HtParams[name].data_type == HtDataTypes.BOOL:
                             value = 1 if value else 0
                         result.update({name: value})
                         _LOGGER.debug("%s: %s", name, value)
 
             elif parsed_path.path.lower() == "/":
                 # query for some properties of the connected heat pump
-                property_id = (
-                    hp.get_param("Liegenschaft") if "Liegenschaft" in HtParams else 0
-                )
+                property_id = hp.get_param("Liegenschaft") if "Liegenschaft" in HtParams else 0
                 serial_number = hp.get_serial_number()
                 software_version, _ = hp.get_version()
                 dt, _ = hp.get_date_time()
@@ -245,9 +242,7 @@ class HttpGetHandler(BaseHTTPRequestHandler):
 
             else:
                 # for an invalid url request: HTTP response 400 = Bad Request
-                raise HttpGetException(
-                    400, "invalid url request {!r}".format(parsed_path.path.lower())
-                )
+                raise HttpGetException(400, "invalid url request {!r}".format(parsed_path.path.lower()))
 
         except HttpGetException as ex:
             _LOGGER.exception(ex)
@@ -274,17 +269,15 @@ class HttpGetHandler(BaseHTTPRequestHandler):
 
 
 class HtHttpDaemon(Daemon):
-    def run(self):
+    def run(self) -> None:
         _LOGGER.info("=== HtHttpDaemon.run() %s", "=" * 100)
-        global hp
         try:
+            global hp
             hp = HtHeatpump(args.device, baudrate=args.baudrate)
             hp.open_connection()
             hp.login()
             rid = hp.get_serial_number()
-            _LOGGER.info(
-                "Connected successfully to heat pump with serial number: %d", rid
-            )
+            _LOGGER.info("Connected successfully to heat pump with serial number: %d", rid)
             ver = hp.get_version()
             _LOGGER.info("Software version: %s (%d)", *ver)
             hp.logout()
@@ -300,7 +293,7 @@ class HtHttpDaemon(Daemon):
 
 
 # Main program
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description=textwrap.dedent(
             """\

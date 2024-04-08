@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #  htheatpump - Serial communication module for Heliotherm heat pumps
-#  Copyright (C) 2022  Daniel Strigl
+#  Copyright (C) 2023  Daniel Strigl
 
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ import logging
 import sys
 import textwrap
 
-from htheatpump import AioHtHeatpump
+from htheatpump.aiohtheatpump import AioHtHeatpump
 from htheatpump.utils import Timer
 
 _LOGGER = logging.getLogger(__name__)
@@ -54,7 +54,7 @@ WEEKDAYS = (
 
 
 # Main program
-async def main_async():
+async def main_async() -> None:
     parser = argparse.ArgumentParser(
         description=textwrap.dedent(
             """\
@@ -111,9 +111,7 @@ async def main_async():
         help="baudrate of the serial connection (same as configured on the heat pump), default: %(default)s",
     )
 
-    parser.add_argument(
-        "-t", "--time", action="store_true", help="measure the execution time"
-    )
+    parser.add_argument("-t", "--time", action="store_true", help="measure the execution time")
 
     parser.add_argument(
         "-v",
@@ -146,9 +144,7 @@ async def main_async():
 
         rid = await hp.get_serial_number_async()
         if args.verbose:
-            _LOGGER.info(
-                "connected successfully to heat pump with serial number %d", rid
-            )
+            _LOGGER.info("connected successfully to heat pump with serial number %d", rid)
         ver = await hp.get_version_async()
         if args.verbose:
             _LOGGER.info("software version = %s (%d)", *ver)
@@ -186,7 +182,7 @@ async def main_async():
     sys.exit(0)
 
 
-def main():
+def main() -> None:
     # run the async main application
     asyncio.run(main_async())
 

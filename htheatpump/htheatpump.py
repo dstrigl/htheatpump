@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #  htheatpump - Serial communication module for Heliotherm heat pumps
-#  Copyright (C) 2022  Daniel Strigl
+#  Copyright (C) 2023  Daniel Strigl
 
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -19,13 +19,16 @@
 
 """ This module is responsible for the communication with the Heliotherm heat pump. """
 
+from __future__ import annotations
+
 import copy
 import datetime
 import enum
 import logging
 import re
 import time
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from types import TracebackType
+from typing import Final, Dict, List, Optional, Set, Tuple, Type, Union, cast
 
 import serial
 
@@ -107,13 +110,13 @@ class VerifyAction(enum.Enum):
     VALUE = 4
 
     @staticmethod
-    def NONE() -> Set["VerifyAction"]:
-        """ No verification, shortcut for ``{}`` (empty set). """
+    def NONE() -> Set[VerifyAction]:
+        """No verification, shortcut for ``{}`` (empty set)."""
         return set()
 
     @staticmethod
-    def ALL() -> Set["VerifyAction"]:
-        """ Verification of all possible actions, shortcut for ``{NAME, MIN, MAX, VALUE}``. """
+    def ALL() -> Set[VerifyAction]:
+        """Verification of all possible actions, shortcut for ``{NAME, MIN, MAX, VALUE}``."""
         return {
             VerifyAction.NAME,
             VerifyAction.MIN,
@@ -190,10 +193,10 @@ class HtHeatpump:
             hp.close_connection()
     """
 
-    DEFAULT_SERIAL_TIMEOUT: int = 5
+    DEFAULT_SERIAL_TIMEOUT: Final[int] = 5
     """Serial timeout value in seconds; normally no need to change it."""
 
-    DEFAULT_LOGIN_RETRIES: int = 2
+    DEFAULT_LOGIN_RETRIES: Final[int] = 2
     """Maximum number of retries for a login attempt; 1 regular try + :const:`DEFAULT_LOGIN_RETRIES` retries."""
 
     def __init__(
@@ -210,10 +213,11 @@ class HtHeatpump:
         dsrdtr: bool = False,
         inter_byte_timeout: Optional[Union[float, int]] = None,
         exclusive: Optional[bool] = None,
-        verify_param_action: Optional[Set["VerifyAction"]] = None,
+        verify_param_action: Optional[Set[VerifyAction]] = None,
         verify_param_error: bool = False,
     ) -> None:
         """Initialize the HtHeatpump class."""
+
         # store the serial settings for later connection establishment
         self._ser_settings = {
             "port": device,
@@ -231,9 +235,7 @@ class HtHeatpump:
         }
         self._ser = None
         # store settings for parameter verification
-        self._verify_param_action = (
-            {VerifyAction.NAME} if verify_param_action is None else verify_param_action
-        )
+        self._verify_param_action = {VerifyAction.NAME} if verify_param_action is None else verify_param_action
         assert isinstance(self._verify_param_action, set)
         self._verify_param_error = verify_param_error
         assert isinstance(self._verify_param_error, bool)
@@ -243,11 +245,16 @@ class HtHeatpump:
         if self._ser and self._ser.is_open:
             self._ser.close()
 
-    def __enter__(self) -> "HtHeatpump":
+    def __enter__(self) -> HtHeatpump:
         self.open_connection()
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback) -> None:
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: Optional[TracebackType],
+    ) -> None:
         self.close_connection()
 
     def open_connection(self) -> None:
@@ -308,7 +315,7 @@ class HtHeatpump:
         return self._verify_param_action
 
     @verify_param_action.setter
-    def verify_param_action(self, val: Set[VerifyAction]):
+    def verify_param_action(self, val: Set[VerifyAction]) -> None:
         assert isinstance(val, set)
         self._verify_param_action = val
 
@@ -319,14 +326,15 @@ class HtHeatpump:
         If :const:`True` a failed parameter verification will result in an :exc:`VerificationException` exception.
         If :const:`False` (default) only a warning message will be emitted.
 
-        :param: Boolean value which indicates whether a parameter verification failure should result in an error or not.
+        :param: Boolean value which indicates whether a parameter verification failure should result in an error
+            or not.
         :returns: :const:`True` if a verification failure should result in an error, :const:`False` otherwise.
         :rtype: ``bool``
         """
         return self._verify_param_error
 
     @verify_param_error.setter
-    def verify_param_error(self, val: bool):
+    def verify_param_error(self, val: bool) -> None:
         assert isinstance(val, bool)
         self._verify_param_error = val
 
@@ -405,9 +413,7 @@ class HtHeatpump:
             while payload[-2:] != b"\r\n":
                 tmp = self._ser.read(1)
                 if not tmp:
-                    raise IOError(
-                        "data stream broken during reading payload ending with '\\r\\n'"
-                    )
+                    raise IOError("data stream broken during reading payload ending with '\\r\\n'")
                 payload += tmp
             # compute the payload length by counting the number of read bytes
             payload_len = len(payload)
@@ -425,9 +431,7 @@ class HtHeatpump:
             raise IOError("data stream broken during reading checksum")
         checksum = checksum[0]
         # compute the checksum over header, payload length and the payload itself (depending on the header)
-        comp_checksum = RESPONSE_HEADER[header]["checksum"](
-            header, payload_len, payload
-        )
+        comp_checksum = RESPONSE_HEADER[header]["checksum"](header, payload_len, payload)
         if checksum != comp_checksum:
             raise IOError(
                 "invalid checksum [{}] of response "
@@ -452,9 +456,7 @@ class HtHeatpump:
         # extract the relevant data from the payload (without header '~' and trailer ';\r\n')
         m = re.match(r"^~([^;]*);\r\n$", payload.decode("ascii"))
         if not m:
-            raise IOError(
-                "failed to extract response data from payload [{}]".format(payload)
-            )
+            raise IOError("failed to extract response data from payload [{}]".format(payload))
         return m.group(1)
 
     def login(
@@ -489,14 +491,12 @@ class HtHeatpump:
                 resp = self.read_response()
                 m = re.match(LOGIN_RESP, resp)
                 if not m:
-                    raise IOError(
-                        "invalid response for LOGIN command [{!r}]".format(resp)
-                    )
+                    raise IOError("invalid response for LOGIN command [{!r}]".format(resp))
                 else:
                     success = True
-            except Exception as e:
+            except Exception as ex:
                 retry += 1
-                _LOGGER.warning("login try #%d failed: %s", retry, e)
+                _LOGGER.warning("login try #%d failed: %s", retry, ex)
                 # try a reconnect, maybe this will help ;-)
                 self.reconnect()
         if not success:
@@ -518,9 +518,9 @@ class HtHeatpump:
             if not m:
                 raise IOError("invalid response for LOGOUT command [{!r}]".format(resp))
             _LOGGER.info("logout successfully")
-        except Exception as e:
+        except Exception as ex:
             # just a warning, because it's possible that we can continue without any further problems
-            _LOGGER.warning("logout failed: %s", e)
+            _LOGGER.warning("logout failed: %s", ex)
             # raise  # logout() should not fail!
 
     def get_serial_number(self) -> int:
@@ -543,8 +543,8 @@ class HtHeatpump:
             rid = int(m.group(1))
             _LOGGER.debug("manufacturer's serial number = %d", rid)
             return rid  # return the received manufacturer's serial number as an int
-        except Exception as e:
-            _LOGGER.error("query for manufacturer's serial number failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("query for manufacturer's serial number failed: %s", ex)
             raise
 
     def get_version(self) -> Tuple[str, int]:
@@ -576,16 +576,12 @@ class HtHeatpump:
             #   => software version = 3.0.20
             m = re.match(VERSION_RESP, resp)
             if not m:
-                raise IOError(
-                    "invalid response for query of the software version [{!r}]".format(
-                        resp
-                    )
-                )
+                raise IOError("invalid response for query of the software version [{!r}]".format(resp))
             ver = (m.group(1).strip(), int(m.group(2)))
             _LOGGER.debug("software version = %s (%d)", *ver)
             return ver
-        except Exception as e:
-            _LOGGER.error("query for software version failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("query for software version failed: %s", ex)
             raise
 
     def get_date_time(self) -> Tuple[datetime.datetime, int]:
@@ -622,13 +618,11 @@ class HtHeatpump:
                 dt,
                 weekday,
             )  # return the heat pump's date and time as a datetime object
-        except Exception as e:
-            _LOGGER.error("query for date and time failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("query for date and time failed: %s", ex)
             raise
 
-    def set_date_time(
-        self, dt: Optional[datetime.datetime] = None
-    ) -> Tuple[datetime.datetime, int]:
+    def set_date_time(self, dt: Optional[datetime.datetime] = None) -> Tuple[datetime.datetime, int]:
         """Set the current date and time of the heat pump.
 
         :param dt: The date and time to set. If :const:`None` current date and time
@@ -677,8 +671,8 @@ class HtHeatpump:
                 dt,
                 weekday,
             )  # return the heat pump's date and time as a datetime object
-        except Exception as e:
-            _LOGGER.error("set of date and time failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("set of date and time failed: %s", ex)
             raise
 
     def get_last_fault(self) -> Tuple[int, int, datetime.datetime, str]:
@@ -704,15 +698,11 @@ class HtHeatpump:
         self.send_request(ALC_CMD)
         # ... and wait for the response
         try:
-            resp = (
-                self.read_response()
-            )  # e.g. "AA,29,20,14.09.14-11:52:08,EQ_Spreizung"
+            resp = self.read_response()  # e.g. "AA,29,20,14.09.14-11:52:08,EQ_Spreizung"
             m = re.match(ALC_RESP, resp)
             if not m:
                 raise IOError("invalid response for ALC command [{!r}]".format(resp))
-            idx, err = [
-                int(g) for g in m.group(1, 2)
-            ]  # fault list index, error code (?)
+            idx, err = [int(g) for g in m.group(1, 2)]  # fault list index, error code (?)
             year = 2000 + int(m.group(5))
             month, day, hour, minute, second = [int(g) for g in m.group(4, 3, 6, 7, 8)]
             # create datetime object from extracted data
@@ -720,8 +710,8 @@ class HtHeatpump:
             msg = m.group(9).strip()
             _LOGGER.debug("(idx: %d, err: %d)[%s]: %s", idx, err, dt.isoformat(), msg)
             return idx, err, dt, msg
-        except Exception as e:
-            _LOGGER.error("query for last fault message failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("query for last fault message failed: %s", ex)
             raise
 
     def get_fault_list_size(self) -> int:
@@ -744,8 +734,8 @@ class HtHeatpump:
             size = int(m.group(1))
             _LOGGER.debug("fault list size = %d", size)
             return size
-        except Exception as e:
-            _LOGGER.error("query for fault list size failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("query for fault list size failed: %s", ex)
             raise
 
     def get_fault_list(self, *args: int) -> List[Dict[str, object]]:
@@ -771,7 +761,7 @@ class HtHeatpump:
             response (e.g. broken data stream, invalid checksum).
         """
         if not args:
-            args = range(self.get_fault_list_size())  # type: ignore
+            args = tuple(range(self.get_fault_list_size()))
         # TODO args = set(args) ???
         fault_list = []
         # request fault list entries in several pieces (if required)
@@ -795,34 +785,22 @@ class HtHeatpump:
                 resp = []
                 # read all requested fault list entries
                 for _ in range(cnt):
-                    resp.append(
-                        self.read_response()
-                    )  # e.g. "AA,29,20,14.09.14-11:52:08,EQ_Spreizung"
+                    resp.append(self.read_response())  # e.g. "AA,29,20,14.09.14-11:52:08,EQ_Spreizung"
                 # extract data (fault list index, error code, date, time and message)
                 for i, r in enumerate(resp):
                     m = re.match(AR_RESP, r)
                     if not m:
-                        raise IOError(
-                            "invalid response for AR command [{!r}]".format(r)
-                        )
-                    idx, err = [
-                        int(g) for g in m.group(1, 2)
-                    ]  # fault list index, error code
+                        raise IOError("invalid response for AR command [{!r}]".format(r))
+                    idx, err = [int(g) for g in m.group(1, 2)]  # fault list index, error code
                     year = 2000 + int(m.group(5))
-                    month, day, hour, minute, second = [
-                        int(g) for g in m.group(4, 3, 6, 7, 8)
-                    ]
+                    month, day, hour, minute, second = [int(g) for g in m.group(4, 3, 6, 7, 8)]
                     # create datetime object from extracted data
                     dt = datetime.datetime(year, month, day, hour, minute, second)
                     msg = m.group(9).strip()
-                    _LOGGER.debug(
-                        "(idx: %03d, err: %05d)[%s]: %s", idx, err, dt.isoformat(), msg
-                    )
+                    _LOGGER.debug("(idx: %03d, err: %05d)[%s]: %s", idx, err, dt.isoformat(), msg)
                     if idx != args[n - cnt + i]:
                         raise IOError(
-                            "fault list index doesn't match [{:d}, should be {:d}]".format(
-                                idx, args[n - cnt + i]
-                            )
+                            "fault list index doesn't match [{:d}, should be {:d}]".format(idx, args[n - cnt + i])
                         )
                     # add the received fault list entry to the result list
                     fault_list.append(
@@ -833,15 +811,13 @@ class HtHeatpump:
                             "message": msg,  # error message
                         }
                     )
-            except Exception as e:
-                _LOGGER.error("query for fault list failed: %s", e)
+            except Exception as ex:
+                _LOGGER.error("query for fault list failed: %s", ex)
                 raise
         return fault_list
 
     @staticmethod
-    def _extract_param_data(
-        name: str, resp: str
-    ) -> Tuple[str, HtParamValueType, HtParamValueType, HtParamValueType]:
+    def _extract_param_data(name: str, resp: str) -> Tuple[str, HtParamValueType, HtParamValueType, HtParamValueType]:
         """Extract the parameter data like parameter name, minimal value, maximal value and the
         current value from the parameter access response string.
 
@@ -862,26 +838,16 @@ class HtHeatpump:
             Will be raised for an incomplete/invalid response from the heat pump.
         """
         # get the corresponding definition for the given parameter
-        assert (
-            name in HtParams
-        ), "parameter definition for parameter {!r} not found".format(name)
-        param = HtParams[name]  # type: ignore
+        assert name in HtParams, "parameter definition for parameter {!r} not found".format(name)
+        param = HtParams[name]  # type:ignore
         # search for pattern "NAME=...", "VAL=...", "MAX=..." and "MIN=..." inside the response string
         m = re.match(
-            r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(
-                param.cmd()
-            ),
+            r"^{},.*NAME=([^,]+).*VAL=([^,]+).*MAX=([^,]+).*MIN=([^,]+).*$".format(param.cmd()),
             resp,
         )
         if not m:
-            raise IOError(
-                "invalid response for access of parameter {!r} [{!r}]".format(
-                    name, resp
-                )
-            )
-        resp_name, resp_min, resp_max, resp_val = (
-            g.strip() for g in m.group(1, 4, 3, 2)
-        )  # type: str, Any, Any, Any
+            raise IOError("invalid response for access of parameter {!r} [{!r}]".format(name, resp))
+        resp_name, resp_min, resp_max, resp_val = (g.strip() for g in m.group(1, 4, 3, 2))
         _LOGGER.debug(
             "'%s': NAME='%s', MIN='%s', MAX='%s', VAL='%s'",
             name,
@@ -890,20 +856,12 @@ class HtHeatpump:
             resp_max,
             resp_val,
         )
-        resp_min = param.from_str(
-            resp_min
-        )  # convert MIN to the corresponding data type (BOOL, INT, FLOAT)
-        resp_max = param.from_str(
-            resp_max
-        )  # convert MAX to the corresponding data type (BOOL, INT, FLOAT)
-        resp_val = param.from_str(
-            resp_val
-        )  # convert VAL to the corresponding data type (BOOL, INT, FLOAT)
+        resp_min = param.from_str(resp_min)  # convert MIN to the corresponding data type (BOOL, INT, FLOAT)
+        resp_max = param.from_str(resp_max)  # convert MAX to the corresponding data type (BOOL, INT, FLOAT)
+        resp_val = param.from_str(resp_val)  # convert VAL to the corresponding data type (BOOL, INT, FLOAT)
         return resp_name, resp_min, resp_max, resp_val  # return (name, min, max, value)
 
-    def _get_param(
-        self, name: str
-    ) -> Tuple[str, HtParamValueType, HtParamValueType, HtParamValueType]:
+    def _get_param(self, name: str) -> Tuple[str, HtParamValueType, HtParamValueType, HtParamValueType]:
         """Read the data (NAME, MIN, MAX, VAL) of a specific parameter of the heat pump.
 
         :param name: The parameter name, e.g. :data:`"Betriebsart"`.
@@ -921,9 +879,7 @@ class HtHeatpump:
             Will be raised for an incomplete/invalid response from the heat pump.
         """
         # get the corresponding definition for the requested parameter
-        assert (
-            name in HtParams
-        ), "parameter definition for parameter {!r} not found".format(name)
+        assert name in HtParams, "parameter definition for parameter {!r} not found".format(name)
         param = HtParams[name]  # type: ignore
         # send command to the heat pump
         self.send_request(param.cmd())
@@ -931,8 +887,8 @@ class HtHeatpump:
         try:
             resp = self.read_response()
             return self._extract_param_data(name, resp)
-        except Exception as e:
-            _LOGGER.error("query of parameter '%s' failed: %s", name, e)
+        except Exception as ex:
+            _LOGGER.error("query of parameter '%s' failed: %s", name, ex)
             raise
 
     def _verify_param_resp(
@@ -968,27 +924,19 @@ class HtHeatpump:
             :attr:`~HtHeatpump.verify_param_action`.
         """
         # get the corresponding definition for the given parameter
-        assert (
-            name in HtParams
-        ), "parameter definition for parameter {!r} not found".format(name)
+        assert name in HtParams, "parameter definition for parameter {!r} not found".format(name)
         param = HtParams[name]  # type: ignore
         try:
             # verify 'NAME'
             if (VerifyAction.NAME in self._verify_param_action) and (resp_name != name):
-                raise VerificationException(
-                    "parameter name doesn't match with {!r} [{!r}]".format(
-                        name, resp_name
-                    )
-                )
+                raise VerificationException("parameter name doesn't match with {!r} [{!r}]".format(name, resp_name))
             # verify 'MIN' (None for min value means "doesn't matter")
             if (VerifyAction.MIN in self._verify_param_action) and (
                 resp_min is not None and param.min_val is not None
             ):
                 if resp_min != param.min_val:
                     raise VerificationException(
-                        "parameter min value doesn't match with {!r} [{!r}]".format(
-                            param.min_val, resp_min
-                        )
+                        "parameter min value doesn't match with {!r} [{!r}]".format(param.min_val, resp_min)
                     )
 
             # verify 'MAX' (None for max value means "doesn't matter")
@@ -997,9 +945,7 @@ class HtHeatpump:
             ):
                 if resp_max != param.max_val:
                     raise VerificationException(
-                        "parameter max value doesn't match with {!r} [{!r}]".format(
-                            param.max_val, resp_max
-                        )
+                        "parameter max value doesn't match with {!r} [{!r}]".format(param.max_val, resp_max)
                     )
             # check 'VAL' against the limits and write a WARNING if necessary
             if (VerifyAction.VALUE in self._verify_param_action) and (
@@ -1012,13 +958,11 @@ class HtHeatpump:
                     param.min_val,
                     param.max_val,
                 )
-        except Exception as e:
+        except Exception as ex:
             if self._verify_param_error:  # interpret as error?
                 raise
             else:  # ... or only as a warning?
-                _LOGGER.warning(
-                    "response verification of param '%s' failed: %s", name, e
-                )
+                _LOGGER.warning("response verification of param '%s' failed: %s", name, ex)
         return resp_val
 
     def update_param_limits(self) -> List[str]:
@@ -1041,12 +985,8 @@ class HtHeatpump:
             # update the limit values in the HtParams database and count the number of updated entries
             if HtParams[name].set_limits(resp_min, resp_max):
                 updated_params.append(name)
-                _LOGGER.debug(
-                    "updated param '%s': MIN=%s, MAX=%s", name, resp_min, resp_max
-                )
-        _LOGGER.info(
-            "updated %d (of %d) parameter limits", len(updated_params), len(HtParams)
-        )
+                _LOGGER.debug("updated param '%s': MIN=%s, MAX=%s", name, resp_min, resp_max)
+        _LOGGER.info("updated %d (of %d) parameter limits", len(updated_params), len(HtParams))
         return updated_params
 
     def get_param(self, name: str) -> HtParamValueType:
@@ -1078,21 +1018,18 @@ class HtHeatpump:
         """
         # find the corresponding definition for the parameter
         if name not in HtParams:
-            raise KeyError(
-                "parameter definition for parameter {!r} not found".format(name)
-            )
+            raise KeyError("parameter definition for parameter {!r} not found".format(name))
         try:
             resp = self._get_param(name)
             val = self._verify_param_resp(name, *resp)
             _LOGGER.debug("'%s' = %s", name, val)
-            return val  # type: ignore
-        except Exception as e:
-            _LOGGER.error("get parameter '%s' failed: %s", name, e)
+            assert val is not None
+            return val
+        except Exception as ex:
+            _LOGGER.error("get parameter '%s' failed: %s", name, ex)
             raise
 
-    def set_param(
-        self, name: str, val: HtParamValueType, ignore_limits: bool = False
-    ) -> HtParamValueType:
+    def set_param(self, name: str, val: HtParamValueType, ignore_limits: bool = False) -> HtParamValueType:
         """Set the value of a specific parameter of the heat pump. If :attr:`ignore_limits` is :const:`False`
         and the passed value is beyond the parameter limits a :exc:`ValueError` will be raised.
 
@@ -1132,17 +1069,11 @@ class HtHeatpump:
         assert val is not None, "'val' must not be None"
         # find the corresponding definition for the parameter
         if name not in HtParams:
-            raise KeyError(
-                "parameter definition for parameter {!r} not found".format(name)
-            )
+            raise KeyError("parameter definition for parameter {!r} not found".format(name))
         param = HtParams[name]  # type: ignore
         # check the passed value against the defined limits (if desired)
         if not ignore_limits and not param.in_limits(val):
-            raise ValueError(
-                "value {!r} is beyond the limits [{}, {}]".format(
-                    val, param.min_val, param.max_val
-                )
-            )
+            raise ValueError("value {!r} is beyond the limits [{}, {}]".format(val, param.min_val, param.max_val))
         # send command to the heat pump
         val = param.to_str(val)
         self.send_request("{},VAL={}".format(param.cmd(), val))
@@ -1152,9 +1083,10 @@ class HtHeatpump:
             data = self._extract_param_data(name, resp)
             ret = self._verify_param_resp(name, *data)
             _LOGGER.debug("'%s' = %s", name, ret)
-            return ret  # type: ignore
-        except Exception as e:
-            _LOGGER.error("set parameter '%s' failed: %s", name, e)
+            assert ret is not None
+            return ret
+        except Exception as ex:
+            _LOGGER.error("set parameter '%s' failed: %s", name, ex)
             raise
 
     def overwrite_param(
@@ -1202,7 +1134,7 @@ class HtHeatpump:
             Will be raised when the serial connection is not open or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
-        return self.get_param("Stoerung")  # type: ignore
+        return cast(bool, self.get_param("Stoerung"))
 
     def query(self, *args: str) -> Dict[str, HtParamValueType]:
         """Query for the current values of parameters from the heat pump.
@@ -1232,14 +1164,14 @@ class HtHeatpump:
             :attr:`~HtHeatpump.verify_param_action`.
         """
         if not args:
-            args = HtParams.keys()  # type: ignore
+            args = tuple(HtParams.keys())
         values = {}
         try:
             # query for each parameter in the given list
             for name in args:
                 values.update({name: self.get_param(name)})
-        except Exception as e:
-            _LOGGER.error("query of parameter(s) failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("query of parameter(s) failed: %s", ex)
             raise
         return values
 
@@ -1273,21 +1205,17 @@ class HtHeatpump:
             response (e.g. broken data stream, invalid checksum).
         """
         if not args:
-            args = (name for name, param in HtParams.items() if param.dp_type == "MP")  # type: ignore
+            args = tuple(name for name, param in HtParams.items() if param.dp_type == "MP")
         # TODO args = set(args) ???
         dp_list = []
         dp_dict = {}
         for name in args:
             if name not in HtParams:
-                raise KeyError(
-                    "parameter definition for parameter {!r} not found".format(name)
-                )
+                raise KeyError("parameter definition for parameter {!r} not found".format(name))
             param = HtParams[name]  # type: ignore
             if param.dp_type != "MP":
                 raise ValueError(
-                    "invalid parameter {!r}; only parameters representing a 'MP' data point are allowed".format(
-                        name
-                    )
+                    "invalid parameter {!r}; only parameters representing a 'MP' data point are allowed".format(name)
                 )
             dp_list.append(param.dp_number)
             dp_dict.update({param.dp_number: (name, param)})
@@ -1318,20 +1246,12 @@ class HtHeatpump:
                 for r in resp:
                     m = re.match(MR_RESP, r)
                     if not m:
-                        raise IOError(
-                            "invalid response for MR command [{!r}]".format(r)
-                        )
+                        raise IOError("invalid response for MR command [{!r}]".format(r))
                     # MP data point number, value and ?
-                    dp_number, dp_value, unknown_val = m.group(
-                        1, 2, 3
-                    )  # type: Any, str, str
+                    dp_number, dp_value, unknown_val = m.group(1, 2, 3)
                     dp_number = int(dp_number)
                     if dp_number not in dp_dict:
-                        raise IOError(
-                            "non requested data point value received [MP,{:d}]".format(
-                                dp_number
-                            )
-                        )
+                        raise IOError("non requested data point value received [MP,{:d}]".format(dp_number))
                     name, param = dp_dict[dp_number]
                     val = param.from_str(dp_value)
                     _LOGGER.debug("'%s' = %s (%s)", name, val, unknown_val)
@@ -1345,8 +1265,8 @@ class HtHeatpump:
                             param.max_val,
                         )
                     values.update({name: val})
-            except Exception as e:
-                _LOGGER.error("fast query of parameter(s) failed: %s", e)
+            except Exception as ex:
+                _LOGGER.error("fast query of parameter(s) failed: %s", ex)
                 raise
         return values
 
@@ -1371,14 +1291,10 @@ class HtHeatpump:
             sum = int(m.group(1))
             _LOGGER.debug("number of time programs = %d", sum)
             for idx in range(sum):
-                resp = (
-                    self.read_response()
-                )  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
+                resp = self.read_response()  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
                 m = re.match(PRL_RESP[1].format(idx), resp)
                 if not m:
-                    raise IOError(
-                        "invalid response for PRL command [{!r}]".format(resp)
-                    )
+                    raise IOError("invalid response for PRL command [{!r}]".format(resp))
                 # extract data (NAME, EAD, NOS, STE and NOD)
                 name = m.group(1)
                 ead, nos, ste, nod = [int(g) for g in m.group(2, 3, 4, 5)]
@@ -1392,8 +1308,8 @@ class HtHeatpump:
                     nod,
                 )
                 time_progs.append(TimeProgram(idx, name, ead, nos, ste, nod))
-        except Exception as e:
-            _LOGGER.error("query for time programs failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("query for time programs failed: %s", ex)
             raise
         return time_progs
 
@@ -1416,9 +1332,7 @@ class HtHeatpump:
         self.send_request(PRI_CMD.format(idx))
         # ... and wait for the response
         try:
-            resp = (
-                self.read_response()
-            )  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
+            resp = self.read_response()  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
             m = re.match(PRI_RESP.format(idx), resp)
             if not m:
                 raise IOError("invalid response for PRI command [{!r}]".format(resp))
@@ -1436,8 +1350,8 @@ class HtHeatpump:
             )
             time_prog = TimeProgram(idx, name, ead, nos, ste, nod)
             return time_prog
-        except Exception as e:
-            _LOGGER.error("query for time program failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("query for time program failed: %s", ex)
             raise
 
     def _get_time_prog_with_entries(self, idx: int) -> TimeProgram:
@@ -1459,9 +1373,7 @@ class HtHeatpump:
         self.send_request(PRD_CMD.format(idx))
         # ... and wait for the response
         try:
-            resp = (
-                self.read_response()
-            )  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
+            resp = self.read_response()  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
             m = re.match(PRD_RESP[0].format(idx), resp)
             if not m:
                 raise IOError("invalid response for PRD command [{!r}]".format(resp))
@@ -1479,15 +1391,11 @@ class HtHeatpump:
             )
             time_prog = TimeProgram(idx, name, ead, nos, ste, nod)
             # read the single time program entries for each day
-            for (day, num) in [(day, num) for day in range(nod) for num in range(ead)]:
-                resp = (
-                    self.read_response()
-                )  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
+            for day, num in [(day, num) for day in range(nod) for num in range(ead)]:
+                resp = self.read_response()  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
                 m = re.match(PRD_RESP[1].format(idx, day, num), resp)
                 if not m:
-                    raise IOError(
-                        "invalid response for PRD command [{!r}]".format(resp)
-                    )
+                    raise IOError("invalid response for PRD command [{!r}]".format(resp))
                 # extract data (ST, BEG, END)
                 st, beg, end = m.group(1, 2, 3)
                 _LOGGER.debug(
@@ -1501,8 +1409,8 @@ class HtHeatpump:
                 )
                 time_prog.set_entry(day, num, TimeProgEntry.from_str(st, beg, end))
             return time_prog
-        except Exception as e:
-            _LOGGER.error("query for time program with entries failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("query for time program with entries failed: %s", ex)
             raise
 
     def get_time_prog(self, idx: int, with_entries: bool = True) -> TimeProgram:
@@ -1523,11 +1431,7 @@ class HtHeatpump:
         """
         assert isinstance(idx, int)
         assert isinstance(with_entries, bool)
-        return (
-            self._get_time_prog_with_entries(idx)
-            if with_entries
-            else self._get_time_prog(idx)
-        )
+        return self._get_time_prog_with_entries(idx) if with_entries else self._get_time_prog(idx)
 
     def get_time_prog_entry(self, idx: int, day: int, num: int) -> TimeProgEntry:
         """Return a specific time program entry (specified by time program index, day and entry-of-day)
@@ -1553,9 +1457,7 @@ class HtHeatpump:
         self.send_request(PRE_CMD[0].format(idx, day, num))
         # ... and wait for the response
         try:
-            resp = (
-                self.read_response()
-            )  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
+            resp = self.read_response()  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
             m = re.match(PRE_RESP.format(idx, day, num), resp)
             if not m:
                 raise IOError("invalid response for PRE command [{!r}]".format(resp))
@@ -1571,13 +1473,11 @@ class HtHeatpump:
                 end,
             )
             return TimeProgEntry.from_str(st, beg, end)
-        except Exception as e:
-            _LOGGER.error("query for time program entry failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("query for time program entry failed: %s", ex)
             raise
 
-    def set_time_prog_entry(
-        self, idx: int, day: int, num: int, entry: TimeProgEntry
-    ) -> TimeProgEntry:
+    def set_time_prog_entry(self, idx: int, day: int, num: int, entry: TimeProgEntry) -> TimeProgEntry:
         """Set a specific time program entry (specified by time program index, day and entry-of-day)
         of the heat pump.
 
@@ -1601,16 +1501,10 @@ class HtHeatpump:
         assert isinstance(num, int)
         assert isinstance(entry, TimeProgEntry)
         # send PRE command to the heat pump
-        self.send_request(
-            PRE_CMD[1].format(
-                idx, day, num, entry.state, entry.period.start_str, entry.period.end_str
-            )
-        )
+        self.send_request(PRE_CMD[1].format(idx, day, num, entry.state, entry.period.start_str, entry.period.end_str))
         # ... and wait for the response
         try:
-            resp = (
-                self.read_response()
-            )  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
+            resp = self.read_response()  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
             m = re.match(PRE_RESP.format(idx, day, num), resp)
             if not m:
                 raise IOError("invalid response for PRE command [{!r}]".format(resp))
@@ -1626,8 +1520,8 @@ class HtHeatpump:
                 end,
             )
             return TimeProgEntry.from_str(st, beg, end)
-        except Exception as e:
-            _LOGGER.error("set time program entry failed: %s", e)
+        except Exception as ex:
+            _LOGGER.error("set time program entry failed: %s", ex)
             raise
 
     def set_time_prog(self, time_prog: TimeProgram) -> TimeProgram:
@@ -1647,15 +1541,11 @@ class HtHeatpump:
         """
         assert isinstance(time_prog, TimeProgram)
         ret = copy.deepcopy(time_prog)
-        for (day, num) in [
-            (day, num)
-            for day in range(time_prog.number_of_days)
-            for num in range(time_prog.entries_a_day)
+        for day, num in [
+            (day, num) for day in range(time_prog.number_of_days) for num in range(time_prog.entries_a_day)
         ]:
             entry = time_prog.entry(day, num)
-            _LOGGER.debug(
-                "[idx=%d, day=%d, entry=%d]: %s", time_prog.index, day, num, entry
-            )
+            _LOGGER.debug("[idx=%d, day=%d, entry=%d]: %s", time_prog.index, day, num, entry)
             if entry is not None:
                 entry = self.set_time_prog_entry(time_prog.index, day, num, entry)
             else:

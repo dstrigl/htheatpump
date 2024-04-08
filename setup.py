@@ -6,37 +6,40 @@
 import io
 import os
 import re
+from typing import List
 
 from setuptools import find_packages, setup
 
 
-def read(*parts):
-    """ Read file. """
+def read(*parts: str) -> str:
+    """Read file."""
     filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), *parts)
     with open(filename, encoding="utf-8", mode="rt") as fp:
         return fp.read()
 
 
-def get_version():
-    """ Get current version from code. """
-    regex = r"__version__\s=\s\"(?P<version>[\d\.]+?)\""
+def get_version() -> str:
+    """Get current version from code."""
+    regex = r"__version__:\sFinal\s=\s\"(?P<version>[\d\.]+?)\""
     path = ("htheatpump", "__version__.py")
-    return re.search(regex, read(*path)).group("version")
+    match = re.search(regex, read(*path))
+    assert match is not None, "version statement in __version__.py not found"
+    return match.group("version")
 
 
 # Get the description from the README file
-with open("README.rst") as readme_file:
+with open("README.rst", encoding="utf-8") as readme_file:
     readme = readme_file.read()
 
 # Get the history from the HISTORY file
-with open("HISTORY.rst") as history_file:
+with open("HISTORY.rst", encoding="utf-8") as history_file:
     history = history_file.read()
 
 
-def pip(filename):
-    """ Parse pip reqs file and transform it to setuptools requirements. """
-    requirements = []
-    for line in io.open(os.path.join("requirements", "{0}.pip".format(filename))):
+def pip(filename: str) -> List[str]:
+    """Parse pip reqs file and transform it to setuptools requirements."""
+    requirements: List[str] = []
+    for line in io.open(os.path.join("requirements", "{0}.pip".format(filename)), encoding="utf-8"):
         line = line.strip()
         if not line or "://" in line or line.startswith("#"):
             continue
@@ -100,8 +103,9 @@ setup(
         # that you indicate whether you support Python 2, Python 3 or both.
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         # Language and Platform
         "Natural Language :: English",
         "Operating System :: POSIX",

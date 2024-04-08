@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #  htheatpump - Serial communication module for Heliotherm heat pumps
-#  Copyright (C) 2022  Daniel Strigl
+#  Copyright (C) 2023  Daniel Strigl
 
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -18,20 +18,19 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+from typing import Any
 
 import pytest
 
 
-def pytest_addoption(parser):
-    parser.addoption(
-        "--connected", action="store_true", dest="run_if_connected", default=False
-    )
+def pytest_addoption(parser: Any) -> None:
+    parser.addoption("--connected", action="store_true", dest="run_if_connected", default=False)
     parser.addoption("--device", action="store", default="/dev/ttyUSB0")
     parser.addoption("--baudrate", action="store", default=115200)
     parser.addoption("--loglevel", action="store", default=logging.WARNING)
 
 
-def pytest_configure(config):
+def pytest_configure(config: Any) -> None:
     if not config.option.run_if_connected:
         setattr(config.option, "markexpr", "not run_if_connected")
 
@@ -45,10 +44,10 @@ def pytest_configure(config):
 
 
 @pytest.fixture(scope="session")
-def cmdopt_device(request):
+def cmdopt_device(request: Any) -> Any:
     return request.config.getoption("--device")
 
 
 @pytest.fixture(scope="session")
-def cmdopt_baudrate(request):
+def cmdopt_baudrate(request: Any) -> Any:
     return request.config.getoption("--baudrate")

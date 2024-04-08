@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #  htheatpump - Serial communication module for Heliotherm heat pumps
-#  Copyright (C) 2022  Daniel Strigl
+#  Copyright (C) 2023  Daniel Strigl
 
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,21 +26,21 @@ from htheatpump.utils import Singleton, Timer
 
 # A simple Singleton class with one `int` member
 class MySingleton(Singleton):
-    val: int = -1
+    value: int = -1
 
-    def __init__(self, v: int):
-        self.val = v
+    def __init__(self, value: int):
+        self.value = value
 
 
-def test_SingletonClass():
+def test_SingletonClass() -> None:
     s1 = MySingleton(1)
-    assert s1.val == 1
+    assert s1.value == 1
     s2 = MySingleton(2)
-    assert s2.val == 2
-    assert s1.val == 2  # now, 's1' should also be 2
+    assert s2.value == 2
+    assert s1.value == 2  # now, 's1' should also be 2
 
 
-def test_Timer():
+def test_Timer() -> None:
     with Timer() as timer:
         time.sleep(1)  # wait for 1s
     assert timer.elapsed >= 1

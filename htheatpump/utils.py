@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #  htheatpump - Serial communication module for Heliotherm heat pumps
-#  Copyright (C) 2022  Daniel Strigl
+#  Copyright (C) 2023  Daniel Strigl
 
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -19,7 +19,10 @@
 
 """ Some useful helper classes and methods. """
 
+from __future__ import annotations
+
 import timeit
+from typing import Any
 
 
 class Singleton:
@@ -46,7 +49,7 @@ class Singleton:
         https://mail.python.org/pipermail/python-list/2007-July/431423.html
     """
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args: Any, **kwargs: Any) -> Singleton:
         """Create a new instance."""
         if "_inst" not in vars(cls):
             cls._inst = object.__new__(cls)
@@ -64,16 +67,16 @@ class Timer:
     >>> exec_time = timer.elapsed
     """
 
-    def __enter__(self):
+    def __enter__(self) -> Timer:
         self._start = timeit.default_timer()
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, *args: Any) -> None:
         self._end = timeit.default_timer()
         self._elapsed = self._end - self._start
 
     @property
-    def elapsed(self):
+    def elapsed(self) -> float:
         """Return the elapsed time (in seconds).
 
         :returns: The elapsed time in seconds.

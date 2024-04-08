@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #  htheatpump - Serial communication module for Heliotherm heat pumps
-#  Copyright (C) 2022  Daniel Strigl
+#  Copyright (C) 2023  Daniel Strigl
 
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ from typing import Dict
 
 import pytest
 
-from htheatpump import TimeProgEntry, TimeProgPeriod, TimeProgram
+from htheatpump.httimeprog import TimeProgEntry, TimeProgPeriod, TimeProgram
 
 
 class TestTimeProgPeriod:
@@ -41,9 +41,7 @@ class TestTimeProgPeriod:
             # ...
         ],
     )
-    def test_init_raises_ValueError(
-        self, start_hour: int, start_minute: int, end_hour: int, end_minute: int
-    ):
+    def test_init_raises_ValueError(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
         with pytest.raises(ValueError):
             TimeProgPeriod(start_hour, start_minute, end_hour, end_minute)
         # assert 0
@@ -59,9 +57,7 @@ class TestTimeProgPeriod:
             # ...
         ],
     )
-    def test_init(
-        self, start_hour: int, start_minute: int, end_hour: int, end_minute: int
-    ):
+    def test_init(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
         TimeProgPeriod(start_hour, start_minute, end_hour, end_minute)
         # assert 0
 
@@ -82,7 +78,7 @@ class TestTimeProgPeriod:
             # ...
         ],
     )
-    def test_from_str_raises_ValueError(self, start_str: str, end_str: str):
+    def test_from_str_raises_ValueError(self, start_str: str, end_str: str) -> None:
         with pytest.raises(ValueError):
             TimeProgPeriod.from_str(start_str, end_str)
         # assert 0
@@ -99,7 +95,7 @@ class TestTimeProgPeriod:
             # ...
         ],
     )
-    def test_from_str(self, start_str: str, end_str: str):
+    def test_from_str(self, start_str: str, end_str: str) -> None:
         TimeProgPeriod.from_str(start_str, end_str)
         # assert 0
 
@@ -115,7 +111,7 @@ class TestTimeProgPeriod:
             # ...
         ],
     )
-    def test_from_json(self, json_dict: Dict[str, str]):
+    def test_from_json(self, json_dict: Dict[str, str]) -> None:
         TimeProgPeriod.from_json(json_dict)
         # assert 0
 
@@ -132,9 +128,7 @@ class TestTimeProgPeriod:
             # ...
         ],
     )
-    def test_set_raises_ValueError(
-        self, start_hour: int, start_minute: int, end_hour: int, end_minute: int
-    ):
+    def test_set_raises_ValueError(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
         period = TimeProgPeriod(0, 0, 0, 0)
         with pytest.raises(ValueError):
             period.set(start_hour, start_minute, end_hour, end_minute)
@@ -152,9 +146,7 @@ class TestTimeProgPeriod:
             # ...
         ],
     )
-    def test_set(
-        self, start_hour: int, start_minute: int, end_hour: int, end_minute: int
-    ):
+    def test_set(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
         TimeProgPeriod(0, 0, 0, 0).set(start_hour, start_minute, end_hour, end_minute)
         # assert 0
 
@@ -170,17 +162,13 @@ class TestTimeProgPeriod:
             # ...
         ],
     )
-    def test_str(
-        self, start_hour: int, start_minute: int, end_hour: int, end_minute: int
-    ):
+    def test_str(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
         assert str(
             TimeProgPeriod(start_hour, start_minute, end_hour, end_minute)
-        ) == "{:02d}:{:02d}-{:02d}:{:02d}".format(
-            start_hour, start_minute, end_hour, end_minute
-        )
+        ) == "{:02d}:{:02d}-{:02d}:{:02d}".format(start_hour, start_minute, end_hour, end_minute)
         # assert 0
 
-    def test_eq(self):
+    def test_eq(self) -> None:
         assert TimeProgPeriod(0, 0, 0, 0) != None  # noqa: E711
         with pytest.raises(TypeError):
             TimeProgPeriod(0, 0, 0, 0) != 123
@@ -204,12 +192,8 @@ class TestTimeProgPeriod:
             # ...
         ],
     )
-    def test_as_dict(
-        self, start_hour: int, start_minute: int, end_hour: int, end_minute: int
-    ):
-        assert TimeProgPeriod(
-            start_hour, start_minute, end_hour, end_minute
-        ).as_dict() == {
+    def test_as_dict(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
+        assert TimeProgPeriod(start_hour, start_minute, end_hour, end_minute).as_dict() == {
             "start": (start_hour, start_minute),
             "end": (end_hour, end_minute),
         }
@@ -227,12 +211,8 @@ class TestTimeProgPeriod:
             # ...
         ],
     )
-    def test_as_json(
-        self, start_hour: int, start_minute: int, end_hour: int, end_minute: int
-    ):
-        assert TimeProgPeriod(
-            start_hour, start_minute, end_hour, end_minute
-        ).as_json() == {
+    def test_as_json(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
+        assert TimeProgPeriod(start_hour, start_minute, end_hour, end_minute).as_json() == {
             "start": "{:02d}:{:02d}".format(start_hour, start_minute),
             "end": "{:02d}:{:02d}".format(end_hour, end_minute),
         }
@@ -250,9 +230,7 @@ class TestTimeProgPeriod:
             # ...
         ],
     )
-    def test_properties(
-        self, start_hour: int, start_minute: int, end_hour: int, end_minute: int
-    ):
+    def test_properties(self, start_hour: int, start_minute: int, end_hour: int, end_minute: int) -> None:
         period = TimeProgPeriod(start_hour, start_minute, end_hour, end_minute)
         assert period.start_str == "{:02d}:{:02d}".format(start_hour, start_minute)
         assert period.end_str == "{:02d}:{:02d}".format(end_hour, end_minute)
@@ -266,15 +244,13 @@ class TestTimeProgPeriod:
 
 
 class TestTimeProgEntry:
-    def test_init(self):
+    def test_init(self) -> None:
         state = 123
         period = TimeProgPeriod(21, 22, 23, 24)
         entry = TimeProgEntry(state, period)
         assert entry.state == state
         assert entry.period == period
-        assert (
-            entry.period is not period
-        )  # entry.period should be a "deepcopy" of period
+        assert entry.period is not period  # entry.period should be a "deepcopy" of period
         # assert 0
 
     @pytest.mark.parametrize(
@@ -289,26 +265,24 @@ class TestTimeProgEntry:
             # ...
         ],
     )
-    def test_from_str_raises_ValueError(self, state: str):
+    def test_from_str_raises_ValueError(self, state: str) -> None:
         with pytest.raises(ValueError):
             TimeProgEntry.from_str(state, "00:00", "00:00")
         # assert 0
 
     @pytest.mark.parametrize("state", range(-10, 10))
-    def test_from_str(self, state: int):
+    def test_from_str(self, state: int) -> None:
         entry = TimeProgEntry.from_str(str(state), "00:00", "00:00")
         assert entry.state == state
         # assert 0
 
     @pytest.mark.parametrize("state", range(-10, 10))
-    def test_from_json(self, state: int):
-        entry = TimeProgEntry.from_json(
-            {"state": state, "start": "00:00", "end": "00:00"}
-        )
+    def test_from_json(self, state: int) -> None:
+        entry = TimeProgEntry.from_json({"state": state, "start": "00:00", "end": "00:00"})
         assert entry.state == state
         # assert 0
 
-    def test_set(self):
+    def test_set(self) -> None:
         entry = TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0))
         assert entry.state == 0
         assert entry.period == TimeProgPeriod(0, 0, 0, 0)
@@ -317,46 +291,30 @@ class TestTimeProgEntry:
         entry.set(state, period)
         assert entry.state == state
         assert entry.period == period
-        assert (
-            entry.period is not period
-        )  # entry.period should be a "deepcopy" of period
+        assert entry.period is not period  # entry.period should be a "deepcopy" of period
         # assert 0
 
     @pytest.mark.parametrize("state", range(-10, 10))
-    def test_str(self, state: int):
-        assert str(
-            TimeProgEntry.from_str(str(state), "00:00", "00:00")
-        ) == "state={:d}, time={!s}".format(
+    def test_str(self, state: int) -> None:
+        assert str(TimeProgEntry.from_str(str(state), "00:00", "00:00")) == "state={:d}, time={!s}".format(
             state, TimeProgPeriod.from_str("00:00", "00:00")
         )
         # assert 0
 
-    def test_eq(self):
+    def test_eq(self) -> None:
         assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) != None  # noqa: E711
         with pytest.raises(TypeError):
             TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) != 123
-        assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) == TimeProgEntry(
-            0, TimeProgPeriod(0, 0, 0, 0)
-        )
-        assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) != TimeProgEntry(
-            1, TimeProgPeriod(0, 0, 0, 0)
-        )
-        assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) != TimeProgEntry(
-            0, TimeProgPeriod(0, 0, 0, 1)
-        )
-        assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) != TimeProgEntry(
-            0, TimeProgPeriod(0, 0, 1, 0)
-        )
-        assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) != TimeProgEntry(
-            0, TimeProgPeriod(0, 1, 0, 1)
-        )
-        assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) != TimeProgEntry(
-            0, TimeProgPeriod(1, 0, 1, 0)
-        )
+        assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) == TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0))
+        assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) != TimeProgEntry(1, TimeProgPeriod(0, 0, 0, 0))
+        assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) != TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 1))
+        assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) != TimeProgEntry(0, TimeProgPeriod(0, 0, 1, 0))
+        assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) != TimeProgEntry(0, TimeProgPeriod(0, 1, 0, 1))
+        assert TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)) != TimeProgEntry(0, TimeProgPeriod(1, 0, 1, 0))
         # ...
         # assert 0
 
-    def test_as_dict(self):
+    def test_as_dict(self) -> None:
         state = 123
         period = TimeProgPeriod(21, 22, 23, 24)
         assert TimeProgEntry(state, period).as_dict() == {
@@ -366,7 +324,7 @@ class TestTimeProgEntry:
         }
         # assert 0
 
-    def test_as_json(self):
+    def test_as_json(self) -> None:
         state = 123
         period = TimeProgPeriod(21, 22, 23, 24)
         assert TimeProgEntry(state, period).as_json() == {
@@ -376,28 +334,24 @@ class TestTimeProgEntry:
         }
         # assert 0
 
-    def test_properties(self):
+    def test_properties(self) -> None:
         state = 0
         period = TimeProgPeriod(0, 0, 0, 0)
         entry = TimeProgEntry(state, period)
         assert entry.state == state
         assert entry.period == period
-        assert (
-            entry.period is not period
-        )  # entry.period should be a "deepcopy" of period
+        assert entry.period is not period  # entry.period should be a "deepcopy" of period
         entry.state = 123
         assert entry.state == 123
         period = TimeProgPeriod(21, 22, 23, 24)
         entry.period = period
         assert entry.period == period
-        assert (
-            entry.period is not period
-        )  # entry.period should be a "deepcopy" of period
+        assert entry.period is not period  # entry.period should be a "deepcopy" of period
         # assert 0
 
 
 class TestTimeProgram:
-    def test_init(self):
+    def test_init(self) -> None:
         time_prog = TimeProgram(0, "Name", 10, 3, 10, 7)
         assert time_prog.index == 0
         assert time_prog.name == "Name"
@@ -406,18 +360,11 @@ class TestTimeProgram:
         assert time_prog.step_size == 10
         assert time_prog.number_of_days == 7
         assert len(time_prog._entries) == time_prog.number_of_days
-        assert all(
-            [
-                len(entries_of_day) == time_prog.entries_a_day
-                for entries_of_day in time_prog._entries
-            ]
-        )
+        assert all([len(entries_of_day) == time_prog.entries_a_day for entries_of_day in time_prog._entries])
         # assert 0
 
-    def test_from_json(self):
-        time_prog = TimeProgram.from_json(
-            {"index": 0, "name": "Name", "ead": 10, "nos": 3, "ste": 10, "nod": 7}
-        )
+    def test_from_json(self) -> None:
+        time_prog = TimeProgram.from_json({"index": 0, "name": "Name", "ead": 10, "nos": 3, "ste": 10, "nod": 7})
         assert time_prog.index == 0
         assert time_prog.name == "Name"
         assert time_prog.entries_a_day == 10
@@ -425,12 +372,7 @@ class TestTimeProgram:
         assert time_prog.step_size == 10
         assert time_prog.number_of_days == 7
         assert len(time_prog._entries) == time_prog.number_of_days
-        assert all(
-            [
-                len(entries_of_day) == time_prog.entries_a_day
-                for entries_of_day in time_prog._entries
-            ]
-        )
+        assert all([len(entries_of_day) == time_prog.entries_a_day for entries_of_day in time_prog._entries])
         time_prog = TimeProgram.from_json(
             {
                 "index": 0,
@@ -439,19 +381,11 @@ class TestTimeProgram:
                 "nos": 3,
                 "ste": 10,
                 "nod": 7,
-                "entries": [
-                    [None for _ in range(time_prog.entries_a_day)]
-                    for _ in range(time_prog.number_of_days)
-                ],
+                "entries": [[None for _ in range(time_prog.entries_a_day)] for _ in range(time_prog.number_of_days)],
             }
         )
         assert len(time_prog._entries) == time_prog.number_of_days
-        assert all(
-            [
-                len(entries_of_day) == time_prog.entries_a_day
-                for entries_of_day in time_prog._entries
-            ]
-        )
+        assert all([len(entries_of_day) == time_prog.entries_a_day for entries_of_day in time_prog._entries])
         assert all(
             time_prog.entry(day, num) is None
             for num in range(time_prog.entries_a_day)
@@ -466,21 +400,13 @@ class TestTimeProgram:
                 "ste": 10,
                 "nod": 7,
                 "entries": [
-                    [
-                        {"state": 1, "start": "00:00", "end": "23:50"}
-                        for _ in range(time_prog.entries_a_day)
-                    ]
+                    [{"state": 1, "start": "00:00", "end": "23:50"} for _ in range(time_prog.entries_a_day)]
                     for _ in range(time_prog.number_of_days)
                 ],
             }
         )
         assert len(time_prog._entries) == time_prog.number_of_days
-        assert all(
-            [
-                len(entries_of_day) == time_prog.entries_a_day
-                for entries_of_day in time_prog._entries
-            ]
-        )
+        assert all([len(entries_of_day) == time_prog.entries_a_day for entries_of_day in time_prog._entries])
         assert all(
             time_prog.entry(day, num) == TimeProgEntry(1, TimeProgPeriod(0, 0, 23, 50))
             for num in range(time_prog.entries_a_day)
@@ -488,22 +414,18 @@ class TestTimeProgram:
         )
         # assert 0
 
-    def test_str(self):
+    def test_str(self) -> None:
         time_prog = TimeProgram(0, "Name", 10, 3, 10, 7)
-        assert str(
-            time_prog
-        ) == "idx={:d}, name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}, entries=[{}]".format(
+        assert str(time_prog) == "idx={:d}, name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}, entries=[{}]".format(
             0, "Name", 10, 3, 10, 7, ""
         )
         time_prog.set_entry(0, 0, TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0)))
-        assert str(
-            time_prog
-        ) == "idx={:d}, name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}, entries=[{}]".format(
+        assert str(time_prog) == "idx={:d}, name={!r}, ead={:d}, nos={:d}, ste={:d}, nod={:d}, entries=[{}]".format(
             0, "Name", 10, 3, 10, 7, "..."
         )
         # assert 0
 
-    def test_as_dict(self):
+    def test_as_dict(self) -> None:
         time_prog = TimeProgram(0, "Name", 10, 3, 10, 7)
         assert time_prog.as_dict(False) == {
             "index": 0,
@@ -520,14 +442,11 @@ class TestTimeProgram:
             "nos": 3,
             "ste": 10,
             "nod": 7,
-            "entries": [
-                [None for _ in range(time_prog.entries_a_day)]
-                for _ in range(time_prog.number_of_days)
-            ],
+            "entries": [[None for _ in range(time_prog.entries_a_day)] for _ in range(time_prog.number_of_days)],
         }
         # assert 0
 
-    def test_as_json(self):
+    def test_as_json(self) -> None:
         time_prog = TimeProgram(0, "Name", 10, 3, 10, 7)
         assert time_prog.as_json(False) == {
             "index": 0,
@@ -544,14 +463,11 @@ class TestTimeProgram:
             "nos": 3,
             "ste": 10,
             "nod": 7,
-            "entries": [
-                [None for _ in range(time_prog.entries_a_day)]
-                for _ in range(time_prog.number_of_days)
-            ],
+            "entries": [[None for _ in range(time_prog.entries_a_day)] for _ in range(time_prog.number_of_days)],
         }
         # assert 0
 
-    def test_properties(self):
+    def test_properties(self) -> None:
         time_prog = TimeProgram(0, "Name", 10, 3, 10, 7)
         assert time_prog.index == 0
         assert time_prog.name == "Name"
@@ -561,21 +477,17 @@ class TestTimeProgram:
         assert time_prog.number_of_days == 7
         # assert 0
 
-    @pytest.mark.parametrize(
-        "day, num", [(day, num) for day in range(7) for num in range(7)]
-    )
-    def test_entry(self, day: int, num: int):
+    @pytest.mark.parametrize("day, num", [(day, num) for day in range(7) for num in range(7)])
+    def test_entry(self, day: int, num: int) -> None:
         time_prog = TimeProgram(0, "Name", 10, 3, 10, 7)
         assert time_prog.entry(day, num) is None
         entry = TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0))
         time_prog.set_entry(day, num, entry)
         assert time_prog.entry(day, num) == entry
-        assert (
-            time_prog.entry(day, num) is not entry
-        )  # time_prog.entry() should be a "deepcopy" of entry
+        assert time_prog.entry(day, num) is not entry  # time_prog.entry() should be a "deepcopy" of entry
         # assert 0
 
-    def test_entry_raises_IndexError(self):
+    def test_entry_raises_IndexError(self) -> None:
         time_prog = TimeProgram(0, "Name", 10, 3, 10, 7)
         with pytest.raises(IndexError):
             time_prog.entry(time_prog.number_of_days, 0)
@@ -586,7 +498,7 @@ class TestTimeProgram:
         # assert 0
 
     @pytest.mark.parametrize("day", range(7))
-    def test_entries_of_day(self, day: int):
+    def test_entries_of_day(self, day: int) -> None:
         time_prog = TimeProgram(0, "Name", 10, 3, 10, 7)
         entries_of_day = time_prog.entries_of_day(day)
         assert len(entries_of_day) == time_prog.entries_a_day
@@ -611,14 +523,14 @@ class TestTimeProgram:
         start_minute: int,
         end_hour: int,
         end_minute: int,
-    ):
+    ) -> None:
         time_prog = TimeProgram(0, "Name", 10, 3, 15, 7)
         period = TimeProgPeriod(start_hour, start_minute, end_hour, end_minute)
         with pytest.raises(ValueError):
             time_prog.set_entry(0, 0, TimeProgEntry(state, period))
         # assert 0
 
-    def test_set_entry_raises_IndexError(self):
+    def test_set_entry_raises_IndexError(self) -> None:
         time_prog = TimeProgram(0, "Name", 10, 3, 15, 7)
         entry = TimeProgEntry(0, TimeProgPeriod(0, 0, 0, 0))
         with pytest.raises(IndexError):
