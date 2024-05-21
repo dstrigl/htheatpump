@@ -92,7 +92,7 @@ class AioHtHeatpump(HtHeatpump):
     :param stopbits: The number of stop bits to use.
     :type stopbits: float or int
     :param timeout: The read timeout value.
-        Default is :attr:`~htheatpump.htheatpump.HtHeatpump.DEFAULT_SERIAL_TIMEOUT`.
+        Default is :attr:`~htheatpump.htheatpump.HtHeatpump.DEFAULT_TIMEOUT`.
     :type timeout: None, float or int
     :param xonxoff: Software flow control enabled.
     :type xonxoff: bool
@@ -139,7 +139,7 @@ class AioHtHeatpump(HtHeatpump):
         bytesize: int = serial.EIGHTBITS,
         parity: str = serial.PARITY_NONE,
         stopbits: Union[float, int] = serial.STOPBITS_ONE,
-        timeout: Optional[Union[float, int]] = HtHeatpump.DEFAULT_SERIAL_TIMEOUT,
+        timeout: Optional[Union[float, int]] = HtHeatpump.DEFAULT_TIMEOUT,
         xonxoff: bool = True,
         rtscts: bool = False,
         write_timeout: Optional[Union[float, int]] = None,
