@@ -181,6 +181,7 @@ class HtHeatpump:
     def __init__(
         self,
         url: str,
+        baudrate: int = 115200,
         timeout: Optional[Union[float, int]] = DEFAULT_TIMEOUT,
         verify_param_action: Optional[Set["VerifyAction"]] = None,
         verify_param_error: bool = False,
