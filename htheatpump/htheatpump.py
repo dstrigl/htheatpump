@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-#  htheatpump - Serial communication module for Heliotherm heat pumps
-#  Copyright (C) 2022  Daniel Strigl
+#  htheatpump - Communication module for Heliotherm heat pumps
+#  Copyright (C) 2024  Daniel Strigl
 
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -25,9 +25,10 @@ import enum
 import logging
 import re
 import time
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 
-import serial
+import socket
+from urllib.parse import urlparse
 
 from .htparams import HtParams, HtParamValueType
 from .httimeprog import TimeProgEntry, TimeProgram
@@ -146,30 +147,11 @@ class VerificationException(ValueError):  # pragma: no cover
 class HtHeatpump:
     """Object which encapsulates the communication with the Heliotherm heat pump.
 
-    :param device: The serial device to attach to (e.g. :data:`/dev/ttyUSB0`).
-    :type device: str
-    :param baudrate: The baud rate to use for the serial device.
-    :type baudrate: int
-    :param bytesize: The bytesize of the serial messages.
-    :type bytesize: int
-    :param parity: Which kind of parity to use.
-    :type parity: str
-    :param stopbits: The number of stop bits to use.
-    :type stopbits: float or int
-    :param timeout: The read timeout value. Default is :attr:`DEFAULT_SERIAL_TIMEOUT`.
+    :param url: The internet address (:data:`tcp://hostname:port`) to connect to
+        (e.g. :data:`tcp://192.168.11.91:8123`). Must include the scheme :data:`tcp`.
+    :type url: str
+    :param timeout: The read timeout value. Default is :attr:`DEFAULT_TIMEOUT`.
     :type timeout: None, float or int
-    :param xonxoff: Software flow control enabled.
-    :type xonxoff: bool
-    :param rtscts: Hardware flow control (RTS/CTS) enabled.
-    :type rtscts: bool
-    :param write_timeout: The write timeout value.
-    :type write_timeout: None, float or int
-    :param dsrdtr: Hardware flow control (DSR/DTR) enabled.
-    :type dsrdtr: bool
-    :param inter_byte_timeout: Inter-character timeout, ``None`` to disable (default).
-    :type inter_byte_timeout: None, float or int
-    :param exclusive: Exclusive access mode enabled (POSIX only).
-    :type exclusive: bool
     :param verify_param_action: Parameter verification actions.
     :type verify_param_action: None or set
     :param verify_param_error: Interpretation of parameter verification failure as error enabled.
@@ -177,7 +159,7 @@ class HtHeatpump:
 
     Example::
 
-        hp = HtHeatpump("/dev/ttyUSB0", baudrate=9600)
+        hp = HtHeatpump("tcp://192.168.11.91:8123")
         try:
             hp.open_connection()
             hp.login()
@@ -190,46 +172,29 @@ class HtHeatpump:
             hp.close_connection()
     """
 
-    DEFAULT_SERIAL_TIMEOUT: int = 5
-    """Serial timeout value in seconds; normally no need to change it."""
+    DEFAULT_TIMEOUT: float = 5.0
+    """Communication timeout value in seconds; normally no need to change it."""
 
     DEFAULT_LOGIN_RETRIES: int = 2
     """Maximum number of retries for a login attempt; 1 regular try + :const:`DEFAULT_LOGIN_RETRIES` retries."""
 
     def __init__(
         self,
-        device: str,
-        baudrate: int = 115200,
-        bytesize: int = serial.EIGHTBITS,
-        parity: str = serial.PARITY_NONE,
-        stopbits: Union[float, int] = serial.STOPBITS_ONE,
-        timeout: Optional[Union[float, int]] = DEFAULT_SERIAL_TIMEOUT,
-        xonxoff: bool = True,
-        rtscts: bool = False,
-        write_timeout: Optional[Union[float, int]] = None,
-        dsrdtr: bool = False,
-        inter_byte_timeout: Optional[Union[float, int]] = None,
-        exclusive: Optional[bool] = None,
+        url: str,
+        timeout: Optional[Union[float, int]] = DEFAULT_TIMEOUT,
         verify_param_action: Optional[Set["VerifyAction"]] = None,
         verify_param_error: bool = False,
     ) -> None:
         """Initialize the HtHeatpump class."""
-        # store the serial settings for later connection establishment
-        self._ser_settings = {
-            "port": device,
-            "baudrate": baudrate,
-            "bytesize": bytesize,
-            "parity": parity,
-            "stopbits": stopbits,
+        # store the communication settings for later connection establishment
+        url_components = urlparse(url)
+        if url_components.scheme != "tcp":
+            raise ValueError("invalid scheme for url, must be 'tcp' [{!r}]".format(url_components.scheme))
+        self._sock_settings = {
+            "address": (url_components.hostname, url_components.port),
             "timeout": timeout,
-            "xonxoff": xonxoff,
-            "rtscts": rtscts,
-            "write_timeout": write_timeout,
-            "dsrdtr": dsrdtr,
-            "inter_byte_timeout": inter_byte_timeout,
-            "exclusive": exclusive,
         }
-        self._ser = None
+        self._sock = None
         # store settings for parameter verification
         self._verify_param_action = (
             {VerifyAction.NAME} if verify_param_action is None else verify_param_action
@@ -239,9 +204,9 @@ class HtHeatpump:
         assert isinstance(self._verify_param_error, bool)
 
     def __del__(self) -> None:
-        # close the connection if still established
-        if self._ser and self._ser.is_open:
-            self._ser.close()
+        # close the connection if still open
+        if self._sock:
+            self._sock.close()
 
     def __enter__(self) -> "HtHeatpump":
         self.open_connection()
@@ -251,47 +216,40 @@ class HtHeatpump:
         self.close_connection()
 
     def open_connection(self) -> None:
-        """Open the serial connection with the defined settings.
+        """Establish the connection with the defined settings.
 
         :raises IOError:
-            When the serial connection is already open.
-        :raises ValueError:
-            Will be raised when parameter are out of range, e.g. baudrate, bytesize.
-        :raises SerialException:
-            In case the device can not be found or can not be configured.
+            When the connection is already established.
         """
-        if self._ser:
-            raise IOError("serial connection already open")
-        # open the serial connection (must fit with the settings on the heat pump!)
-        self._ser = serial.Serial(**self._ser_settings)
-        _LOGGER.info(self._ser)  # log serial connection properties
+        if self._sock:
+            raise IOError("connection already established")
+        # establish the connection
+        self._sock = socket.create_connection(**self._sock_settings)
+        _LOGGER.info(self._sock)  # log connection properties
 
     def reconnect(self) -> None:
-        """Perform a reconnect of the serial connection. Flush the output and
-        input buffer, close the serial connection and open it again.
+        """Perform a reconnect of the connection.
         """
-        if self._ser and self._ser.is_open:
-            self._ser.reset_output_buffer()
-            self._ser.reset_input_buffer()
+        if self._sock:
             self.close_connection()
         self.open_connection()
 
     def close_connection(self) -> None:
-        """Close the serial connection."""
-        if self._ser and self._ser.is_open:
-            self._ser.close()
-            self._ser = None
+        """Close the established connection."""
+        if self._sock:
+            self._sock.close()
+            self._sock = None
             # we wait for 100ms, as it should be avoided to reopen the connection to fast
             time.sleep(0.1)
 
     @property
     def is_open(self) -> bool:
-        """Return the state of the serial port, whether it’s open or not.
+        """Return the state of the connection, whether it’s established or not.
 
-        :returns: The state of the serial port as :obj:`bool`.
+        :returns: The state of the connection as :obj:`bool`.
         :rtype: ``bool``
         """
-        return self._ser is not None and self._ser.is_open
+        return self._sock is not None
 
     @property
     def verify_param_action(self) -> Set[VerifyAction]:
@@ -336,13 +294,33 @@ class HtHeatpump:
         :param cmd: Command to send to the heat pump.
         :type cmd: str
         :raises IOError:
-            Will be raised when the serial connection is not open.
+            Will be raised when the connection is not established.
         """
-        if not self._ser:
-            raise IOError("serial connection not open")
+        if not self._sock:
+            raise IOError("connection not established")
         req = create_request(cmd)
         _LOGGER.debug("send request: [%s]", req)
-        self._ser.write(req)
+        self._sock.sendall(req)
+
+    def _socket_recvall(self, size: int, flags: int = 0) -> bytes:
+        """Receive exactly bufsize bytes from the socket.
+
+        The return value is a bytes object representing the data received.
+        See the Unix manual page recv(2) for the meaning of the optional
+        argument *flags*; it defaults to zero.
+
+        TODO param, returns, rtype
+        """
+        assert self._sock is not None, "connection not established"
+        buffer = bytearray(size)
+        view = memoryview(buffer)
+        pos = 0
+        while pos < size:
+            read = self._sock.recv_into(view[pos:], size - pos, flags)
+            if not read:
+                return read
+            pos += read
+        return bytes(buffer)
 
     def read_response(self) -> str:
         """Read the response message from the heat pump.
@@ -350,7 +328,7 @@ class HtHeatpump:
         :returns: The returned response message of the heat pump as :obj:`str`.
         :rtype: ``str``
         :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
+            Will be raised when the connection is not established or received an incomplete/invalid
             (or unknown) response (e.g. broken data stream, unknown header, invalid checksum, ...).
 
         .. note::
@@ -378,16 +356,16 @@ class HtHeatpump:
             must be corrected (for the checksum computation) so that the received checksum fits with the computed
             one (e.g. for ``b"\\x02\\xfd\\xe0\\xd0\\x01\\x00"`` and ``b"\\x02\\xfd\\xe0\\xd0\\x02\\x00"``).
         """
-        if not self._ser:
-            raise IOError("serial connection not open")
+        if not self._sock:
+            raise IOError("connection not established")
         # read the header of the response message
-        header = self._ser.read(RESPONSE_HEADER_LEN)
+        header = self._socket_recvall(RESPONSE_HEADER_LEN)
         if not header:
             raise IOError("data stream broken during reading response header")
         elif header not in RESPONSE_HEADER:
             raise IOError("invalid or unknown response header [{}]".format(header))
         # read the length of the following payload
-        payload_len_r = self._ser.read(1)
+        payload_len_r = self._socket_recvall(1)
         if not payload_len_r:
             raise IOError("data stream broken during reading payload length")
         payload_len = payload_len_r = payload_len_r[0]
@@ -403,7 +381,7 @@ class HtHeatpump:
             )
             payload = b""
             while payload[-2:] != b"\r\n":
-                tmp = self._ser.read(1)
+                tmp = self._socket_recvall(1)
                 if not tmp:
                     raise IOError(
                         "data stream broken during reading payload ending with '\\r\\n'"
@@ -413,14 +391,14 @@ class HtHeatpump:
             payload_len = len(payload)
         else:
             # read the payload itself
-            payload = self._ser.read(payload_len)
+            payload = self._socket_recvall(payload_len)
             if not payload or len(payload) < payload_len:
                 raise IOError("data stream broken during reading payload")
         # depending on the received header correct the payload length for the checksum computation,
         #   so that the received checksum fits with the computed one
         payload_len = RESPONSE_HEADER[header]["payload_len"](payload_len)
         # read the checksum and verify the validity of the response
-        checksum = self._ser.read(1)
+        checksum = self._socket_recvall(1)
         if not checksum:
             raise IOError("data stream broken during reading checksum")
         checksum = checksum[0]
@@ -475,7 +453,7 @@ class HtHeatpump:
             Default is :attr:`DEFAULT_LOGIN_RETRIES`.
         :type max_retries: int
         :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
+            Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
         # we try to login the heat pump for several times
@@ -529,7 +507,7 @@ class HtHeatpump:
         :returns: The manufacturer's serial number of the heat pump as :obj:`int` (e.g. :data:`123456`).
         :rtype: ``int``
         :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
+            Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
         # send RID request to the heat pump
@@ -562,7 +540,7 @@ class HtHeatpump:
 
         :rtype: ``tuple`` ( str, int )
         :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
+            Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
         # send request command to the heat pump
@@ -601,7 +579,7 @@ class HtHeatpump:
 
         :rtype: ``tuple`` ( datetime.datetime, int )
         :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
+            Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
         # send CLK request to the heat pump
@@ -642,7 +620,7 @@ class HtHeatpump:
             Raised for an invalid type of argument :attr:`dt`. Must be :const:`None` or
             of type :class:`datetime.datetime`.
         :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
+            Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
         if dt is None:
@@ -697,7 +675,7 @@ class HtHeatpump:
 
         :rtype: ``tuple`` ( int, int, datetime.datetime, str )
         :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
+            Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
         # send ALC request to the heat pump
@@ -730,7 +708,7 @@ class HtHeatpump:
         :returns: The size of the fault list as :obj:`int`.
         :rtype: ``int``
         :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
+            Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
         # send ALS request to the heat pump
@@ -767,7 +745,7 @@ class HtHeatpump:
 
         :rtype: ``list``
         :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
+            Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
         if not args:
@@ -881,7 +859,7 @@ class HtHeatpump:
             )
         resp_name, resp_min, resp_max, resp_val = (
             g.strip() for g in m.group(1, 4, 3, 2)
-        )  # type: str, Any, Any, Any
+        )
         _LOGGER.debug(
             "'%s': NAME='%s', MIN='%s', MAX='%s', VAL='%s'",
             name,
@@ -1061,7 +1039,7 @@ class HtHeatpump:
         :raises KeyError:
             Will be raised when the parameter definition for the passed parameter is not found.
         :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
+            Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         :raises VerificationException:
             Will be raised if the parameter verification fails and the property :attr:`~HtHeatpump.verify_param_error`
@@ -1114,7 +1092,7 @@ class HtHeatpump:
             Will be raised if the passed value is beyond the parameter limits and argument :attr:`ignore_limits`
             is set to :const:`False`.
         :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
+            Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         :raises VerificationException:
             Will be raised if the parameter verification fails and the property :attr:`~HtHeatpump.verify_param_error`
@@ -1164,7 +1142,7 @@ class HtHeatpump:
         :returns: :const:`True` if the heat pump is malfunctioning, :const:`False` otherwise.
         :rtype: ``bool``
         :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
+            Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
         return self.get_param("Stoerung")  # type: ignore
@@ -1188,7 +1166,7 @@ class HtHeatpump:
         :raises KeyError:
             Will be raised when the parameter definition for a passed parameter is not found.
         :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
+            Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         :raises VerificationException:
             Will be raised if the parameter verification fails and the property :attr:`~HtHeatpump.verify_param_error`
@@ -1234,7 +1212,7 @@ class HtHeatpump:
         :raises ValueError:
             Will be raised when a passed parameter doesn't represent a "MP" data point.
         :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
+            Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
         if not args:
@@ -1289,7 +1267,7 @@ class HtHeatpump:
                     # MP data point number, value and ?
                     dp_number, dp_value, unknown_val = m.group(
                         1, 2, 3
-                    )  # type: Any, str, str
+                    )
                     dp_number = int(dp_number)
                     if dp_number not in dp_dict:
                         raise IOError(
@@ -1321,7 +1299,7 @@ class HtHeatpump:
         :returns: A list of :class:`~htheatpump.httimeprog.TimeProgram` instances.
         :rtype: ``list``
         :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
+            Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
         time_progs = []
@@ -1373,7 +1351,7 @@ class HtHeatpump:
             their time program entries.
         :rtype: ``TimeProgram``
         :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
+            Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
         assert isinstance(idx, int)
@@ -1416,7 +1394,7 @@ class HtHeatpump:
             with their time program entries.
         :rtype: ``TimeProgram``
         :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
+            Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
         assert isinstance(idx, int)
@@ -1483,7 +1461,7 @@ class HtHeatpump:
         :returns: The requested time program as :class:`~htheatpump.httimeprog.TimeProgram`.
         :rtype: ``TimeProgram``
         :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
+            Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
         assert isinstance(idx, int)
@@ -1508,7 +1486,7 @@ class HtHeatpump:
         :returns: The requested time program entry as :class:`~htheatpump.httimeprog.TimeProgEntry`.
         :rtype: ``TimeProgEntry``
         :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
+            Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
         assert isinstance(idx, int)
@@ -1558,7 +1536,7 @@ class HtHeatpump:
         :returns: The changed time program entry :class:`~htheatpump.httimeprog.TimeProgEntry`.
         :rtype: ``TimeProgEntry``
         :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
+            Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
         assert isinstance(idx, int)
@@ -1607,7 +1585,7 @@ class HtHeatpump:
         :returns: The time program as :class:`~htheatpump.httimeprog.TimeProgram` including all time program entries.
         :rtype: ``TimeProgram``
         :raises IOError:
-            Will be raised when the serial connection is not open or received an incomplete/invalid
+            Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
         assert isinstance(time_prog, TimeProgram)
