@@ -243,6 +243,23 @@ class HtHeatpump:
             # we wait for 100ms, as it should be avoided to reopen the connection to fast
             time.sleep(0.1)
 
+    def _socket_is_connected(self) -> bool:
+        """TODO doc
+        """
+        if self._sock is None:
+            return False
+        self._sock.setblocking(False)
+        try:
+            # try to read bytes without blocking and also without removing them from buffer (peek only)
+            data = self._sock.recv(16, socket.MSG_PEEK)
+            return len(data) > 0
+        except BlockingIOError:
+            return True  # socket is open and reading from it would block
+        except ConnectionResetError:
+            return False  # socket was closed for some other reason
+        finally:
+            self._sock.setblocking(True)
+
     @property
     def is_open(self) -> bool:
         """Return the state of the connection, whether it’s established or not.
@@ -250,7 +267,7 @@ class HtHeatpump:
         :returns: The state of the connection as :obj:`bool`.
         :rtype: ``bool``
         """
-        return self._sock is not None
+        return self._socket_is_connected()
 
     @property
     def verify_param_action(self) -> Set[VerifyAction]:
