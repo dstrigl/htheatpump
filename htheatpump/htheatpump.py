@@ -243,8 +243,12 @@ class HtHeatpump:
             # we wait for 100ms, as it should be avoided to reopen the connection to fast
             time.sleep(0.1)
 
-    def _socket_is_connected(self) -> bool:
-        """TODO doc
+    @property
+    def is_open(self) -> bool:
+        """Return the state of the connection, whether it’s established or not.
+
+        :returns: The state of the connection as :obj:`bool`.
+        :rtype: ``bool``
         """
         if self._sock is None:
             return False
@@ -259,15 +263,6 @@ class HtHeatpump:
             return False  # socket was closed for some other reason
         finally:
             self._sock.setblocking(True)
-
-    @property
-    def is_open(self) -> bool:
-        """Return the state of the connection, whether it’s established or not.
-
-        :returns: The state of the connection as :obj:`bool`.
-        :rtype: ``bool``
-        """
-        return self._socket_is_connected()
 
     @property
     def verify_param_action(self) -> Set[VerifyAction]:
