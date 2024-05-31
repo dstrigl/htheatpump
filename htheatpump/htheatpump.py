@@ -473,10 +473,10 @@ class HtHeatpump:
         success = False
         retry = 0
         while not success and retry <= max_retries:
-            # send LOGIN request to the heat pump
-            self.send_request(LOGIN_CMD)
-            # ... and wait for the response
             try:
+                # send LOGIN request to the heat pump
+                self.send_request(LOGIN_CMD)
+                # ... and wait for the response
                 resp = self.read_response()
                 m = re.match(LOGIN_RESP, resp)
                 if not m:
@@ -523,10 +523,10 @@ class HtHeatpump:
             Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
-        # send RID request to the heat pump
-        self.send_request(RID_CMD)
-        # ... and wait for the response
         try:
+            # send RID request to the heat pump
+            self.send_request(RID_CMD)
+            # ... and wait for the response
             resp = self.read_response()  # e.g. "RID,123456"
             m = re.match(RID_RESP, resp)
             if not m:
@@ -556,10 +556,10 @@ class HtHeatpump:
             Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
-        # send request command to the heat pump
-        self.send_request(VERSION_CMD)
-        # ... and wait for the response
         try:
+            # send request command to the heat pump
+            self.send_request(VERSION_CMD)
+            # ... and wait for the response
             resp = self.read_response()
             # search for pattern "NAME=..." and "VAL=..." inside the response string;
             #   the textual representation of the version is encoded in the 'NAME',
@@ -595,10 +595,10 @@ class HtHeatpump:
             Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
-        # send CLK request to the heat pump
-        self.send_request(CLK_CMD[0])
-        # ... and wait for the response
         try:
+            # send CLK request to the heat pump
+            self.send_request(CLK_CMD[0])
+            # ... and wait for the response
             resp = self.read_response()  # e.g. "CLK,DA=26.11.15,TI=21:28:57,WD=4"
             m = re.match(CLK_RESP, resp)
             if not m:
@@ -650,10 +650,10 @@ class HtHeatpump:
             dt.second,
             dt.isoweekday(),
         )
-        # send command to the heat pump
-        self.send_request(cmd)
-        # ... and wait for the response
         try:
+            # send command to the heat pump
+            self.send_request(cmd)
+            # ... and wait for the response
             resp = self.read_response()  # e.g. "CLK,DA=26.11.15,TI=21:28:57,WD=4"
             m = re.match(CLK_RESP, resp)
             if not m:
@@ -691,10 +691,10 @@ class HtHeatpump:
             Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
-        # send ALC request to the heat pump
-        self.send_request(ALC_CMD)
-        # ... and wait for the response
         try:
+            # send ALC request to the heat pump
+            self.send_request(ALC_CMD)
+            # ... and wait for the response
             resp = (
                 self.read_response()
             )  # e.g. "AA,29,20,14.09.14-11:52:08,EQ_Spreizung"
@@ -724,10 +724,10 @@ class HtHeatpump:
             Will be raised when the connection is not established or received an incomplete/invalid
             response (e.g. broken data stream, invalid checksum).
         """
-        # send ALS request to the heat pump
-        self.send_request(ALS_CMD)
-        # ... and wait for the response
         try:
+            # send ALS request to the heat pump
+            self.send_request(ALS_CMD)
+            # ... and wait for the response
             resp = self.read_response()  # e.g. "SUM=2757"
             m = re.match(ALS_RESP, resp)
             if not m:
@@ -779,10 +779,10 @@ class HtHeatpump:
                 else:
                     break
             assert cnt > 0
-            # send AR request to the heat pump
-            self.send_request(cmd)
-            # ... and wait for the response
             try:
+                # send AR request to the heat pump
+                self.send_request(cmd)
+                # ... and wait for the response
                 resp = []
                 # read all requested fault list entries
                 for _ in range(cnt):
@@ -916,10 +916,10 @@ class HtHeatpump:
             name in HtParams
         ), "parameter definition for parameter {!r} not found".format(name)
         param = HtParams[name]  # type: ignore
-        # send command to the heat pump
-        self.send_request(param.cmd())
-        # ... and wait for the response
         try:
+            # send command to the heat pump
+            self.send_request(param.cmd())
+            # ... and wait for the response
             resp = self.read_response()
             return self._extract_param_data(name, resp)
         except Exception as e:
@@ -1134,11 +1134,11 @@ class HtHeatpump:
                     val, param.min_val, param.max_val
                 )
             )
-        # send command to the heat pump
         val = param.to_str(val)
-        self.send_request("{},VAL={}".format(param.cmd(), val))
-        # ... and wait for the response
         try:
+            # send command to the heat pump
+            self.send_request("{},VAL={}".format(param.cmd(), val))
+            # ... and wait for the response
             resp = self.read_response()
             data = self._extract_param_data(name, resp)
             ret = self._verify_param_resp(name, *data)
@@ -1262,10 +1262,10 @@ class HtHeatpump:
                 else:
                     break
             assert cnt > 0
-            # send MR request to the heat pump
-            self.send_request(cmd)
-            # ... and wait for the response
             try:
+                # send MR request to the heat pump
+                self.send_request(cmd)
+                # ... and wait for the response
                 resp = []
                 # read all requested data point (parameter) values
                 for _ in range(cnt):
@@ -1316,10 +1316,10 @@ class HtHeatpump:
             response (e.g. broken data stream, invalid checksum).
         """
         time_progs = []
-        # send PRL request to the heat pump
-        self.send_request(PRL_CMD)
-        # ... and wait for the response
         try:
+            # send PRL request to the heat pump
+            self.send_request(PRL_CMD)
+            # ... and wait for the response
             resp = self.read_response()  # e.g. "SUM=5"
             m = re.match(PRL_RESP[0], resp)
             if not m:
@@ -1368,10 +1368,10 @@ class HtHeatpump:
             response (e.g. broken data stream, invalid checksum).
         """
         assert isinstance(idx, int)
-        # send PRI request to the heat pump
-        self.send_request(PRI_CMD.format(idx))
-        # ... and wait for the response
         try:
+            # send PRI request to the heat pump
+            self.send_request(PRI_CMD.format(idx))
+            # ... and wait for the response
             resp = (
                 self.read_response()
             )  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
@@ -1411,10 +1411,10 @@ class HtHeatpump:
             response (e.g. broken data stream, invalid checksum).
         """
         assert isinstance(idx, int)
-        # send PRD request to the heat pump
-        self.send_request(PRD_CMD.format(idx))
-        # ... and wait for the response
         try:
+            # send PRD request to the heat pump
+            self.send_request(PRD_CMD.format(idx))
+            # ... and wait for the response
             resp = (
                 self.read_response()
             )  # e.g. "PRI0,NAME=Warmwasser,EAD=7,NOS=2,STE=15,NOD=7,ACS=0,US=1"
@@ -1505,10 +1505,10 @@ class HtHeatpump:
         assert isinstance(idx, int)
         assert isinstance(day, int)
         assert isinstance(num, int)
-        # send PRE request to the heat pump
-        self.send_request(PRE_CMD[0].format(idx, day, num))
-        # ... and wait for the response
         try:
+            # send PRE request to the heat pump
+            self.send_request(PRE_CMD[0].format(idx, day, num))
+            # ... and wait for the response
             resp = (
                 self.read_response()
             )  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
@@ -1556,14 +1556,14 @@ class HtHeatpump:
         assert isinstance(day, int)
         assert isinstance(num, int)
         assert isinstance(entry, TimeProgEntry)
-        # send PRE command to the heat pump
-        self.send_request(
-            PRE_CMD[1].format(
-                idx, day, num, entry.state, entry.period.start_str, entry.period.end_str
-            )
-        )
-        # ... and wait for the response
         try:
+            # send PRE command to the heat pump
+            self.send_request(
+                PRE_CMD[1].format(
+                    idx, day, num, entry.state, entry.period.start_str, entry.period.end_str
+                )
+            )
+            # ... and wait for the response
             resp = (
                 self.read_response()
             )  # e.g. "PRE,PR=0,DAY=2,EV=1,ST=1,BEG=03:30,END=22:00"
