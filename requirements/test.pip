@@ -1,6 +1,6 @@
 mypy==1.10.0
 coverage==7.5.3
-pytest==8.2.1
+pytest==8.2.2
 pytest-asyncio==0.23.7
 pytest-mypy==0.10.3
 pytest-cov==5.0.0
